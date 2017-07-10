@@ -11,7 +11,7 @@ const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
 
-function startQuestions(cache) {
+function startQuestions(defaults) {
 	
 	const questions = [
 		{
@@ -23,7 +23,7 @@ function startQuestions(cache) {
 				const isValid = fs.existsSync(targetExe);
 				return isValid ? true : `Couldn't find ${targetExe}`
 			},
-			default: cache.plotterPath
+			default: defaults.plotterPath
 		},
 		{
 			type: "input",
@@ -33,7 +33,7 @@ function startQuestions(cache) {
 				const isValid = /^\d{20}$/.test(v);
 				return isValid ? true : "Use your *numeric* account ID (20 digits), dude!"
 			},
-			default: cache.accountId
+			default: defaults.accountId
 		},
 		{
 			type: "list",
@@ -46,7 +46,7 @@ function startQuestions(cache) {
 	return prompt(questions)
 }
 
-function nextQuestions(setup, previousAnswers) {
+function nextQuestions(defaults, previousAnswers) {
 	
 	const {hardDisk} = previousAnswers;
 	const selectedDrive = diskInfo.disks[hardDisk];
@@ -93,7 +93,7 @@ function nextQuestions(setup, previousAnswers) {
 			validate: v => {
 				return /^\d+$/.test(v) ? true : "Nonce is a numeric value, man!";
 			},
-			default: setup.lastNonce ? setup.lastNonce + 1 : 0
+			default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
 		},
 		{
 			type: "list",
@@ -117,11 +117,9 @@ function nextQuestions(setup, previousAnswers) {
 }
 
 
-function _run(setup) {
- 
-
-	return startQuestions(setup)
-		.then(nextQuestions.bind(null, setup))
+function _run(defaults){
+	return startQuestions(defaults)
+		.then(nextQuestions.bind(null, defaults))
 }
 
 module.exports = {
