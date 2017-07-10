@@ -3,20 +3,23 @@ const jsonFile = require("jsonfile");
 const DEFAULT_FILENAME = "./.cache";
 
 const cacheableProps = [
+	'plotterPath',
 	'accountId',
-	'lastNonce'
+	'lastNonce',
 ];
 
 const _load = (file = DEFAULT_FILENAME) => jsonFile.readFileSync(file);
 
-function _update(cache, obj, file = DEFAULT_FILENAME) {
-	let isDirty = false;
+function _update(obj, file = DEFAULT_FILENAME) {
+	const cache = _load(file);
 	
+	let isDirty = false;
+
 	let updatedCache;
 	for (let i = 0; i < cacheableProps.length; ++i) {
 		const prop = cacheableProps[i];
 		if (obj[prop]) {
-			updatedCache = Object.assign({}, cache,
+			updatedCache = Object.assign(cache,
 				{
 					[prop]: obj[prop]
 				});

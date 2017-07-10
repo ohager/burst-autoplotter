@@ -1,0 +1,18 @@
+{
+  "author": "Oliver Hager",
+  "license": "MIT",
+  "name": "burst-autoplotter",
+  "version": "0.0.1",
+  "private": false,
+  "devDependencies": {},
+  "dependencies": {
+    "chalk": "^2.0.1",
+    "command-line-args": "^4.0.6",
+    "fd-diskspace": "^1.0.0",
+    "inquirer": "^3.2.0",
+    "jsonfile": "^3.0.1"
+  },
+  "scripts": {
+    "start": "node ./index.js"
+  }
+}

@@ -1,7 +1,7 @@
-const prompt = require('inquirer').prompt;
 const os = require('os');
+const fs = require('fs');
+const prompt = require('inquirer').prompt;
 const diskInfo = require('fd-diskspace').diskSpaceSync();
-const jsonFile = require('jsonfile');
 
 const bytesToMegabytes = noBytes => noBytes / (1024 * 1024);
 const bytesToGigabytes = noBytes => (bytesToMegabytes(noBytes) / 1024).toFixed(2);
@@ -11,11 +11,20 @@ const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(bytesToMegabytes(availableRAM_bytes));
 
-let selectedDrive;
-
 function startQuestions(cache) {
 	
 	const questions = [
+		{
+			type: "input",
+			name: "plotterPath",
+			message: "Where can I find the XPlotter executable (Directory)?",
+			validate: v => {
+				const targetExe = `${v}/xplotter_avx.exe`;
+				const isValid = fs.existsSync(targetExe);
+				return isValid ? true : `Couldn't find ${targetExe}`
+			},
+			default: cache.plotterPath
+		},
 		{
 			type: "input",
 			name: "accountId",
