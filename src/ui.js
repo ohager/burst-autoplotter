@@ -3,13 +3,13 @@ const fs = require('fs');
 const prompt = require('inquirer').prompt;
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 
-const bytesToMegabytes = noBytes => noBytes / (1024 * 1024);
-const bytesToGigabytes = noBytes => (bytesToMegabytes(noBytes) / 1024).toFixed(2);
+const {b2mib, b2gib} = require('./utils');
+
 const availableDrives = Object.keys(diskInfo.disks);
 
 const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
-const availableRAM_mib = Math.floor(bytesToMegabytes(availableRAM_bytes));
+const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
 
 function startQuestions(cache) {
 	
@@ -50,7 +50,7 @@ function nextQuestions(setup, previousAnswers) {
 	
 	const {hardDisk} = previousAnswers;
 	const selectedDrive = diskInfo.disks[hardDisk];
-	const maxAvailableSpaceGiB = bytesToGigabytes(selectedDrive.free);
+	const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
 	const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
 	const threadChoices = [];
 	for(let i=1; i<=availableCPUs;++i) threadChoices.push(i + '');

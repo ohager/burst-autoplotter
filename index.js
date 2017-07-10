@@ -2,8 +2,8 @@ const commandLineArgs = require('command-line-args');
 
 const plotter = require("./src/plot");
 const createPartition = require("./src/partitioner").create;
-const setup = require("./src/setup-ui");
-const cacheHandler = require("./src/cache-handler");
+const setup = require("./src/ui");
+const cacheHandler = require("./src/cache");
 
 const optionDefinitions = [
 	{name: 'cache', alias: 'c', type: String},

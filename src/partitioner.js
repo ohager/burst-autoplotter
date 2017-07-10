@@ -1,28 +1,23 @@
-const gigaBytes2Bytes = gib => gib * (1024 * 1024 * 1024);
+const {gib2b} = require('./utils');
 
-const calculateNonces = bytes => Math.floor(bytes / 262144);
+const NONCE_SIZE_BYTES = 262144;
 
+const calculateNonces = bytes => Math.floor(bytes / NONCE_SIZE_BYTES);
 
 function _createPartition(totalPlotSize, startNonce, chunks) {
 	
-	const totalNonces = calculateNonces(gigaBytes2Bytes(totalPlotSize));
+	const totalNonces = calculateNonces(gib2b(totalPlotSize));
 	const noncesPerChunk = Math.floor(totalNonces / chunks);
 	let parts = [];
 	let nonceSum = 0;
-	let i = 0;
-	// TODO: Refactor... DRY!
-	for (; i < chunks - 1; ++i) {
+	for (let i = 0; i < chunks; ++i) {
 		parts.push(
 			{
 				startNonce: i > 0 ? parts[i - 1].startNonce + noncesPerChunk : +startNonce,
-				nonces: noncesPerChunk
+				nonces: i === chunks.length - 1 ? totalNonces - nonceSum : noncesPerChunk
 			});
 		nonceSum += noncesPerChunk;
 	}
-	parts.push({
-		startNonce: i > 0 ? parts[i - 1].startNonce + noncesPerChunk : +startNonce,
-		nonces: totalNonces - nonceSum
-	});
 	
 	return {
 		totalNonces: totalNonces,

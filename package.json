@@ -4,15 +4,19 @@
   "name": "burst-autoplotter",
   "version": "0.0.1",
   "private": false,
-  "devDependencies": {},
+  "devDependencies": {
+    "jest": "^20.0.4"
+  },
   "dependencies": {
     "chalk": "^2.0.1",
+    "co": "^4.6.0",
     "command-line-args": "^4.0.6",
     "fd-diskspace": "^1.0.0",
     "inquirer": "^3.2.0",
     "jsonfile": "^3.0.1"
   },
   "scripts": {
+    "test": "jest",
     "start": "node ./index.js"
   }
 }
