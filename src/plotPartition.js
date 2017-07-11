@@ -14,7 +14,7 @@ function _createPlots(totalPlotSize, startNonce, chunks) {
 		plots.push(
 			{
 				startNonce: i > 0 ? plots[i - 1].startNonce + noncesPerChunk : +startNonce,
-				nonces: i === chunks.length - 1 ? totalNonces - nonceSum : noncesPerChunk
+				nonces: i === chunks - 1 ? totalNonces - nonceSum : noncesPerChunk
 			});
 		nonceSum += noncesPerChunk;
 	}

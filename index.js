@@ -1,7 +1,7 @@
 const commandLineArgs = require('command-line-args');
 
 const plotter = require("./src/plotter");
-const createPlotPartition = require("./src/plotPartition").create;
+const {create: createPlotPartition} = require("./src/plotPartition");
 const ui = require("./src/ui");
 const cache = require("./src/cache");
 
@@ -19,21 +19,23 @@ ui.run(cache.load(options.cache))
 	
 	const {plotterPath, accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory} = answers;
 	const path = `${hardDisk}:/burst/plots`;
-	const partition = createPlotPartition(100, 0, 3);
+	const exe = `${plotterPath}/xplotter_avx.exe`;
 	
+	const partition = createPlotPartition(totalPlotSize, startNonce, chunks);
 	console.log("Created Partition:", partition);
 	
 	const plots = partition.plots;
-	
 	const lastPart = plots[plots.length - 1];
+	
 	cache.update({lastNonce: lastPart.startNonce + lastPart.nonces}, options.cache);
 	
 	plotter.start({
-		plots: plots,
-		accountId: 1000,
-		path: "c:/plots",
-		threads: 7,
-		memory: 6144
+		exe,
+		plots,
+		accountId,
+		path,
+		threads,
+		memory
 	});
 	
 });
@@ -41,19 +43,18 @@ ui.run(cache.load(options.cache))
 /*
  //const {plotterPath, accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory} = answers;
  //const path = `${hardDisk}:/burst/plots`;
- const partition = createPlotPartition(100, 0, 3);
+ 
+ const partition = createPlotPartition(15, 0, 3);
  
  console.log("Created Partition:", partition);
  
- const parts = partition.parts;
- 
- //const lastPart = parts[parts.length - 1];
- //cache.update({lastNonce: lastPart.startNonce + lastPart.nonces}, options.cache);
+ const plots = partition.plots;
  
  plotter.start({
- plots: parts,
+ exe: "C:/Users/Dextra/AppData/Roaming/BurstWallet/XPlotter/Xplotter_avx.exe",
+ plots: plots,
  accountId: 1000,
- path: "c:/plots",
+ path: "c:/Burst/testplots",
  threads: 7,
  memory: 6144
  });
