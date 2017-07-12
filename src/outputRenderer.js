@@ -24,8 +24,7 @@ function prettifyNoncesPerMin(context,{$1 : done,$2 : perMin}){
 	context.totalRemainingNonces -= (+done - lastDone);
 	
 	const progress = ( (1 -(context.totalRemainingNonces/context.totalNonces)) * 100.0).toFixed(2);
-	console.log(chalk`{greenBright [${progress}%]}@{yellowBright ${perMin} nonces/min} - ${done} nonces done`);
-	console.log(chalk`Current plot: {whiteBright ${done}/${context.currentPlotNonces}}`);
+	console.log(chalk`{greenBright [${progress}%]} @{yellowBright ${perMin} nonces/min} - ${context.totalRemainingNonces} remaining nonces - Current plot: {whiteBright ${done}/${context.currentPlotNonces}}`);
 	lastDone = +done;
 }
 
