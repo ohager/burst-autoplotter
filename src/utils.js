@@ -9,6 +9,8 @@ const _gib2b = gib => gib * FACT_GIB;
 const _b2mib = noBytes => noBytes / FACT_MIB;
 const _b2gib = noBytes => (noBytes / FACT_GIB);
 
+
+
 module.exports = {
 	gib2b : _gib2b,
 	b2gib : _b2gib,

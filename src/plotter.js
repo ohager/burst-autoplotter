@@ -1,13 +1,21 @@
 const {spawn} = require('child_process');
+const path = require('path');
 const co = require('co');
 const throttle = require('lodash.throttle');
-const prettify = require('./prettifyOutput');
+const debounce = require('lodash.debounce');
+const {log,error} = require('./outputRenderer');
 const chalk = require('chalk');
+
+const xplotter = path.resolve(process.env.XPLOTTER);
+
+const context = {
+	totalNonces : 0,
+	totalRemainingNonces : 0
+};
 
 const execPlot = function *(args) {
 	
-	const {exe, accountId, startNonce, nonces, threads, path, memory} = args;
-
+	const {accountId, startNonce, nonces, threads, path, memory} = args;
 	
 	// Xplotter.exe -id <ID> -sn <start_nonce> [-n <nonces>] -t <threads> [-path <d:/plots>] [-mem <8G>]
 	const plotterArgs = [
@@ -19,21 +27,22 @@ const execPlot = function *(args) {
 		'-mem', `${memory}M`
 	];
 	
-	console.log("Used Plotter:", exe);
-	console.log("Start plotting:", plotterArgs.join(' '));
-	
 	yield new Promise(function (resolve) {
 		
-		const dir = spawn(exe, plotterArgs);
+		const dir = spawn(xplotter, plotterArgs);
+		dir.stdout.on('data', log.bind(null, context));
 		
-		dir.stdout.on('data', throttle(prettify,1000));
+		dir.stderr.on('data', err => {
+			error(err);
+			reject(err);
+		});
 		
 		dir.on('close', code => {
 			if(code !== 0){
-				console.log(chalk`🖕 {red Fuck!} - Something went wrong (code ${code})`);
+				console.log(chalk`🖕 {redBright Fuck!} - Something went wrong (code ${code})`);
 			}
 			else{
-				console.log(chalk`🍻 {green Yay!} - Plot created successfully`);
+				console.log(chalk`🍻 {greenBright Yay!} - Plot created successfully`);
 			}
 			resolve()
 		});
@@ -45,14 +54,24 @@ const execPlot = function *(args) {
 
 function _start(args) {
 	
-	const {exe, plots, accountId, path, threads, memory} = args;
+	const {totalNonces, plots, accountId, path, threads, memory} = args;
+	
+	context.totalNonces =
+	context.totalRemainingNonces = totalNonces;
 	
 	return co(function *() {
 		for (let i = 0; i < plots.length; ++i) {
+
 			const plot = plots[i];
+			
+			console.log(chalk`{green ------------------------------------------}`);
+			console.log(chalk`{whiteBright Starting plot ${i+1}/${plots.length}} - Nonces {whiteBright ${plot.startNonce}} to {whiteBright ${plot.startNonce + plot.nonces}}`);
+			console.log(chalk`{green ------------------------------------------}`);
+			
+			context.currentPlotNonces=plot.nonces;
+			
 			yield execPlot.call(this,
 				{
-					exe,
 					accountId,
 					path,
 					startNonce: plot.startNonce,
@@ -61,7 +80,11 @@ function _start(args) {
 					memory
 				})
 		}
+		
+		console.log(chalk`{greenBright 🎉 Tadaa 🍾} {whiteBright Finished Plotting. Awesome...} {magentaBright 💲Happy Mining!💰}`)
+	
 	});
+	
 }
 
 

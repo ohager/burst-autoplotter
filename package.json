@@ -11,6 +11,7 @@
     "chalk": "^2.0.1",
     "co": "^4.6.0",
     "command-line-args": "^4.0.6",
+    "dotenv": "^4.0.0",
     "fd-diskspace": "^1.0.0",
     "inquirer": "^3.2.0",
     "jsonfile": "^3.0.1",

@@ -16,17 +16,6 @@ function startQuestions(defaults) {
 	const questions = [
 		{
 			type: "input",
-			name: "plotterPath",
-			message: "Where can I find the XPlotter executable (Directory)?",
-			validate: v => {
-				const targetExe = `${v}/xplotter_avx.exe`;
-				const isValid = fs.existsSync(targetExe);
-				return isValid ? true : `Couldn't find ${targetExe}`
-			},
-			default: defaults.plotterPath
-		},
-		{
-			type: "input",
 			name: "accountId",
 			message: "What's your numeric BURST Account ID?",
 			validate: v => {

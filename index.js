@@ -1,3 +1,6 @@
+require('dotenv').config();
+
+const chalk = require('chalk');
 const commandLineArgs = require('command-line-args');
 
 const plotter = require("./src/plotter");
@@ -17,20 +20,18 @@ ui.run(cache.load(options.cache))
 		return answers
 	}).then(answers => {
 	
-	const {plotterPath, accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory} = answers;
+	const {accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory} = answers;
 	const path = `${hardDisk}:/burst/plots`;
-	const exe = `${plotterPath}/xplotter_avx.exe`;
 	
-	const partition = createPlotPartition(totalPlotSize, startNonce, chunks);
-	console.log("Created Partition:", partition);
-	
-	const plots = partition.plots;
+	const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
 	const lastPart = plots[plots.length - 1];
-	
 	cache.update({lastNonce: lastPart.startNonce + lastPart.nonces}, options.cache);
 	
+	console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);
+	console.log(chalk`Overall nonces to be written: {whiteBright ${totalNonces}}`);
+	
 	plotter.start({
-		exe,
+		totalNonces,
 		plots,
 		accountId,
 		path,
@@ -40,22 +41,25 @@ ui.run(cache.load(options.cache))
 	
 });
 
-/*
+
+
  //const {plotterPath, accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory} = answers;
  //const path = `${hardDisk}:/burst/plots`;
+
+/*
+const totalPlotSize = 3.25;
+const chunks = 3;
+const {totalNonces, plots}= createPlotPartition(totalPlotSize, 0, chunks);
  
- const partition = createPlotPartition(15, 0, 3);
- 
- console.log("Created Partition:", partition);
- 
- const plots = partition.plots;
- 
+console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);
+console.log(chalk`Overall nonces to be written: {whiteBright ${totalNonces}}`);
+
  plotter.start({
- exe: "C:/Users/Dextra/AppData/Roaming/BurstWallet/XPlotter/Xplotter_avx.exe",
+	 totalNonces: totalNonces,
  plots: plots,
  accountId: 1000,
  path: "c:/Burst/testplots",
  threads: 7,
  memory: 6144
  });
- */
+*/
