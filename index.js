@@ -1,2 +1,1 @@
-require('dotenv').config();
-require('./src/main').run();
+require('./src/autoplot');

@@ -1,9 +1,10 @@
 {
-  "author": "Oliver Hager",
+  "author": "ohager",
   "license": "MIT",
   "name": "burst-autoplotter",
   "version": "0.0.1",
   "private": false,
+  "repository": "ohager/burst-autoplotter",
   "devDependencies": {
     "jest": "^20.0.4"
   },
@@ -16,7 +17,11 @@
     "inquirer": "^3.2.0",
     "jsonfile": "^3.0.1",
     "lodash.debounce": "^4.0.8",
-    "lodash.throttle": "^4.1.1"
+    "lodash.throttle": "^4.1.1",
+    "moment": "^2.18.1"
+  },
+  "bin": {
+    "autoplot": "./src/autoplot.js"
   },
   "scripts": {
     "test": "jest",

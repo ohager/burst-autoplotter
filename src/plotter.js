@@ -5,6 +5,7 @@ const throttle = require('lodash.throttle');
 const debounce = require('lodash.debounce');
 const {log,error} = require('./outputRenderer');
 const chalk = require('chalk');
+const moment = require('moment');
 
 const xplotter = path.resolve(process.env.XPLOTTER_EXE);
 
@@ -38,11 +39,13 @@ const execPlot = function *(args) {
 		});
 		
 		dir.on('close', code => {
+			console.log("\n");
+			
 			if(code !== 0){
-				console.log(chalk`🖕 {redBright Fuck!} - Something went wrong (code ${code})`);
+				console.log(chalk`{redBright 🖕Fuck!} - Something went wrong (code ${code})`);
 			}
 			else{
-				console.log(chalk`🍻 {greenBright Yay!} - Plot created successfully`);
+				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
 			}
 			resolve()
 		});
@@ -51,6 +54,25 @@ const execPlot = function *(args) {
 	
 };
 
+function _writeFinalStats(){
+	
+	const p = v => v<10 ? '0'+v : v;
+	
+	const elapsedTimeSecs = (context.endTime - context.startTime)/1000;
+	const hours = Math.floor(elapsedTimeSecs/3600);
+	const mins = Math.floor(elapsedTimeSecs/60);
+	const secs = Math.floor(elapsedTimeSecs/60);
+	const totalNoncesPerMin = Math.floor(context.totalNonces/(elapsedTimeSecs/60));
+	
+	console.log(chalk`{greenBright ===========================================}`);
+	console.log(chalk`Written Nonces: {whiteBright ${context.totalNonces}}`);
+	console.log(chalk`Created Plots: {whiteBright ${context.currentPlotIndex}}`);
+	console.log(chalk`Overall time: {whiteBright ${hours}:${p(mins)}:${p(secs)}}`);
+	console.log(chalk`Nonces/min: {whiteBright ${totalNoncesPerMin}}`);
+	console.log("\n");
+	console.log(chalk`{blueBright Credits to Blago, Cerr Janro, and DCCT for their amazing XPlotter}`);
+	console.log("\n");
+}
 
 function _start(args) {
 	
@@ -58,6 +80,7 @@ function _start(args) {
 	
 	context.totalNonces =
 	context.totalRemainingNonces = totalNonces;
+	context.startTime = Date.now();
 	
 	return co(function *() {
 		for (let i = 0; i < plots.length; ++i) {
@@ -68,7 +91,8 @@ function _start(args) {
 			console.log(chalk`{whiteBright Starting plot ${i+1}/${plots.length}} - Nonces {whiteBright ${plot.startNonce}} to {whiteBright ${plot.startNonce + plot.nonces}}`);
 			console.log(chalk`{green ------------------------------------------}`);
 			
-			context.currentPlotNonces=plot.nonces;
+			context.currentPlotNonces = plot.nonces;
+			context.currentPlotIndex = i+1;
 			
 			yield execPlot.call(this,
 				{
@@ -81,8 +105,12 @@ function _start(args) {
 				})
 		}
 		
+		context.endTime = Date.now();
+		
+		_writeFinalStats();
+		
 		console.log(chalk`{greenBright 🎉 Tadaa 🍾} {whiteBright Finished Plotting. Awesome...} {magentaBright 💲Happy Mining!💰}`)
-	
+		
 	});
 	
 }

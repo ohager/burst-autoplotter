@@ -17,6 +17,7 @@ const guaranteeExistance = (file) => {
 };
 
 const _load = (file = DefaultCacheFile) => jsonFile.readFileSync(guaranteeExistance(file));
+
 function _update(obj, file = DefaultCacheFile) {
 	const cache = _load(file);
 	

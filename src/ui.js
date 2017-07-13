@@ -58,7 +58,7 @@ function nextQuestions(defaults, previousAnswers) {
 				let isValid = false;
 				try {
 					const s = parseFloat(v);
-					isValid = s >= 10 && s <= maxAvailableSpaceGiB;
+					isValid = s >= 1 && s <= maxAvailableSpaceGiB;
 				} catch (e) {
 					// noop isValid remains false!
 				}
