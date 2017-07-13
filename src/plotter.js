@@ -6,7 +6,7 @@ const debounce = require('lodash.debounce');
 const {log,error} = require('./outputRenderer');
 const chalk = require('chalk');
 
-const xplotter = path.resolve(process.env.XPLOTTER);
+const xplotter = path.resolve(process.env.XPLOTTER_EXE);
 
 const context = {
 	totalNonces : 0,

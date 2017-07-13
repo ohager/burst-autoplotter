@@ -1,7 +1,5 @@
 const chalk = require('chalk');
 
-// Output formatter for XPlotter
-
 // CPU: 4428 nonces done, (9011 nonces/min)
 const NoncesPerMinRegex = /CPU: (\d+) nonces done, \((\d+) nonces\/min\)/g;
 
@@ -25,24 +23,11 @@ function prettifyNoncesPerMin(context,{$1 : done,$2 : perMin}){
 	
 	const progress = ( (1 -(context.totalRemainingNonces/context.totalNonces)) * 100.0).toFixed(2);
 	console.log(chalk`{greenBright [${progress}%]} @{yellowBright ${perMin} nonces/min} - ${context.totalRemainingNonces} remaining nonces - Current plot: {whiteBright ${done}/${context.currentPlotNonces}}`);
+
 	lastDone = +done;
 }
 
-function prettifyProgress({$1:progress,$2:from,$3:to}){
-	console.log(chalk`Progress: {green ${progress}%}`);
-}
-
-function prettifyHeader({$0: header, $1:status}) {
-	
-	console.log(chalk`{whiteBright ${header}}`);
-	if(status !== 'OK'){
-		console.log(chalk`{green Party on, Garth!}`);
-	}
-	
-}
-
 function _log(context, output){
-
 	const text = output.toString();
 	const npm = getNoncesPerMin(text);
 	
