@@ -1,4 +1,3 @@
-
 const {PLOTS_DIR} = require('./config');
 const chalk = require('chalk');
 const {version, author} = require('../package.json');

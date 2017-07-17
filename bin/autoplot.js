@@ -1,4 +1,3 @@
-
 const { PLOTS_DIR } = require('./config');
 const chalk = require('chalk');
 const { version, author } = require('../package.json');
@@ -17,7 +16,7 @@ const options = commandLineArgs([{ name: 'cache', alias: 'c', type: String }]);
 	console.log(chalk`{whiteBright --------------------------------------------------}`);
 	console.log(chalk`{blueBright.bold BURST Auto Plotter} based on XPlotter`);
 	console.log(chalk`Version {whiteBright ${version}}`);
-	console.log(`by ${author}`);
+	console.log(`by ${author.name}`);
 	console.log(chalk`{whiteBright --------------------------------------------------}`);
 	console.log('\n');
 
