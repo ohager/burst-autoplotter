@@ -4,7 +4,6 @@ const path = require('path');
 const co = require('co');
 const {log,error} = require('./outputRenderer');
 const chalk = require('chalk');
-const moment = require('moment');
 
 const context = {
 	totalNonces : 0,
