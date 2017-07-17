@@ -4,7 +4,7 @@
   },
   "license": "MIT",
   "name": "burst-autoplotter",
-  "version": "0.0.2a",
+  "version": "0.0.2",
   "private": false,
   "repository": "ohager/burst-autoplotter",
   "devDependencies": {
@@ -17,8 +17,7 @@
     "command-line-args": "^4.0.6",
     "fd-diskspace": "^1.0.0",
     "inquirer": "^3.2.0",
-    "jsonfile": "^3.0.1",
-    "moment": "^2.18.1"
+    "jsonfile": "^3.0.1"
   },
   "bin": {
     "autoplot": "./bin/index.js"
