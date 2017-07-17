@@ -6,25 +6,31 @@
   "private": false,
   "repository": "ohager/burst-autoplotter",
   "devDependencies": {
+    "babel-cli": "^6.24.1",
     "jest": "^20.0.4"
   },
   "dependencies": {
     "chalk": "^2.0.1",
     "co": "^4.6.0",
     "command-line-args": "^4.0.6",
-    "dotenv": "^4.0.0",
     "fd-diskspace": "^1.0.0",
     "inquirer": "^3.2.0",
     "jsonfile": "^3.0.1",
     "lodash.debounce": "^4.0.8",
     "lodash.throttle": "^4.1.1",
-    "moment": "^2.18.1"
+    "moment": "^2.18.1",
+    "webpack": "^3.2.0"
   },
   "bin": {
-    "autoplot": "./src/autoplot.js"
+    "autoplot": "./bin/autoplot.js"
   },
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "preferGlobal": true,
   "scripts": {
+    "build": "babel src --out-dir bin",
     "test": "jest",
-    "start": "node ./index.js"
+    "start": "node ./src/autoplot.js"
   }
 }

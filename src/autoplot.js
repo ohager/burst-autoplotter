@@ -1,5 +1,5 @@
-require('dotenv').config();
 
+const {PLOTS_DIR} = require('./config');
 const chalk = require('chalk');
 const {version, author} = require('../package.json');
 const commandLineArgs = require('command-line-args');
@@ -9,7 +9,6 @@ const {create: createPlotPartition} = require('./plotPartition');
 const ui = require('./ui');
 const cache = require('./cache');
 
-const plotOutputPath = process.env.PLOTS_DIR;
 const options = commandLineArgs([
 	{name: 'cache', alias: 'c', type: String},
 ]);
@@ -33,7 +32,7 @@ const options = commandLineArgs([
 		}).then(answers => {
 		
 			const {accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory} = answers;
-			const path = `${hardDisk}:/${plotOutputPath}`;
+			const path = `${hardDisk}:/${PLOTS_DIR}`;
 			const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
 			
 			const lastPlot = plots[plots.length - 1];
