@@ -20,7 +20,7 @@ const options = commandLineArgs([
 	console.log(chalk`{whiteBright --------------------------------------------------}`);
 	console.log(chalk`{blueBright.bold BURST Auto Plotter} based on XPlotter`);
 	console.log(chalk`Version {whiteBright ${version}}`);
-	console.log(`by ${author}`);
+	console.log(`by ${author.name}`);
 	console.log(chalk`{whiteBright --------------------------------------------------}`);
 	console.log('\n');
 	

@@ -11,6 +11,8 @@ const context = {
 	totalRemainingNonces : 0
 };
 
+const xplotter = path.join(__dirname, "../exe", XPLOTTER_EXE);
+
 const execPlot = function *(args) {
 	
 	const {accountId, startNonce, nonces, threads, path, memory} = args;
@@ -27,7 +29,7 @@ const execPlot = function *(args) {
 	
 	yield new Promise(function (resolve) {
 		
-		const dir = spawn(XPLOTTER_EXE, plotterArgs);
+		const dir = spawn(xplotter, plotterArgs);
 		dir.stdout.on('data', log.bind(null, context));
 		
 		dir.stderr.on('data', err => {

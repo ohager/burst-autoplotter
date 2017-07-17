@@ -1,8 +1,10 @@
 {
-  "author": "ohager",
+  "author": {
+    "name": "ohager"
+  },
   "license": "MIT",
   "name": "burst-autoplotter",
-  "version": "0.0.1",
+  "version": "0.0.1c",
   "private": false,
   "repository": "ohager/burst-autoplotter",
   "devDependencies": {
