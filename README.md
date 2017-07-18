@@ -11,7 +11,9 @@ Features:
 - Allows CPU and RAM selection
 - Creates optimized plots (XPlotter)
 
-> Currently, the plotter works only on Windows
+> Currently, the plotter works only! on Windows
+
+![autoplotter-in-action](https://cdn.discordapp.com/attachments/324092664813191170/336669430446555147/autoplotter.gif)
  
 ## Installation
 
