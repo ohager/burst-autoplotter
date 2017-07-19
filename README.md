@@ -24,7 +24,7 @@ Once installed simply call
 
 Afterwards, you just need to call `autoplot` no console.
 
-> __RUN CONSOLE AS ADMIN TO MAKE PLOT RUN SIGNIFICANTLY FASTER__
+> __RUN CONSOLE AS ADMIN TO MAKE PLOT RUN SIGNIFICANTLY FASTER__ (see [Issue #3](https://github.com/ohager/burst-autoplotter/issues/3)) 
 
 
 ## Plot Automation?
@@ -34,3 +34,9 @@ While plotting your disks will be filled with so called nonces, kind of pre-calc
 while mining. The creation of a plot is a quite time consuming process. Furthermore, you need to be sure that your plots 
 won't overlap, that is nonce range won't overlap. The Autoplotter takes entirely care of this.
 You simply define the size and number of plots and the rest is done automatically. That way, plotting become very easy.
+
+# Credits
+
+This tool uses [XPlotter](https://github.com/Blagodarenko/XPlotter). 
+
+Thanks to Blago, Cerr Janro, and DCCT
