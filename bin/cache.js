@@ -1,26 +1,27 @@
 const { CACHE_FILE } = require('./config');
-const jsonFile = require('jsonfile');
-const fs = require('fs');
+const fs = require('fs-extra');
+const path = require('path');
 
 const initialCacheData = {
 	accountId: "",
 	lastNonce: 0
 };
+const defaultCacheFile = path.join(__dirname, CACHE_FILE);
 
 const cacheableProps = Object.keys(initialCacheData);
 
 const guaranteeExistance = file => {
 	if (!fs.existsSync(file)) {
-		jsonFile.writeFileSync(file, initialCacheData);
+		fs.writeJsonSync(file, initialCacheData);
 	}
 	return file;
 };
 
-const _load = (file = CACHE_FILE) => jsonFile.readFileSync(guaranteeExistance(file));
+const _load = (file = defaultCacheFile) => fs.readJsonSync(guaranteeExistance(file));
 
-function _update(obj, file = CACHE_FILE) {
+function _update(obj, file = defaultCacheFile) {
+
 	const cache = _load(file);
-
 	let isDirty = false;
 
 	let updatedCache;
@@ -36,7 +37,7 @@ function _update(obj, file = CACHE_FILE) {
 	}
 
 	if (isDirty) {
-		jsonFile.writeFileSync(file, updatedCache, { spaces: 2 });
+		fs.writeJsonSync(file, updatedCache, { spaces: 2 });
 	}
 }
 

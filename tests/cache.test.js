@@ -1,17 +1,15 @@
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
-const jsonFile = require("jsonfile");
 
 const {load, update} = require('../src/cache');
 
 const TestCache = path.join(__dirname, "./testcache");
 
 afterEach(() => {
-	fs.unlinkSync(TestCache);
+	fs.removeSync(TestCache);
 });
 
 test("Load Cache", () => {
-	const test = load(TestCache);
 	const {accountId, lastNonce} = load(TestCache);
 	expect(accountId).toBe("");
 	expect(lastNonce).toBe(0);

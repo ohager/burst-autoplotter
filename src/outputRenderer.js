@@ -32,6 +32,7 @@ function prettifyNoncesPerMin(context,{$1 : done,$2 : perMin}){
 
 function _log(context, output){
 	const text = output.toString();
+	
 	const npm = getNoncesPerMin(text);
 	
 	if(npm) prettifyNoncesPerMin(context, npm);
@@ -41,7 +42,7 @@ function _error(output){
 	const text = output.toString();
 	
 	console.log(chalk`{redBright DAMN!} - Something screwed up!`);
-	console.log(chalk`{yellowBright ${output}}`)
+	console.log(chalk`{yellowBright ${text}}`)
 }
 
 module.exports = {

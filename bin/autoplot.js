@@ -7,6 +7,7 @@ const plotter = require('./plotter');
 const { create: createPlotPartition } = require('./plotPartition');
 const ui = require('./ui');
 const cache = require('./cache');
+const fs = require('fs-extra');
 
 const options = commandLineArgs([{ name: 'cache', alias: 'c', type: String }]);
 
@@ -25,23 +26,31 @@ const options = commandLineArgs([{ name: 'cache', alias: 'c', type: String }]);
 		return answers;
 	}).then(answers => {
 
-		const { accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory } = answers;
-		const path = `${hardDisk}:/${PLOTS_DIR}`;
-		const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
+		try {
+			const { accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory } = answers;
+			const path = `${hardDisk}:/${PLOTS_DIR}`;
 
-		const lastPlot = plots[plots.length - 1];
-		cache.update({ lastNonce: lastPlot.startNonce + lastPlot.nonces }, options.cache);
+			fs.ensureDirSync(path);
 
-		console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);
-		console.log(chalk`Overall nonces to be written: {whiteBright ${totalNonces}}`);
+			const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
 
-		plotter.start({
-			totalNonces,
-			plots,
-			accountId,
-			path,
-			threads,
-			memory
-		});
+			const lastPlot = plots[plots.length - 1];
+			cache.update({ lastNonce: lastPlot.startNonce + lastPlot.nonces }, options.cache);
+
+			console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);
+			console.log(chalk`Overall nonces to be written: {whiteBright ${totalNonces}}`);
+
+			plotter.start({
+				totalNonces,
+				plots,
+				accountId,
+				path,
+				threads,
+				memory
+			});
+		} catch (e) {
+			console.error(`Couldn't create directory ${path} - reason: ${e}`);
+			process.exit(666);
+		}
 	});
 })();

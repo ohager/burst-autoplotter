@@ -7,7 +7,8 @@ const chalk = require('chalk');
 
 const context = {
 	totalNonces : 0,
-	totalRemainingNonces : 0
+	totalRemainingNonces : 0,
+	outputPath : ""
 };
 
 const xplotter = path.join(__dirname, "../exe", XPLOTTER_EXE);
@@ -58,7 +59,7 @@ function _writeFinalStats(){
 	
 	const elapsedTimeSecs = (context.endTime - context.startTime)/1000;
 	const hours = Math.floor(elapsedTimeSecs/3600);
-	const mins = Math.floor(elapsedTimeSecs/60);
+	const mins = Math.floor((elapsedTimeSecs%3600)/60);
 	const secs = Math.floor(elapsedTimeSecs%60);
 	const totalNoncesPerMin = Math.floor(context.totalNonces/(elapsedTimeSecs/60));
 	
@@ -67,6 +68,8 @@ function _writeFinalStats(){
 	console.log(chalk`Created Plots: {whiteBright ${context.currentPlotIndex}}`);
 	console.log(chalk`Overall time: {whiteBright ${hours}:${p(mins)}:${p(secs)}}`);
 	console.log(chalk`Nonces/min: {whiteBright ${totalNoncesPerMin}}`);
+	console.log(chalk`Plots written to: {whiteBright ${context.outputPath}}`);
+	
 	console.log("\n");
 	console.log(chalk`{blueBright Credits to Blago, Cerr Janro, and DCCT for their amazing XPlotter}`);
 	console.log("\n");
@@ -91,6 +94,7 @@ function _start(args) {
 			
 			context.currentPlotNonces = plot.nonces;
 			context.currentPlotIndex = i+1;
+			context.outputPath = path;
 			
 			yield execPlot.call(this,
 				{
