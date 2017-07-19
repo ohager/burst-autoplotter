@@ -11,7 +11,9 @@ Features:
 - Allows CPU and RAM selection
 - Creates optimized plots (XPlotter)
 
-> Currently, the plotter works only on Windows
+> Currently, the plotter works only! on Windows
+
+![autoplotter-in-action](https://cdn.discordapp.com/attachments/324092664813191170/336669430446555147/autoplotter.gif)
  
 ## Installation
 
@@ -21,6 +23,8 @@ Once installed simply call
 `npm i -g burst-autoplot`
 
 Afterwards, you just need to call `autoplot` no console.
+
+> __RUN CONSOLE AS ADMIN TO MAKE PLOT RUN SIGNIFICANTLY FASTER__
 
 
 ## Plot Automation?
