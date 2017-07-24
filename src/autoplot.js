@@ -5,6 +5,7 @@ const commandLineArgs = require('command-line-args');
 
 const plotter = require('./plotter');
 const {create: createPlotPartition} = require('./plotPartition');
+const {hasAdminPrivileges} = require('./privilege');
 const ui = require('./ui');
 const cache = require('./cache');
 const fs = require('fs-extra');
@@ -24,6 +25,12 @@ const options = commandLineArgs([
 	console.log(chalk`{whiteBright --------------------------------------------------}`);
 	console.log('\n');
 	
+	if(!hasAdminPrivileges()){
+		console.log(chalk`🚸 {redBright No Admin rights!}`);
+		console.log('For significantly faster writes you should run autoplotter as administrator');
+		process.exit(666);
+		return;
+	}
 	
 	ui.run(cache.load(options.cache))
 		.then(answers => {

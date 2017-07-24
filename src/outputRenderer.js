@@ -4,6 +4,7 @@ const chalk = require('chalk');
 const WritingScoopsRegex = /scoops: (.+)%/g;
 const NoncesPerMinRegex = /CPU: (\d+) nonces done, \((\d+) nonces\/min\).*scoops: (.+)%/g;
 
+
 function getMatchedGroups(regex, str){
 	const matches = regex.exec(str);
 	if(!matches) return null;
@@ -15,6 +16,7 @@ function getMatchedGroups(regex, str){
 
 const getNoncesPerMin = input => getMatchedGroups(NoncesPerMinRegex, input);
 const getWritingScoops = input => getMatchedGroups(WritingScoopsRegex, input);
+
 
 let lastDone = 0;
 
@@ -52,6 +54,8 @@ function prettifyWritingScoops(context, {$1: percent}, hasNoncesPerMin){
 function _log(context, output){
 	const text = output.toString();
 
+	console.log(text);
+	
 	const npm = getNoncesPerMin(text);
 	const scoops = getWritingScoops(text);
 	

@@ -24,7 +24,7 @@ Once installed simply call
 
 Afterwards, you just need to call `autoplot` no console.
 
-> __RUN CONSOLE AS ADMIN TO MAKE PLOT RUN SIGNIFICANTLY FASTER__ (see [Issue #3](https://github.com/ohager/burst-autoplotter/issues/3)) 
+> __You need to run as administrator__ 
 
 
 ## Plot Automation?
