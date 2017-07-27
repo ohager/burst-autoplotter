@@ -20,7 +20,7 @@ Features:
 The Autoplotter is based on nodejs (>= Version 6), so - if not already installed - you need to install [NodeJS](https://nodejs.org/en/download/) first.
 Once installed simply call 
 
-`npm i -g burst-autoplot`
+`npm i -g burst-autoplotter`
 
 Afterwards, you just need to call `autoplot` no console.
 
