@@ -10,8 +10,11 @@ const ui = require('./ui');
 const cache = require('./cache');
 const fs = require('fs-extra');
 
+const isDevMode = process.env.NODE_ENV==='development';
+
 const options = commandLineArgs([
 	{name: 'cache', alias: 'c', type: String},
+	{name: 'extended', alias: 'e', type: Boolean},
 ]);
 
 
@@ -22,17 +25,23 @@ const options = commandLineArgs([
 	console.log(chalk`{blueBright.bold BURST Auto Plotter} based on XPlotter`);
 	console.log(chalk`Version {whiteBright ${version}}`);
 	console.log(`by ${author.name}`);
+	if(options.extended){
+		console.log('\n');
+		console.log(chalk`{whiteBright Extended Mode Activated}`);
+		console.log('\n');
+	}
 	console.log(chalk`{whiteBright --------------------------------------------------}`);
 	console.log('\n');
 	
-	if(!hasAdminPrivileges()){
+	if(!isDevMode && !hasAdminPrivileges()){
 		console.log(chalk`🚸 {redBright No Admin rights!}`);
 		console.log('For significantly faster writes you should run autoplotter as administrator');
 		process.exit(666);
 		return;
 	}
 	
-	ui.run(cache.load(options.cache))
+	
+	ui.run(cache.load(options.cache), {extended : options.extended})
 		.then(answers => {
 			cache.update(answers, options.cache);
 			return answers;
@@ -51,6 +60,8 @@ const options = commandLineArgs([
 			
 			console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);
 			console.log(chalk`Overall nonces to be written: {whiteBright ${totalNonces}}`);
+			console.log(chalk`Threads used: {whiteBright ${threads}}`);
+			console.log(chalk`Memory used: {whiteBright ${memory}MiB}`);
 			
 			plotter.start({
 				totalNonces,

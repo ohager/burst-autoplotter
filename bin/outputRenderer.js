@@ -52,8 +52,6 @@ function prettifyWritingScoops(context, { $1: percent }, hasNoncesPerMin) {
 function _log(context, output) {
 	const text = output.toString();
 
-	console.log(text);
-
 	const npm = getNoncesPerMin(text);
 	const scoops = getWritingScoops(text);
 

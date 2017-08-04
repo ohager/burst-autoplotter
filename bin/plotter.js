@@ -18,7 +18,12 @@ const execPlot = function* (args) {
 	const { accountId, startNonce, nonces, threads, path, memory } = args;
 
 	// Xplotter.exe -id <ID> -sn <start_nonce> [-n <nonces>] -t <threads> [-path <d:/plots>] [-mem <8G>]
-	const plotterArgs = ['-id', accountId, '-sn', startNonce, '-n', nonces, '-t', threads, '-path', path.endsWith('/') ? path : path + '/', '-mem', `${memory}M`];
+	let plotterArgs = ['-id', accountId, '-sn', startNonce, '-n', nonces, '-path', path.endsWith('/') ? path : path + '/', '-t', threads];
+
+	// optional args
+	if (memory) {
+		plotterArgs.push('-mem', `${memory}M`);
+	}
 
 	yield new Promise(function (resolve) {
 

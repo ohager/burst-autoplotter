@@ -4,11 +4,12 @@
   },
   "license": "MIT",
   "name": "burst-autoplotter",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "private": false,
   "repository": "ohager/burst-autoplotter",
   "devDependencies": {
     "babel-cli": "^6.24.1",
+    "cross-env": "^5.0.1",
     "jest": "^20.0.4"
   },
   "dependencies": {
@@ -29,6 +30,6 @@
   "scripts": {
     "build": "babel src --out-dir bin",
     "test": "jest",
-    "start": "node ./src/autoplot.js"
+    "start": "cross-env NODE_ENV=development node ./src/autoplot.js"
   }
 }
