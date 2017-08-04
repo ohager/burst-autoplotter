@@ -1,7 +1,7 @@
 const path  = require('path');
 const { execFileSync } = require('child_process');
 
-const isAdminBatch = path.join(__dirname, "consoloe../exe", 'isAdmin.bat');
+const isAdminBatch = path.join(__dirname, "../exe", 'isAdmin.bat');
 
 function _hasAdminPrivileges(){
 	try {
