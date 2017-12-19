@@ -22,9 +22,14 @@ Once installed simply call
 
 `npm i -g burst-autoplotter`
 
-Afterwards, you just need to call `autoplot` no console.
+Afterwards, you just need to call `autoplot` in the console.
 
 > __You need to run as administrator__ 
+
+### Extended Mode
+Since 0.0.9 there's is an extended mode, which allows you to set advanced settings like Threads and Memory.
+
+To plot in extended mode you just need to call `autoplot -e`.
 
 
 ## Plot Automation?
