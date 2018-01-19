@@ -2,18 +2,18 @@ const {XPLOTTER_EXE} = require('./config');
 const {spawn} = require('child_process');
 const path = require('path');
 const co = require('co');
-const {log,error} = require('./outputRenderer');
+const {log, error} = require('./outputRenderer');
 const chalk = require('chalk');
 
 const context = {
-	totalNonces : 0,
-	totalRemainingNonces : 0,
-	outputPath : ""
+	totalNonces: 0,
+	totalRemainingNonces: 0,
+	outputPath: ""
 };
 
 const xplotter = path.join(__dirname, "../exe", XPLOTTER_EXE);
 
-const execPlot = function *(args) {
+const execPlot = function* (args) {
 	
 	const {accountId, startNonce, nonces, threads, path, memory} = args;
 	
@@ -27,27 +27,27 @@ const execPlot = function *(args) {
 	];
 	
 	// optional args
-	if(memory){
+	if (memory) {
 		plotterArgs.push('-mem', `${memory}M`)
 	}
 	
-	yield new Promise(function (resolve) {
+	yield new Promise(function (resolve, reject) {
 		
-		const dir = spawn(xplotter, plotterArgs);
-		dir.stdout.on('data', log.bind(null, context));
+		const process = spawn(xplotter, plotterArgs);
+		process.stdout.on('data', log.bind(null, context));
 		
-		dir.stderr.on('data', err => {
+		process.stderr.on('data', err => {
 			error(err);
 			reject(err);
 		});
 		
-		dir.on('close', code => {
+		process.on('close', code => {
 			console.log("\n");
 			
-			if(code !== 0){
-				console.log(chalk`{redBright 🖕Fuck!} - Something went wrong (code ${code})`);
+			if (code !== 0) {
+				console.log(chalk`{redBright 🖕Bah!} - Plotting failed.`);
 			}
-			else{
+			else {
 				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
 			}
 			resolve()
@@ -57,15 +57,15 @@ const execPlot = function *(args) {
 	
 };
 
-function _writeFinalStats(){
+function _writeFinalStats() {
 	
-	const p = v => v<10 ? '0'+v : v;
+	const p = v => v < 10 ? '0' + v : v;
 	
-	const elapsedTimeSecs = (context.endTime - context.startTime)/1000;
-	const hours = Math.floor(elapsedTimeSecs/3600);
-	const mins = Math.floor((elapsedTimeSecs%3600)/60);
-	const secs = Math.floor(elapsedTimeSecs%60);
-	const totalNoncesPerMin = Math.floor(context.totalNonces/(elapsedTimeSecs/60));
+	const elapsedTimeSecs = (context.endTime - context.startTime) / 1000;
+	const hours = Math.floor(elapsedTimeSecs / 3600);
+	const mins = Math.floor((elapsedTimeSecs % 3600) / 60);
+	const secs = Math.floor(elapsedTimeSecs % 60);
+	const totalNoncesPerMin = Math.floor(context.totalNonces / (elapsedTimeSecs / 60));
 	
 	console.log(chalk`{greenBright ===========================================}`);
 	console.log(chalk`Written Nonces: {whiteBright ${context.totalNonces}}`);
@@ -84,38 +84,42 @@ function _start(args) {
 	const {totalNonces, plots, accountId, path, threads, memory} = args;
 	
 	context.totalNonces =
-	context.totalRemainingNonces = totalNonces;
+		context.totalRemainingNonces = totalNonces;
 	context.startTime = Date.now();
 	
-	return co(function *() {
-		for (let i = 0; i < plots.length; ++i) {
-
-			const plot = plots[i];
+	return co(function* () {
+		try {
+			for (let i = 0; i < plots.length; ++i) {
+				
+				const plot = plots[i];
+				
+				console.log(chalk`{green ------------------------------------------}`);
+				console.log(chalk`{whiteBright Starting plot ${i + 1}/${plots.length}} - Nonces {whiteBright ${plot.startNonce}} to {whiteBright ${plot.startNonce + plot.nonces}}`);
+				console.log(chalk`{green ------------------------------------------}`);
+				
+				context.currentPlotNonces = plot.nonces;
+				context.currentPlotIndex = i + 1;
+				context.outputPath = path;
+				
+				yield execPlot.call(this,
+					{
+						accountId,
+						path,
+						startNonce: plot.startNonce,
+						nonces: plot.nonces,
+						threads,
+						memory
+					})
+			}
 			
-			console.log(chalk`{green ------------------------------------------}`);
-			console.log(chalk`{whiteBright Starting plot ${i+1}/${plots.length}} - Nonces {whiteBright ${plot.startNonce}} to {whiteBright ${plot.startNonce + plot.nonces}}`);
-			console.log(chalk`{green ------------------------------------------}`);
+			context.endTime = Date.now();
 			
-			context.currentPlotNonces = plot.nonces;
-			context.currentPlotIndex = i+1;
-			context.outputPath = path;
+			_writeFinalStats();
 			
-			yield execPlot.call(this,
-				{
-					accountId,
-					path,
-					startNonce: plot.startNonce,
-					nonces: plot.nonces,
-					threads,
-					memory
-				})
+			console.log(chalk`{greenBright 🎉 Tadaa 🍾} {whiteBright Finished Plotting. Awesome...} {magentaBright 💲Happy Mining!💰}`)
+		} catch (e) {
+			// noop, already handled
 		}
-		
-		context.endTime = Date.now();
-		
-		_writeFinalStats();
-		
-		console.log(chalk`{greenBright 🎉 Tadaa 🍾} {whiteBright Finished Plotting. Awesome...} {magentaBright 💲Happy Mining!💰}`)
 		
 	});
 	
