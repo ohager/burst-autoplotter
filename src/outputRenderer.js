@@ -1,8 +1,10 @@
 const chalk = require('chalk');
 
-// CPU: 4428 nonces done, (9011 nonces/min)
 const WritingScoopsRegex = /scoops: (.+)%/g;
-const NoncesPerMinRegex = /CPU: (\d+) nonces done, \((\d+) nonces\/min\).*scoops: (.+)%/g;
+// CPU: 85% done, (9011 nonces/min)
+const NoncesPerMinRegex = /CPU: (\d+)% done, \((\d+) nonces\/min\)/g;
+// file: 12345678901234567890_7299739_4096_4096    checked - OK
+const ValidatorRegex = /file: (.+)\s+checked - (.+)/g;
 
 
 function getMatchedGroups(regex, str){
@@ -16,13 +18,15 @@ function getMatchedGroups(regex, str){
 
 const getNoncesPerMin = input => getMatchedGroups(NoncesPerMinRegex, input);
 const getWritingScoops = input => getMatchedGroups(WritingScoopsRegex, input);
-
+const getValidationInfo = input => getMatchedGroups(ValidatorRegex, input);
 
 let lastDone = 0;
 
-const calcProgress = (context) => ( (1 -(context.totalRemainingNonces/context.totalNonces)) * 100.0).toFixed(2)
+const calcProgress = (context) => ( (1 -(context.totalRemainingNonces/context.totalNonces)) * 100.0).toFixed(2);
 
-function prettifyNoncesPerMin(context,{$1 : done,$2 : perMin}){
+function prettifyNoncesPerMin(context,{$1 : donePercent,$2 : perMin}){
+	
+	const done = Math.min(context.currentPlotNonces, Math.floor(context.currentPlotNonces * (donePercent/100.0)));
 	
 	if(done < lastDone) lastDone = 0;
 	
@@ -51,7 +55,17 @@ function prettifyWritingScoops(context, {$1: percent}, hasNoncesPerMin){
 	process.stdout.write(chalk` - Writing Scoops: {whiteBright ${percent}%}`);
 }
 
-function _log(context, output){
+function prettifyValidation({$1: plotFile, $2: status} ){
+	
+	if(status.toLowerCase() === 'ok'){
+		console.log(chalk`Checked plot {whiteBright ${plotFile}} - {green VALID!}`);
+	}
+	else{
+		console.log(chalk`Checked plot {whiteBright ${plotFile}} - {redBright INVALID!}`);
+	}
+}
+
+function _logPlotter(context, output){
 	const text = output.toString();
 	
 	const npm = getNoncesPerMin(text);
@@ -59,6 +73,17 @@ function _log(context, output){
 	
 	if(npm) prettifyNoncesPerMin(context, npm);
 	if(scoops) prettifyWritingScoops(context, scoops, !!npm);
+}
+
+function _logValidator(output) {
+	const text = output.toString();
+	
+	const lines = text.split("\r\n");
+	
+	lines.forEach( line => {
+		const validation = getValidationInfo(line);
+		if(validation) prettifyValidation(validation);
+	});
 }
 
 function _error(output){
@@ -69,6 +94,7 @@ function _error(output){
 }
 
 module.exports = {
-	log : _log,
+	logPlotter : _logPlotter,
+	logValidator : _logValidator,
 	error : _error
 };
