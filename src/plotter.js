@@ -157,13 +157,13 @@ function _start(args) {
 					});
 			}
 			
-			yield execValidator.call(this, path);
-			
-			context.endTime = Date.now();
-			
 			console.log(chalk`{green ------------------------------------------}`);
 			console.log(chalk`{whiteBright Validating plot(s) in ${path}}`);
 			console.log(chalk`{green ------------------------------------------}`);
+			
+			yield execValidator.call(this, path);
+			
+			context.endTime = Date.now();
 			
 			_writeFinalStats();
 			
