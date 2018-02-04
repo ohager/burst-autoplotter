@@ -2,7 +2,7 @@ const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE, PLOT_VALIDATOR} = 
 const {spawn, spawnSync} = require('child_process');
 const path = require('path');
 const co = require('co');
-const {logPlotter, logValidator, error} = require('./outputRenderer');
+const {logPlotter, logPlotterEnd, logValidator, error} = require('./outputRenderer');
 const chalk = require('chalk');
 
 const context = {
@@ -43,7 +43,7 @@ const execValidator = function* (plot) {
 			if (validatorResult.stderr) {
 				error(validatorResult.stderr);
 			}
-
+			
 			console.log(chalk`{redBright 😞 Doh!} - There is a problem with one or more plots.`);
 			reject();
 			return;
@@ -86,13 +86,14 @@ const execPlot = function* (args) {
 		});
 		
 		process.on('close', code => {
-			console.log("\n");
+			
+			logPlotterEnd(context);
 			
 			if (code !== 0) {
-				console.log(chalk`{redBright 🖕Bah!} - Plotting failed.`);
+				console.log(chalk`\n{redBright 🖕Bah!} - Plotting failed.`);
 			}
 			else {
-				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
+				console.log(chalk`\n{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
 			}
 			resolve()
 		});
@@ -154,18 +155,15 @@ function _start(args) {
 						memory,
 						instSet
 					});
-				
 			}
 			
-			/* TODO: not working as expected
-			console.log(chalk`{green ------------------------------------------}`);
-			console.log(chalk`{whiteBright Validating Plot ${path}}`);
-			console.log(chalk`{green ------------------------------------------}`);
-			
 			yield execValidator.call(this, path);
-			*/
 			
 			context.endTime = Date.now();
+			
+			console.log(chalk`{green ------------------------------------------}`);
+			console.log(chalk`{whiteBright Validating plot(s) in ${path}}`);
+			console.log(chalk`{green ------------------------------------------}`);
 			
 			_writeFinalStats();
 			

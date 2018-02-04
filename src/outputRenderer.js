@@ -4,12 +4,14 @@ const WritingScoopsRegex = /scoops: (.+)%/g;
 // CPU: 85% done, (9011 nonces/min)
 const NoncesPerMinRegex = /CPU: (\d+)% done, \((\d+) nonces\/min\)/g;
 // file: 12345678901234567890_7299739_4096_4096    checked - OK
-const ValidatorRegex = /file: (.+)\s+checked - (.+)/g;
+const ValidatorRegex = /file: (\d+_\d+_\d+_\d+).*(OK)/;
 
 
 function getMatchedGroups(regex, str){
 	const matches = regex.exec(str);
-	if(!matches) return null;
+	if(!matches) {
+		return null;
+	}
 	
 	let groups = {};
 	matches.forEach((match, groupIndex) => groups[`$${groupIndex}`] = match );
@@ -57,7 +59,7 @@ function prettifyWritingScoops(context, {$1: percent}, hasNoncesPerMin){
 
 function prettifyValidation({$1: plotFile, $2: status} ){
 	
-	if(status.toLowerCase() === 'ok'){
+	if(status === 'OK'){
 		console.log(chalk`Checked plot {whiteBright ${plotFile}} - {green VALID!}`);
 	}
 	else{
@@ -75,15 +77,36 @@ function _logPlotter(context, output){
 	if(scoops) prettifyWritingScoops(context, scoops, !!npm);
 }
 
+function _logPlotterEnd(context){
+	
+	prettifyNoncesPerMin(context, {$1:100, $2:0});
+}
+
+
 function _logValidator(output) {
 	const text = output.toString();
 	
 	const lines = text.split("\r\n");
-	
+	let isValid = true;
 	lines.forEach( line => {
+
+		line = line.trim();
+		if(!line.length ) return;
+
 		const validation = getValidationInfo(line);
-		if(validation) prettifyValidation(validation);
+		prettifyValidation(validation);
+
+		if(!validation){
+			isValid = false;
+		}
 	});
+	
+	if(!isValid){
+		console.log(chalk`{redBright Gosh!} Found problems with scanned plots`);
+		console.log(chalk`{whiteBright} Log:`);
+		console.log(text);
+	}
+	
 }
 
 function _error(output){
@@ -95,6 +118,7 @@ function _error(output){
 
 module.exports = {
 	logPlotter : _logPlotter,
+	logPlotterEnd : _logPlotterEnd,
 	logValidator : _logValidator,
 	error : _error
 };
