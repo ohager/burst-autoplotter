@@ -1,8 +1,8 @@
-const { XPLOTTER_EXE } = require('./config');
-const { spawn } = require('child_process');
+const { XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE, PLOT_VALIDATOR } = require('./config');
+const { spawn, spawnSync } = require('child_process');
 const path = require('path');
 const co = require('co');
-const { log, error } = require('./outputRenderer');
+const { logPlotter, logPlotterEnd, logValidator, error } = require('./outputRenderer');
 const chalk = require('chalk');
 
 const context = {
@@ -11,11 +11,52 @@ const context = {
 	outputPath: ""
 };
 
-const xplotter = path.join(__dirname, "../exe", XPLOTTER_EXE);
+const getPlotterPath = instSet => {
+
+	const exeDir = "../exe";
+	switch (instSet) {
+		case 'SSE':
+			return path.join(__dirname, exeDir, XPLOTTER_SSE_EXE);
+		case 'AVX':
+			return path.join(__dirname, exeDir, XPLOTTER_AVX_EXE);
+		case 'AVX2':
+			return path.join(__dirname, exeDir, XPLOTTER_AVX2_EXE);
+		default:
+			throw "Unknown Instruction Set " + instSet;
+	}
+};
+
+const validator = path.join(__dirname, "../exe", PLOT_VALIDATOR);
+
+const execValidator = function* (plot) {
+
+	// PlotsChecker.exe c:\burst\plot
+	const validatorArgs = [plot];
+
+	yield new Promise(function (resolve, reject) {
+
+		const validatorResult = spawnSync(validator, validatorArgs);
+
+		logValidator(validatorResult.stdout);
+
+		if (validatorResult.status !== 0) {
+			if (validatorResult.stderr) {
+				error(validatorResult.stderr);
+			}
+
+			console.log(chalk`{redBright 😞 Doh!} - There is a problem with one or more plots.`);
+			reject();
+			return;
+		}
+
+		console.log(chalk`{greenBright 😊 Fine!} - Plot(s) seem(s) to be ok`);
+		resolve();
+	});
+};
 
 const execPlot = function* (args) {
 
-	const { accountId, startNonce, nonces, threads, path, memory } = args;
+	const { accountId, startNonce, nonces, threads, path, memory, instSet } = args;
 
 	// Xplotter.exe -id <ID> -sn <start_nonce> [-n <nonces>] -t <threads> [-path <d:/plots>] [-mem <8G>]
 	let plotterArgs = ['-id', accountId, '-sn', startNonce, '-n', nonces, '-path', path.endsWith('/') ? path : path + '/', '-t', threads];
@@ -25,10 +66,12 @@ const execPlot = function* (args) {
 		plotterArgs.push('-mem', `${memory}M`);
 	}
 
+	const xplotter = getPlotterPath(instSet);
+
 	yield new Promise(function (resolve, reject) {
 
 		const process = spawn(xplotter, plotterArgs);
-		process.stdout.on('data', log.bind(null, context));
+		process.stdout.on('data', logPlotter.bind(null, context));
 
 		process.stderr.on('data', err => {
 			error(err);
@@ -36,12 +79,13 @@ const execPlot = function* (args) {
 		});
 
 		process.on('close', code => {
-			console.log("\n");
+
+			logPlotterEnd(context);
 
 			if (code !== 0) {
-				console.log(chalk`{redBright 🖕Bah!} - Plotting failed.`);
+				console.log(chalk`\n{redBright 🖕Bah!} - Plotting failed.`);
 			} else {
-				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
+				console.log(chalk`\n{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
 			}
 			resolve();
 		});
@@ -72,7 +116,7 @@ function _writeFinalStats() {
 
 function _start(args) {
 
-	const { totalNonces, plots, accountId, path, threads, memory } = args;
+	const { totalNonces, plots, accountId, path, threads, memory, instSet } = args;
 
 	context.totalNonces = context.totalRemainingNonces = totalNonces;
 	context.startTime = Date.now();
@@ -97,11 +141,18 @@ function _start(args) {
 					startNonce: plot.startNonce,
 					nonces: plot.nonces,
 					threads,
-					memory
+					memory,
+					instSet
 				});
 			}
 
+			yield execValidator.call(this, path);
+
 			context.endTime = Date.now();
+
+			console.log(chalk`{green ------------------------------------------}`);
+			console.log(chalk`{whiteBright Validating plot(s) in ${path}}`);
+			console.log(chalk`{green ------------------------------------------}`);
 
 			_writeFinalStats();
 

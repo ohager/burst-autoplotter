@@ -1,3 +1,4 @@
+
 const { PLOTS_DIR } = require('./config');
 const chalk = require('chalk');
 const { version, author } = require('../package.json');
@@ -6,6 +7,7 @@ const commandLineArgs = require('command-line-args');
 const plotter = require('./plotter');
 const { create: createPlotPartition } = require('./plotPartition');
 const { hasAdminPrivileges } = require('./privilege');
+const { checkInstructionSet } = require('./isc');
 const ui = require('./ui');
 const cache = require('./cache');
 const fs = require('fs-extra');
@@ -13,6 +15,20 @@ const fs = require('fs-extra');
 const isDevMode = process.env.NODE_ENV === 'development';
 
 const options = commandLineArgs([{ name: 'cache', alias: 'c', type: String }, { name: 'extended', alias: 'e', type: Boolean }]);
+
+const getInstructionSetInformation = () => {
+
+	const instSet = checkInstructionSet();
+	let recommended = 'SSE';
+	if (instSet.avx) recommended = 'AVX';
+	if (instSet.avx2) recommended = 'AVX2';
+
+	return {
+		raw: instSet,
+		supported: Object.keys(instSet).map(k => instSet[k] ? k.toUpperCase() : ''),
+		recommended: recommended
+	};
+};
 
 (function run() {
 
@@ -36,14 +52,20 @@ const options = commandLineArgs([{ name: 'cache', alias: 'c', type: String }, { 
 		return;
 	}
 
+	const instructionSetInfo = getInstructionSetInformation();
+	console.log(chalk`Supported Instruction Sets: {whiteBright ${instructionSetInfo.supported}}`);
+	console.log(chalk`Selected Instruction Set: {yellowBright ${instructionSetInfo.recommended}}`);
+	console.log('\n');
+
 	ui.run(cache.load(options.cache), { extended: options.extended }).then(answers => {
 		cache.update(answers, options.cache);
 		return answers;
 	}).then(answers => {
 
+		let path = '';
 		try {
 			const { accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory } = answers;
-			const path = `${hardDisk}:/${PLOTS_DIR}`;
+			path = `${hardDisk}:/${PLOTS_DIR}`;
 
 			fs.ensureDirSync(path);
 
@@ -63,7 +85,8 @@ const options = commandLineArgs([{ name: 'cache', alias: 'c', type: String }, { 
 				accountId,
 				path,
 				threads,
-				memory
+				memory,
+				instSet: instructionSetInfo.recommended
 			});
 		} catch (e) {
 			console.error(`Couldn't create directory ${path} - reason: ${e}`);
