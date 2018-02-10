@@ -16,6 +16,7 @@
     "chalk": "^2.0.1",
     "co": "^4.6.0",
     "command-line-args": "^4.0.6",
+    "date-fns": "^1.29.0",
     "fd-diskspace": "^1.0.0",
     "fs-extra": "^4.0.0",
     "inquirer": "^3.2.0"

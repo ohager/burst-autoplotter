@@ -91,10 +91,10 @@ const execPlot = function* (args) {
 			logPlotterEnd(context);
 			
 			if (code !== 0) {
-				console.log(chalk`\n{redBright 🖕Bah!} - Plotting failed.`);
+				console.log(chalk`{redBright 🖕Bah!} - Plotting failed.`);
 			}
 			else {
-				console.log(chalk`\n{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
+				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
 			}
 			resolve()
 		});

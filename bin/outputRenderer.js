@@ -62,7 +62,9 @@ function prettifyWritingScoops(context, { $1: percent }, hasNoncesPerMin) {
 	if (!hasNoncesPerMin) {
 		const progress = calcProgress(context);
 		process.stdout.clearLine();
-		process.stdout.cursorTo(0);
+		process.stdout.cursorTo(0,0);
+		process.stdout.write("Some stuff: blas");
+		process.stdout.cursorTo(0,1);
 		process.stdout.write(chalk`{greenBright [${progress}%]}`);
 	}
 
