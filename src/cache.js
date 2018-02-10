@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 
 const initialCacheData = {
-	accountId : "",
+	accountId : "1234567890123456789",
 	lastNonce : 0
 };
 const defaultCacheFile = path.join(process.env.APPDATA, CACHE_FILE);
