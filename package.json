@@ -4,7 +4,7 @@
   },
   "license": "MIT",
   "name": "burst-autoplotter",
-  "version": "0.1.4a",
+  "version": "0.1.5",
   "private": false,
   "repository": "ohager/burst-autoplotter",
   "devDependencies": {
