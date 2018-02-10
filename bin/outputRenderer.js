@@ -1,4 +1,6 @@
+const { addSeconds, format } = require("date-fns");
 const chalk = require('chalk');
+const { formatTimeString } = require("./utils");
 
 const WritingScoopsRegex = /scoops: (.+)%/g;
 
@@ -38,21 +40,57 @@ const getValidationInfo = input => getMatchedGroups(ValidatorRegex, input);
 
 let lastDone = 0;
 
+let noncesPerSecondsBuffer = [];
+let cycleCount = 0;
+let lastCycleStart = 0;
+
 const calcProgress = context => ((1 - context.totalRemainingNonces / context.totalNonces) * 100.0).toFixed(2);
+
+const calcAvgNoncesPerSecond = (written, elapsedSeconds) => {
+	noncesPerSecondsBuffer[cycleCount % 10] = Math.round(written / elapsedSeconds);
+	++cycleCount;
+	return noncesPerSecondsBuffer.reduce((p, c) => p + c, 0) / noncesPerSecondsBuffer.length;
+};
+
+const calcRemainingDuration = (context, written) => {
+
+	if (lastCycleStart === 0) lastCycleStart = context.startTime;
+
+	const now = Date.now();
+	const elapsedSeconds = (now - lastCycleStart) / 1000;
+	lastCycleStart = now;
+
+	if (elapsedSeconds < 0.00001) return null;
+
+	const avgNonceSpeed = calcAvgNoncesPerSecond(written, elapsedSeconds);
+	if (avgNonceSpeed < 0.00001) return null;
+
+	return Math.round(context.totalRemainingNonces / avgNonceSpeed);
+};
 
 function prettifyNoncesPerMin(context, { $1: done, $2: perMin }) {
 
-	if (done < lastDone) lastDone = 0;
+	if (done < lastDone) {
+		lastDone = 0;
+	}
 
-	context.totalRemainingNonces -= +done - lastDone;
+	const writtenNonces = +done - lastDone;
+	lastDone = +done;
+	context.totalRemainingNonces -= writtenNonces;
 
-	const progress = calcProgress(context);
+	const progress = calcProgress(context, writtenNonces);
+	const remainingDuration = calcRemainingDuration(context, writtenNonces);
+	const eta = addSeconds(new Date(), remainingDuration);
 
 	process.stdout.clearLine();
 	process.stdout.cursorTo(0);
+	process.stdout.write(chalk`Remaining time: {whiteBright ${formatTimeString(remainingDuration)}} - ETA: {whiteBright ${format(eta, 'DD-MM-YYYY hh:mm:ss')}}`);
+	process.stdout.moveCursor(0, 1);
+	process.stdout.cursorTo(0);
+	process.stdout.clearLine();
 	process.stdout.write(chalk`{greenBright [${progress}%]} @{yellowBright ${perMin} nonces/min} - ${context.totalRemainingNonces} remaining nonces - Current plot: {whiteBright ${done}/${context.currentPlotNonces}}`);
-
-	lastDone = +done;
+	process.stdout.moveCursor(0, -1);
+	process.stdout.cursorTo(0);
 }
 
 function prettifyWritingScoops(context, { $1: percent }, hasNoncesPerMin) {
@@ -62,9 +100,7 @@ function prettifyWritingScoops(context, { $1: percent }, hasNoncesPerMin) {
 	if (!hasNoncesPerMin) {
 		const progress = calcProgress(context);
 		process.stdout.clearLine();
-		process.stdout.cursorTo(0,0);
-		process.stdout.write("Some stuff: blas");
-		process.stdout.cursorTo(0,1);
+		process.stdout.cursorTo(0);
 		process.stdout.write(chalk`{greenBright [${progress}%]}`);
 	}
 
@@ -91,7 +127,9 @@ function _logPlotter(context, output) {
 }
 
 function _logPlotterEnd(context) {
-	prettifyNoncesPerMin(context, { $1: context.totalNonces, $2: 0 });
+	prettifyNoncesPerMin(context, { $1: context.currentPlotNonces, $2: 0 });
+	process.stdout.moveCursor(0, 2);
+	process.stdout.clearLine();
 }
 
 function _logValidator(output) {

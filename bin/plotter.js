@@ -1,9 +1,11 @@
-const { XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE, PLOT_VALIDATOR } = require('./config');
 const { spawn, spawnSync } = require('child_process');
 const path = require('path');
 const co = require('co');
-const { logPlotter, logPlotterEnd, logValidator, error } = require('./outputRenderer');
 const chalk = require('chalk');
+const { format } = require('date-fns');
+const { formatTimeString } = require('./utils');
+const { XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE, PLOT_VALIDATOR } = require('./config');
+const { logPlotter, logPlotterEnd, logValidator, error } = require('./outputRenderer');
 
 const context = {
 	totalNonces: 0,
@@ -84,9 +86,9 @@ const execPlot = function* (args) {
 			logPlotterEnd(context);
 
 			if (code !== 0) {
-				console.log(chalk`\n{redBright 🖕Bah!} - Plotting failed.`);
+				console.log(chalk`{redBright 🖕Bah!} - Plotting failed.`);
 			} else {
-				console.log(chalk`\n{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
+				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot ${context.currentPlotIndex} created successfully`);
 			}
 			resolve();
 		});
@@ -95,19 +97,15 @@ const execPlot = function* (args) {
 
 function _writeFinalStats() {
 
-	const p = v => v < 10 ? '0' + v : v;
-
-	const elapsedTimeSecs = (context.endTime - context.startTime) / 1000;
-	const hours = Math.floor(elapsedTimeSecs / 3600);
-	const mins = Math.floor(elapsedTimeSecs % 3600 / 60);
-	const secs = Math.floor(elapsedTimeSecs % 60);
+	const elapsedTimeSecs = Math.floor((context.endTime - context.startTime) / 1000);
 	const totalNoncesPerMin = Math.floor(context.totalNonces / (elapsedTimeSecs / 60));
 
 	console.log(chalk`{greenBright ===========================================}`);
 	console.log(chalk`Written Nonces: {whiteBright ${context.totalNonces}}`);
 	console.log(chalk`Created Plots: {whiteBright ${context.currentPlotIndex}}`);
-	console.log(chalk`Overall time: {whiteBright ${hours}:${p(mins)}:${p(secs)}}`);
-	console.log(chalk`Nonces/min: {whiteBright ${totalNoncesPerMin}}`);
+	console.log(chalk`Time: {whiteBright ${format(new Date(), 'DD-MM-YYYY hh:mm:ss')}}`);
+	console.log(chalk`Overall duration: {whiteBright ${formatTimeString(elapsedTimeSecs)}}`);
+	console.log(chalk`Effective Nonces/min: {whiteBright ${totalNoncesPerMin}}`);
 	console.log(chalk`Plots written to: {whiteBright ${context.outputPath}}`);
 
 	console.log("\n");
@@ -131,6 +129,7 @@ function _start(args) {
 				console.log(chalk`{green ------------------------------------------}`);
 				console.log(chalk`{whiteBright Starting plot ${i + 1}/${plots.length}} - Nonces {whiteBright ${plot.startNonce}} to {whiteBright ${plot.startNonce + plot.nonces}}`);
 				console.log(chalk`{green ------------------------------------------}`);
+				console.log("");
 
 				context.currentPlotNonces = plot.nonces;
 				context.currentPlotIndex = i + 1;

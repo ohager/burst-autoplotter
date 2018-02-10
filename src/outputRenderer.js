@@ -41,14 +41,13 @@ const getValidationInfo = input => getMatchedGroups(ValidatorRegex, input);
 let lastDone = 0;
 
 let noncesPerSecondsBuffer = [];
-let avgNoncesPerSecond = 0;
 let cycleCount = 0;
 let lastCycleStart = 0;
 
 const calcProgress = (context) => ( (1 -(context.totalRemainingNonces/context.totalNonces)) * 100.0).toFixed(2);
 
 const calcAvgNoncesPerSecond = (written, elapsedSeconds) => {
-	noncesPerSecondsBuffer[cycleCount%5] = Math.round(written/elapsedSeconds);
+	noncesPerSecondsBuffer[cycleCount%10] = Math.round(written/elapsedSeconds);
 	++cycleCount;
 	return noncesPerSecondsBuffer.reduce((p,c) => p+c, 0)/noncesPerSecondsBuffer.length;
 };
@@ -72,15 +71,17 @@ const calcRemainingDuration = (context,written) => {
 
 function prettifyNoncesPerMin(context,{$1 : done,$2 : perMin}){
 	
-	if(done < lastDone) lastDone = 0;
+	if(done < lastDone) {
+		lastDone = 0;
+	}
 	
 	const writtenNonces = (+done - lastDone);
+	lastDone = +done;
 	context.totalRemainingNonces -= writtenNonces;
 	
+	const progress = calcProgress(context, writtenNonces);
 	const remainingDuration = calcRemainingDuration(context,writtenNonces);
 	const eta = addSeconds(new Date(), remainingDuration);
-	
-	const progress = calcProgress(context, writtenNonces);
 	
 	process.stdout.clearLine();
 	process.stdout.cursorTo(0);
@@ -92,7 +93,6 @@ function prettifyNoncesPerMin(context,{$1 : done,$2 : perMin}){
 	process.stdout.moveCursor(0,-1);
 	process.stdout.cursorTo(0);
 	
-	lastDone = +done;
 }
 
 function prettifyWritingScoops(context, {$1: percent}, hasNoncesPerMin){
@@ -130,7 +130,7 @@ function _logPlotter(context, output){
 }
 
 function _logPlotterEnd(context){
-	prettifyNoncesPerMin(context, {$1:context.totalNonces, $2:0});
+	prettifyNoncesPerMin(context, {$1:context.currentPlotNonces, $2:0});
 	process.stdout.moveCursor(0,2);
 	process.stdout.clearLine();
 }
