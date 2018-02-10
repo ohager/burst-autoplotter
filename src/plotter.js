@@ -8,7 +8,8 @@ const chalk = require('chalk');
 const context = {
 	totalNonces: 0,
 	totalRemainingNonces: 0,
-	outputPath: ""
+	outputPath: "",
+	instructionSet: "",
 };
 
 const getPlotterPath = (instSet) => {
@@ -57,7 +58,7 @@ const execValidator = function* (plot) {
 
 const execPlot = function* (args) {
 	
-	const {accountId, startNonce, nonces, threads, path, memory, instSet} = args;
+	const {accountId, startNonce, nonces, threads, path, memory} = args;
 	
 	// Xplotter.exe -id <ID> -sn <start_nonce> [-n <nonces>] -t <threads> [-path <d:/plots>] [-mem <8G>]
 	let plotterArgs = [
@@ -73,7 +74,7 @@ const execPlot = function* (args) {
 		plotterArgs.push('-mem', `${memory}M`)
 	}
 	
-	const xplotter = getPlotterPath(instSet);
+	const xplotter = getPlotterPath(context.instructionSet);
 	
 	yield new Promise(function (resolve, reject) {
 		
@@ -144,7 +145,7 @@ function _start(args) {
 				context.currentPlotNonces = plot.nonces;
 				context.currentPlotIndex = i + 1;
 				context.outputPath = path;
-				
+				context.instructionSet = instSet;
 				yield execPlot.call(this,
 					{
 						accountId,
@@ -152,8 +153,7 @@ function _start(args) {
 						startNonce: plot.startNonce,
 						nonces: plot.nonces,
 						threads,
-						memory,
-						instSet
+						memory
 					});
 			}
 			

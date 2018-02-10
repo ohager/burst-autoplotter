@@ -6,7 +6,7 @@ const initialCacheData = {
 	accountId: "",
 	lastNonce: 0
 };
-const defaultCacheFile = path.join(__dirname, CACHE_FILE);
+const defaultCacheFile = path.join(process.env.APPDATA, CACHE_FILE);
 
 const cacheableProps = Object.keys(initialCacheData);
 

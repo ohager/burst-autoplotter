@@ -1,11 +1,13 @@
 const chalk = require('chalk');
 
 const WritingScoopsRegex = /scoops: (.+)%/g;
-// CPU: 85% done, (9011 nonces/min)
-const NoncesPerMinRegex = /CPU: (\d+)% done, \((\d+) nonces\/min\)/g;
+
+// CPU: 4428 nonces done, (9011 nonces/min)
+const NoncesPerMinRegex = /CPU: (\d+) nonces done, \((\d+) nonces\/min\).*scoops: (.+)%/g;
+// CPU: 85% done, (9011 nonces/min) - output for AVX2 exec (blame Blago for that)
+const NoncesPerMinDonePercentageRegex = /CPU: (\d+)% done, \((\d+) nonces\/min\)/g;
 // file: 12345678901234567890_7299739_4096_4096    checked - OK
 const ValidatorRegex = /file: (\d+_\d+_\d+_\d+).*(OK)/;
-
 
 function getMatchedGroups(regex, str){
 	const matches = regex.exec(str);
@@ -18,7 +20,19 @@ function getMatchedGroups(regex, str){
 	return groups;
 }
 
+const isAVX = ({instructionSet}) => instructionSet.indexOf('AVX') !== -1;
+
 const getNoncesPerMin = input => getMatchedGroups(NoncesPerMinRegex, input);
+const getNoncesPerMinForAVX = (context,input) => {
+	let groups = getMatchedGroups(NoncesPerMinDonePercentageRegex, input);
+	if(!groups) return null;
+	
+	// currently, the avx2 plotter has a percent based output, which differs from others instruction set output
+	// so, it's necessary to calculate done nonces based on percentage
+	const done = groups.$1;
+	groups.$1 = Math.min(context.currentPlotNonces, Math.floor(context.currentPlotNonces * (done / 100.0)));
+	return groups;
+};
 const getWritingScoops = input => getMatchedGroups(WritingScoopsRegex, input);
 const getValidationInfo = input => getMatchedGroups(ValidatorRegex, input);
 
@@ -26,9 +40,7 @@ let lastDone = 0;
 
 const calcProgress = (context) => ( (1 -(context.totalRemainingNonces/context.totalNonces)) * 100.0).toFixed(2);
 
-function prettifyNoncesPerMin(context,{$1 : donePercent,$2 : perMin}){
-	
-	const done = Math.min(context.currentPlotNonces, Math.floor(context.currentPlotNonces * (donePercent/100.0)));
+function prettifyNoncesPerMin(context,{$1 : done,$2 : perMin}){
 	
 	if(done < lastDone) lastDone = 0;
 	
@@ -69,8 +81,8 @@ function prettifyValidation({$1: plotFile, $2: status} ){
 
 function _logPlotter(context, output){
 	const text = output.toString();
-	
-	const npm = getNoncesPerMin(text);
+
+	const npm = isAVX(context) ? getNoncesPerMinForAVX(context, text) : getNoncesPerMin(text);
 	const scoops = getWritingScoops(text);
 	
 	if(npm) prettifyNoncesPerMin(context, npm);
@@ -78,8 +90,7 @@ function _logPlotter(context, output){
 }
 
 function _logPlotterEnd(context){
-	
-	prettifyNoncesPerMin(context, {$1:100, $2:0});
+	prettifyNoncesPerMin(context, {$1:context.totalNonces, $2:0});
 }
 
 
