@@ -20,7 +20,8 @@
     "date-fns": "^1.29.0",
     "fd-diskspace": "^1.0.0",
     "fs-extra": "^4.0.0",
-    "inquirer": "^3.2.0"
+    "inquirer": "^3.2.0",
+    "stappo": "^0.0.7"
   },
   "bin": {
     "autoplot": "./bin/index.js"

@@ -2,47 +2,8 @@ const {addSeconds, format} = require("date-fns");
 const chalk = require('chalk');
 const {formatTimeString} = require("./utils");
 
-const WritingScoopsRegex = /scoops: (.+)%/g;
-
-// CPU: 4428 nonces done, (9011 nonces/min) - SSE output
-const NoncesPerMinRegex = /CPU: (\d+) nonces done, \((\d+) nonces\/min\).*scoops: (.+)%/g;
-// [85%] Generating nonces from 888635 to 930229  - output for AVX exec (blame Blago for that)
-const NoncesChunkedRangeRegex = /Generating nonces from (\d+) to (\d+)/;
-// CPU: 85% done, (9011 nonces/min) - output for AVX2 exec (blame Blago for that)
-const CurrentChunkPercentageRegex = /CPU: (\d+)% done, \((\d+) nonces\/min\)/g;
-
-// file: 12345678901234567890_7299739_4096_4096    checked - OK
-const ValidatorRegex = /file: (\d+_\d+_\d+_\d+).*(OK)/;
-
-function getMatchedGroups(regex, str){
-	
-	const matches = regex.exec(str);
-	if(!matches) {
-		return null;
-	}
-	
-	let groups = {};
-	matches.forEach((match, groupIndex) => groups[`$${groupIndex}`] = match );
-	return groups;
-}
-
 const isAVX = ({instructionSet}) => instructionSet.indexOf('AVX') !== -1;
 
-const getNoncesPerMin = input => getMatchedGroups(NoncesPerMinRegex, input);
-const getNoncesChunkedRange = input => getMatchedGroups(NoncesChunkedRangeRegex, input);
-const getCurrentChunkPercentage = input => getMatchedGroups(CurrentChunkPercentageRegex, input);
-const getNoncesPerMinForAVX = (context,input) => {
-	let groups = getMatchedGroups(CurrentChunkPercentageRegex, input);
-	if(!groups) return null;
-	
-	// currently, the avx2 plotter has a percent based output, which differs from others instruction set output
-	// so, it's necessary to calculate done nonces based on percentage
-	const done = groups.$1;
-	groups.$1 = Math.min(context.currentPlotNonces, Math.floor(context.currentPlotNonces * (done / 100.0)));
-	return groups;
-};
-const getWritingScoops = input => getMatchedGroups(WritingScoopsRegex, input);
-const getValidationInfo = input => getMatchedGroups(ValidatorRegex, input);
 
 let lastDone = 0;
 

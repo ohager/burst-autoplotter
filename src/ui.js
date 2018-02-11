@@ -1,5 +1,4 @@
 const os = require('os');
-const fs = require('fs');
 const prompt = require('inquirer').prompt;
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 

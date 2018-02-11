@@ -2403,6 +2403,10 @@ sshpk@^1.7.0:
     jsbn "~0.1.0"
     tweetnacl "~0.14.0"
 
+stappo@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/stappo/-/stappo-0.0.7.tgz#04cf3eb9f1b81e1ec2d20de9c5d12134a52d411b"
+
 string-length@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/string-length/-/string-length-1.0.1.tgz#56970fb1c38558e9e70b728bf3de269ac45adfac"
