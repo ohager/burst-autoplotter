@@ -125,17 +125,14 @@ function prettifyValidation({$1: plotFile, $2: status} ){
 	}
 }
 
-let avx = {
-	lastDoneBuffer: 0,
-	done: 0,
-	chunkPercentage: 0.0,
-	chunkStart: 0,
-	chunkEnd: 0
-};
+
+// move to context, to be considered by multifile plots!
+
 
 function _logPlotter(context, output){
 	const text = output.toString();
 
+	let avx = context.avx;
 	let npm = null;
 	if(isAVX(context)){
 
@@ -161,14 +158,12 @@ function _logPlotter(context, output){
 		avx.done += (donePerChunk - avx.lastDoneBuffer);
 		avx.lastDoneBuffer = donePerChunk;
 		
-		//console.log("avx: ", avx, " -- donePerChunk", donePerChunk, " --avx", avx.done);
-
 		npm = {
 			$1: avx.done,
 			$2: currentChunkPercentage ? currentChunkPercentage.$2 : "???"
 		};
 		
-		//console.log("npm", npm);
+		context.avx = avx;
 	}
 	else {
 		npm = getNoncesPerMin(text);

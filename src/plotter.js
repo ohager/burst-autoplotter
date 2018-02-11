@@ -12,6 +12,13 @@ const context = {
 	totalRemainingNonces: 0,
 	outputPath: "",
 	instructionSet: "",
+	avx : {
+		lastDoneBuffer: 0,
+		done: 0,
+		chunkPercentage: 0.0,
+		chunkStart: 0,
+		chunkEnd: 0
+	}
 };
 
 const getPlotterPath = (instSet) => {
@@ -141,6 +148,13 @@ function _start(args) {
 				console.log(chalk`{green ------------------------------------------}`);
 				console.log("");
 				
+				context.avx = {
+					lastDoneBuffer: 0,
+					done: 0,
+					chunkPercentage: 0.0,
+					chunkStart: 0,
+					chunkEnd: 0
+				};
 				context.currentPlotNonces = plot.nonces;
 				context.currentPlotIndex = i + 1;
 				context.outputPath = path;

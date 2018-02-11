@@ -39,7 +39,6 @@ const getWritingScoops = input => getMatchedGroups(WritingScoopsRegex, input);
 const getValidationInfo = input => getMatchedGroups(ValidatorRegex, input);
 
 let lastDone = 0;
-
 let noncesPerSecondsBuffer = [];
 let cycleCount = 0;
 let lastCycleStart = 0;
@@ -103,8 +102,9 @@ function prettifyWritingScoops(context, { $1: percent }, hasNoncesPerMin) {
 		process.stdout.cursorTo(0);
 		process.stdout.write(chalk`{greenBright [${progress}%]}`);
 	}
-
+	process.stdout.moveCursor(0,1);
 	process.stdout.write(chalk` - Writing Scoops: {whiteBright ${percent}%}`);
+	process.stdout.moveCursor(0,-1);
 }
 
 function prettifyValidation({ $1: plotFile, $2: status }) {
