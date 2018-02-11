@@ -6,7 +6,7 @@ const _b2mib = noBytes => noBytes / FACT_MIB;
 const _b2gib = noBytes => noBytes / FACT_GIB;
 
 function _formatTimeString(seconds) {
-	if (seconds === null || seconds === undefined || typeof seconds !== 'number') return '??:??:??';
+	if (seconds === null || seconds === undefined || typeof seconds !== 'number') return '00:00:00';
 
 	const p = n => n < 10 ? '0' + n : '' + n;
 

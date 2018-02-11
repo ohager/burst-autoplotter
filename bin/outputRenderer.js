@@ -1,17 +1,23 @@
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 const { addSeconds, format } = require("date-fns");
 const chalk = require('chalk');
 const { formatTimeString } = require("./utils");
 
 const WritingScoopsRegex = /scoops: (.+)%/g;
 
-// CPU: 4428 nonces done, (9011 nonces/min)
+// CPU: 4428 nonces done, (9011 nonces/min) - SSE output
 const NoncesPerMinRegex = /CPU: (\d+) nonces done, \((\d+) nonces\/min\).*scoops: (.+)%/g;
+// [85%] Generating nonces from 888635 to 930229  - output for AVX exec (blame Blago for that)
+const NoncesChunkedRangeRegex = /Generating nonces from (\d+) to (\d+)/;
 // CPU: 85% done, (9011 nonces/min) - output for AVX2 exec (blame Blago for that)
-const NoncesPerMinDonePercentageRegex = /CPU: (\d+)% done, \((\d+) nonces\/min\)/g;
+const CurrentChunkPercentageRegex = /CPU: (\d+)% done, \((\d+) nonces\/min\)/g;
+
 // file: 12345678901234567890_7299739_4096_4096    checked - OK
 const ValidatorRegex = /file: (\d+_\d+_\d+_\d+).*(OK)/;
 
 function getMatchedGroups(regex, str) {
+
 	const matches = regex.exec(str);
 	if (!matches) {
 		return null;
@@ -25,8 +31,10 @@ function getMatchedGroups(regex, str) {
 const isAVX = ({ instructionSet }) => instructionSet.indexOf('AVX') !== -1;
 
 const getNoncesPerMin = input => getMatchedGroups(NoncesPerMinRegex, input);
+const getNoncesChunkedRange = input => getMatchedGroups(NoncesChunkedRangeRegex, input);
+const getCurrentChunkPercentage = input => getMatchedGroups(CurrentChunkPercentageRegex, input);
 const getNoncesPerMinForAVX = (context, input) => {
-	let groups = getMatchedGroups(NoncesPerMinDonePercentageRegex, input);
+	let groups = getMatchedGroups(CurrentChunkPercentageRegex, input);
 	if (!groups) return null;
 
 	// currently, the avx2 plotter has a percent based output, which differs from others instruction set output
@@ -39,6 +47,7 @@ const getWritingScoops = input => getMatchedGroups(WritingScoopsRegex, input);
 const getValidationInfo = input => getMatchedGroups(ValidatorRegex, input);
 
 let lastDone = 0;
+
 let noncesPerSecondsBuffer = [];
 let cycleCount = 0;
 let lastCycleStart = 0;
@@ -102,9 +111,8 @@ function prettifyWritingScoops(context, { $1: percent }, hasNoncesPerMin) {
 		process.stdout.cursorTo(0);
 		process.stdout.write(chalk`{greenBright [${progress}%]}`);
 	}
-	process.stdout.moveCursor(0,1);
+
 	process.stdout.write(chalk` - Writing Scoops: {whiteBright ${percent}%}`);
-	process.stdout.moveCursor(0,-1);
 }
 
 function prettifyValidation({ $1: plotFile, $2: status }) {
@@ -116,10 +124,45 @@ function prettifyValidation({ $1: plotFile, $2: status }) {
 	}
 }
 
+// move to context, to be considered by multifile plots!
+
+
 function _logPlotter(context, output) {
 	const text = output.toString();
 
-	const npm = isAVX(context) ? getNoncesPerMinForAVX(context, text) : getNoncesPerMin(text);
+	let avx = context.avx;
+	let npm = null;
+	if (isAVX(context)) {
+
+		const currentNonceChunk = getNoncesChunkedRange(text);
+
+		if (currentNonceChunk) {
+			avx = _extends({}, avx, {
+				chunkPercentage: 0.0,
+				chunkStart: +currentNonceChunk.$1,
+				chunkEnd: +currentNonceChunk.$2
+			});
+		}
+		const currentChunkPercentage = getCurrentChunkPercentage(text);
+		if (currentChunkPercentage) {
+			avx = _extends({}, avx, {
+				chunkPercentage: +currentChunkPercentage.$1 / 100
+			});
+		}
+		const donePerChunk = Math.floor((avx.chunkEnd - avx.chunkStart) * avx.chunkPercentage);
+		if (donePerChunk < avx.lastDoneBuffer) avx.lastDoneBuffer = 0;
+		avx.done += donePerChunk - avx.lastDoneBuffer;
+		avx.lastDoneBuffer = donePerChunk;
+
+		npm = {
+			$1: avx.done,
+			$2: currentChunkPercentage ? currentChunkPercentage.$2 : "???"
+		};
+
+		context.avx = avx;
+	} else {
+		npm = getNoncesPerMin(text);
+	}
 	const scoops = getWritingScoops(text);
 
 	if (npm) prettifyNoncesPerMin(context, npm);
