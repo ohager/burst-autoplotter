@@ -7,13 +7,15 @@ Features:
 - CLI-based UI for simple interaction
 - Split large plots in smaller plots
 - Comprehensive progress indicator
+- Support for SSE, AVX, and AVX2
+- Duration estimates
 - Caches relevant information, like Account ID, and last written nonces
-- Allows CPU and RAM selection
+- Allows CPU and RAM selection (in enhanced mode)
 - Creates optimized plots (XPlotter)
 
-> Currently, the plotter works only! on Windows
+> Currently, the plotter works only! on Windows (as XPlotter is used internally)
 
-![autoplotter-in-action](https://cdn.discordapp.com/attachments/324092664813191170/336669430446555147/autoplotter.gif)
+![autoplotter-in-action](https://devbutze.com/wp-content/uploads/2018/02/burst-autoplotter.gif)
  
 ## Installation
 
