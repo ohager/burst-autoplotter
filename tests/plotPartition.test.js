@@ -1,4 +1,4 @@
-const {create} = require('../src/plotPartition');
+const create = require('../src/plotPartition');
 
 test("Check Partitions (100 GiB,0, 3)", () => {
 	

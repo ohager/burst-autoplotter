@@ -1,6 +1,8 @@
 const {addSeconds, format} = require("date-fns");
 const chalk = require('chalk');
 const {formatTimeString} = require("./utils");
+const store = require("./store");
+const {avx, sse, validation, writingScoops} = require("./extractor");
 
 const isAVX = ({instructionSet}) => instructionSet.indexOf('AVX') !== -1;
 
@@ -93,43 +95,47 @@ function prettifyValidation({$1: plotFile, $2: status} ){
 function _logPlotter(context, output){
 	const text = output.toString();
 
-	let avx = context.avx;
+	store.update(() => ({
+		text
+	}));
+	
+	let ctxavx = context.avx;
 	let npm = null;
 	if(isAVX(context)){
-
-		const currentNonceChunk = getNoncesChunkedRange(text);
+		
+		const currentNonceChunk = avx.getNoncesChunkedRange(text);
 		
 		if(currentNonceChunk) {
-			avx = {
-				...avx,
+			ctxavx = {
+				...ctxavx,
 				chunkPercentage: 0.0,
 				chunkStart: +currentNonceChunk.$1,
 				chunkEnd: +currentNonceChunk.$2
 			}
 		}
-		const currentChunkPercentage = getCurrentChunkPercentage(text);
+		const currentChunkPercentage = avx.getCurrentChunkPercentage(text);
 		if(currentChunkPercentage){
-			avx = {
-				...avx,
+			ctxavx = {
+				...ctxavx,
 				chunkPercentage: (+currentChunkPercentage.$1)/100,
 			};
 		}
-		const donePerChunk = Math.floor(((avx.chunkEnd - avx.chunkStart) * avx.chunkPercentage));
-		if(donePerChunk<avx.lastDoneBuffer) avx.lastDoneBuffer = 0;
-		avx.done += (donePerChunk - avx.lastDoneBuffer);
-		avx.lastDoneBuffer = donePerChunk;
+		const donePerChunk = Math.floor(((ctxavx.chunkEnd - ctxavx.chunkStart) * ctxavx.chunkPercentage));
+		if(donePerChunk<ctxavx.lastDoneBuffer) ctxavx.lastDoneBuffer = 0;
+		ctxavx.done += (donePerChunk - ctxavx.lastDoneBuffer);
+		ctxavx.lastDoneBuffer = donePerChunk;
 		
 		npm = {
-			$1: avx.done,
+			$1: ctxavx.done,
 			$2: currentChunkPercentage ? currentChunkPercentage.$2 : "???"
 		};
 		
-		context.avx = avx;
+		context.avx = ctxavx;
 	}
 	else {
-		npm = getNoncesPerMin(text);
+		npm = sse.getNoncesPerMin(text);
 	}
-	const scoops = getWritingScoops(text);
+	const scoops = writingScoops.getWritingScoops(text);
 	
 	if(npm) prettifyNoncesPerMin(context, npm);
 	if(scoops) prettifyWritingScoops(context, scoops, !!npm);
@@ -152,7 +158,7 @@ function _logValidator(output) {
 		line = line.trim();
 		if(!line.length ) return;
 
-		const validation = getValidationInfo(line);
+		const validation = validation.getValidationInfo(line);
 		prettifyValidation(validation);
 
 		if(!validation){

@@ -1,24 +1,22 @@
-
-const {PLOTS_DIR} = require('./config');
+const fs = require('fs-extra');
 const chalk = require('chalk');
-const {version, author} = require('../package.json');
 const commandLineArgs = require('command-line-args');
 
+const {PLOTS_DIR} = require('./config');
+const {version, author} = require('../package.json');
+
 const plotter = require('./plotter');
-const {create: createPlotPartition} = require('./plotPartition');
+const createPlotPartition = require('./plotPartition');
 const {hasAdminPrivileges} = require('./privilege');
 const {checkInstructionSet} = require('./isc');
 const ui = require('./ui');
 const cache = require('./cache');
-const fs = require('fs-extra');
-
 const isDevMode = process.env.NODE_ENV==='development';
 
 const options = commandLineArgs([
 	{name: 'cache', alias: 'c', type: String},
 	{name: 'extended', alias: 'e', type: Boolean},
 ]);
-
 
 const getInstructionSetInformation = () => {
 	
@@ -77,6 +75,8 @@ const getInstructionSetInformation = () => {
 			const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
 			
 			const lastPlot = plots[plots.length - 1];
+			
+			// TODO: update only when a plot was generated successfully
 			cache.update({lastNonce: lastPlot.startNonce + lastPlot.nonces}, options.cache);
 			
 			console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);

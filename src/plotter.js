@@ -6,13 +6,14 @@ const {format} = require('date-fns');
 const {formatTimeString} = require('./utils');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE, PLOT_VALIDATOR} = require('./config');
 const {logPlotter, logPlotterEnd, logValidator, error} = require('./outputRenderer');
+const store = require("./store");
 
 const context = {
 	totalNonces: 0,
 	totalRemainingNonces: 0,
 	outputPath: "",
 	instructionSet: "",
-	avx : {
+	avx: {
 		lastDoneBuffer: 0,
 		done: 0,
 		chunkPercentage: 0.0,
@@ -130,9 +131,20 @@ function _writeFinalStats() {
 	console.log("\n");
 }
 
-function _start(args) {
+function start(args) {
 	
 	const {totalNonces, plots, accountId, path, threads, memory, instSet} = args;
+	
+	store.listen( console.log.bind(null, "Updated store state:") );
+	
+	store.update(() => ({
+		startTime: Date.now(),
+		endTime: null,
+		totalNonces: totalNonces,
+		totalRemainingNonces: totalNonces,
+		instructionSet: instSet,
+		outputPath : path,
+	}));
 	
 	context.totalNonces = context.totalRemainingNonces = totalNonces;
 	context.startTime = Date.now();
@@ -147,6 +159,21 @@ function _start(args) {
 				console.log(chalk`{whiteBright Starting plot ${i + 1}/${plots.length}} - Nonces {whiteBright ${plot.startNonce}} to {whiteBright ${plot.startNonce + plot.nonces}}`);
 				console.log(chalk`{green ------------------------------------------}`);
 				console.log("");
+				
+				store.update(() => ({
+						plot: {
+							index: i + 1,
+							nonces : plot.nonces,
+						},
+						avx : {
+							lastDoneBuffer: 0,
+							done: 0,
+							chunkPercentage: 0.0,
+							chunkStart: 0,
+							chunkEnd: 0
+						}
+					}
+				));
 				
 				context.avx = {
 					lastDoneBuffer: 0,
@@ -191,5 +218,5 @@ function _start(args) {
 
 
 module.exports = {
-	start: _start
+	start
 };
