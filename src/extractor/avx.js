@@ -5,11 +5,11 @@ const NoncesChunkedRangeRegex = /Generating nonces from (\d+) to (\d+)/;
 // CPU: 85% done, (9011 nonces/min) - output for AVX2 exec (blame Blago for that)
 const CurrentChunkPercentageRegex = /CPU: (\d+)% done, \((\d+) nonces\/min\)/g;
 
-const getNoncesChunkedRange = input => extract(NoncesChunkedRangeRegex, input);
-const getCurrentChunkPercentage = input => extract(CurrentChunkPercentageRegex, input);
+const tryGetNoncesChunkedRange = input => extract(NoncesChunkedRangeRegex, input);
+const tryGetCurrentChunkPercentage = input => extract(CurrentChunkPercentageRegex, input);
 
 module.exports = {
-	getCurrentChunkPercentage,
-	getNoncesChunkedRange,
+	tryGetCurrentChunkPercentage,
+	tryGetNoncesChunkedRange,
 };
 

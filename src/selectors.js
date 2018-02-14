@@ -18,8 +18,20 @@ const selectInstructionSet = select(
 	state => state.instructionSet
 );
 
+const selectTotalWrittenNonces = select(
+	state => state.totalWrittenNonces
+);
+
+const selectTotalNonces = select(
+	state => state.totalNonces
+);
+
 const selectCacheFile = select(
 	state => state.cacheFile
+);
+
+const selectTotalRemainingNonces = select(
+	state => state.totalNonces - state.totalWrittenNonces
 );
 
 const selectElapsedTimeInSecs = select(
@@ -36,5 +48,8 @@ module.exports = {
 	selectIsAVX,
 	selectCacheFile,
 	selectElapsedTimeInSecs,
-	selectTotalNoncesPerMin
+	selectTotalNoncesPerMin,
+	selectTotalRemainingNonces,
+	selectTotalWrittenNonces,
+	selectTotalNonces,
 };

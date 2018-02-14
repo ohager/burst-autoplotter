@@ -1,4 +1,4 @@
-const {gib2b, b2gib, b2mib, formatTimeString} = require('../src/utils');
+const {gib2b, b2gib, b2mib, formatTimeString, normalizeProgress} = require('../src/utils');
 
 const ONEGIB = 1073741824;
 const ONEMIB = 1048576;
@@ -42,3 +42,15 @@ test("Seconds to timestring", () => {
 	
 });
 
+
+test("Calculate normalized progress", () => {
+	
+	expect(normalizeProgress(0,100,0,100)).toBe(0);
+	expect(normalizeProgress(0,100,100,100)).toBe(100);
+	expect(normalizeProgress(0,100,120,100)).toBe(100);
+	expect(normalizeProgress(0,100,20,100)).toBe(20);
+	expect(normalizeProgress(0,100,20,50)).toBe(10);
+	expect(normalizeProgress(0,100,100,50)).toBe(50);
+	expect(normalizeProgress(10,110,20,50)).toBe(15);
+	
+});

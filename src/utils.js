@@ -17,9 +17,14 @@ function formatTimeString(seconds) {
 	return `${p(h)}:${p(m)}:${p(s)}`;
 }
 
+function normalizeProgress(min, max, current, target){
+	return Math.floor( (((Math.min(current,max) - min)/(max-min))*target) + min );
+}
+
 module.exports = {
 	gib2b,
 	b2gib,
 	b2mib,
 	formatTimeString,
+	normalizeProgress,
 };

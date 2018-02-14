@@ -16,6 +16,7 @@ const view = require("./views");
 const getPlotterPath = () => {
 	
 	const instSet = $.selectInstructionSet();
+	
 	const exeDir = "../exe";
 	switch (instSet) {
 		case 'SSE':
@@ -59,13 +60,13 @@ const execValidator = function* (plot) {
 	
 };
 
-// todo: move to metrics.js
+// todo: see how to structure better, make it testable
 const onStdoutData = (output) => {
 	const text = output.toString();
 	
 	if($.selectIsAVX()){
 		
-		const currentNonceChunk = extractor.avx.getNoncesChunkedRange(text);
+		const currentNonceChunk = extractor.avx.tryGetNoncesChunkedRange(text);
 		if(currentNonceChunk){
 			store.update( state => (
 				// state is immutable - need to create copies
@@ -74,32 +75,54 @@ const onStdoutData = (output) => {
 						...state.currentPlot,
 						avx : {
 							...state.currentPlot.avx,
-							chunkStart: currentNonceChunk.$1,
-							chunkEnd: currentNonceChunk.$2
+							chunkStart: +currentNonceChunk.$1,
+							chunkEnd: +currentNonceChunk.$2
 						}
 					},
 				}
 			));
 		}
 		
-		const currentChunkPercentage = extractor.avx.getCurrentChunkPercentage(text);
+		const currentChunkPercentage = extractor.avx.tryGetCurrentChunkPercentage(text);
 		if(currentChunkPercentage){
-			store.update( state => (
+			
+			store.update( state => {
+				const percentage = +currentChunkPercentage.$1;
+				const chunkSize = state.currentPlot.avx.chunkEnd - state.currentPlot.avx.chunkStart;
+				const chunkWrittenNonces = Math.floor(chunkSize * (percentage/100));
+				const writtenNoncesDelta = chunkWrittenNonces >  state.currentPlot.avx.chunkWrittenNonces ?
+					chunkWrittenNonces - state.currentPlot.avx.chunkWrittenNonces : chunkWrittenNonces;
+				
 				// state is immutable - need to create copies
-				{
+				return {
+					totalWrittenNonces: state.totalWrittenNonces + writtenNoncesDelta,
 					currentPlot : {
 						...state.currentPlot,
+						writtenNonces: state.currentPlot.writtenNonces + writtenNoncesDelta,
 						avx : {
 							...state.currentPlot.avx,
-							chunkPercentage: currentChunkPercentage.$1,
+							chunkWrittenNonces: chunkWrittenNonces,
+							chunkPercentage: percentage,
 						}
 					},
-				}
-			));
+				}}
+			);
 		}
 	}
 	else{
-		// TODO: sse handling
+		const currentNonces = extractor.sse.tryGetNoncesPerMin(text);
+		if(currentNonces){
+			const plotWrittenNonces = +currentNonces.$1;
+			
+			store.update( state => (
+				{
+					totalWrittenNonces: state.totalWrittenNonces + plotWrittenNonces,
+					currentPlot : {
+						...state.currentPlot,
+						writtenNonces: plotWrittenNonces,
+					}
+				}))
+		}
 	}
 	
 };
@@ -127,7 +150,7 @@ const execPlot = function* (args) {
 	yield new Promise(function (resolve, reject) {
 		
 		const process = spawn(xplotter, plotterArgs);
-		// TODO: get rid of context!
+
 		process.stdout.on('data', onStdoutData);
 		
 		process.stderr.on('data', err => {
@@ -177,9 +200,8 @@ function start(args) {
 	
 	store.update(() => ({
 		startTime: Date.now(),
-		endTime: null,
 		totalNonces: totalNonces,
-		totalRemainingNonces: totalNonces,
+		totalWrittenNonces: 0,
 		instructionSet: instSet,
 		outputPath: path,
 	}));
@@ -199,13 +221,13 @@ function start(args) {
 				console.log(chalk`{green ------------------------------------------}`);
 				console.log("");
 				
+				// reset current plot state
 				store.update(() => ({
 						currentPlot: {
 							index: i + 1,
 							nonces: plot.nonces,
+							writtenNonces : 0,
 							avx: {
-								lastDoneBuffer: 0,
-								done: 0,
 								chunkPercentage: 0.0,
 								chunkStart: 0,
 								chunkEnd: 0
@@ -231,13 +253,12 @@ function start(args) {
 			console.log(chalk`{whiteBright Validating plot(s) in ${path}}`);
 			console.log(chalk`{green ------------------------------------------}`);
 			
-			yield execValidator.call(this, path);
+			//yield execValidator.call(this, path);
 			
-			store.update(() => ({endTime: Date.now()}));
 			cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 			
 			// TODO: move to views
-			_writeFinalStats();
+			//_writeFinalStats();
 			
 			console.log(chalk`{greenBright 🎉 Tadaa 🍾} {whiteBright Finished Plotting. Awesome...} {magentaBright 💲Happy Mining!💰}`)
 		} catch (e) {
