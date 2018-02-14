@@ -17,9 +17,9 @@ const guaranteeExistance = file => {
 	return file;
 };
 
-const _load = (file = defaultCacheFile) => fs.readJsonSync(guaranteeExistance(file));
+const load = (file = defaultCacheFile) => fs.readJsonSync(guaranteeExistance(file));
 
-function _update(obj, file = defaultCacheFile) {
+function update(obj, file = defaultCacheFile) {
 
 	const cache = _load(file);
 	let isDirty = false;
@@ -42,6 +42,6 @@ function _update(obj, file = defaultCacheFile) {
 }
 
 module.exports = {
-	load: _load,
-	update: _update
+	load,
+	update
 };

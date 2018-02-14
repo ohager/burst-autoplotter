@@ -1,16 +1,16 @@
-
-const { PLOTS_DIR } = require('./config');
 const chalk = require('chalk');
-const { version, author } = require('../package.json');
 const commandLineArgs = require('command-line-args');
+const fs = require('fs-extra');
 
+const store = require("./`")
+const { PLOTS_DIR } = require('./config');
+const { version, author } = require('../package.json');
 const plotter = require('./plotter');
 const { create: createPlotPartition } = require('./plotPartition');
 const { hasAdminPrivileges } = require('./privilege');
 const { checkInstructionSet } = require('./isc');
 const ui = require('./ui');
 const cache = require('./cache');
-const fs = require('fs-extra');
 
 const isDevMode = process.env.NODE_ENV === 'development';
 
@@ -72,13 +72,14 @@ const getInstructionSetInformation = () => {
 			const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
 
 			const lastPlot = plots[plots.length - 1];
-			cache.update({ lastNonce: lastPlot.startNonce + lastPlot.nonces }, options.cache);
 
 			console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);
 			console.log(chalk`Overall nonces to be written: {whiteBright ${totalNonces}}`);
 			console.log(chalk`Threads used: {whiteBright ${threads}}`);
 			console.log(chalk`Memory used: {whiteBright ${memory}MiB}`);
 
+			store.update(() => {cacheFilename: options.cache});
+			
 			plotter.start({
 				totalNonces,
 				plots,

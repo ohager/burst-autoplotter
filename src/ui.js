@@ -117,12 +117,11 @@ function nextQuestions(defaults, options, previousAnswers) {
 	})
 }
 
-
-function _run(defaults, opts){
+function run(defaults, opts){
 	return startQuestions(defaults, opts)
 		.then(nextQuestions.bind(null, defaults, opts))
 }
 
 module.exports = {
-	run: _run
+	run
 };

@@ -2,7 +2,7 @@
 
 let metrics = {
 	noncesPerMin: 0,
-	plot : {
+	currentPlot : {
 		remainingNonces : 0,
 		totalNonces : 0,
 		percentage : 0.0,
