@@ -9,7 +9,7 @@ const {version, author} = require('../package.json');
 const plotter = require('./plotter');
 const createPlotPartition = require('./plotPartition');
 const {hasAdminPrivileges} = require('./privilege');
-const {checkInstructionSet} = require('./isc');
+const {getSupportedInstructionSets} = require('./instructionSet');
 const ui = require('./ui');
 const cache = require('./cache');
 
@@ -22,7 +22,7 @@ const options = commandLineArgs([
 
 const getInstructionSetInformation = () => {
 	
-	const instSet = checkInstructionSet();
+	const instSet = getSupportedInstructionSets();
 	let recommended = 'SSE';
 	if (instSet.avx) recommended = 'AVX';
 	if (instSet.avx2) recommended = 'AVX2';
@@ -75,9 +75,6 @@ const getInstructionSetInformation = () => {
 			fs.ensureDirSync(path);
 			
 			const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
-			
-			const lastPlot = plots[plots.length - 1];
-			
 			store.update(() => ({cacheFile: options.cache}));
 			
 			console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);

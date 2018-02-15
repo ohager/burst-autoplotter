@@ -1,6 +1,6 @@
 const store = require('../store');
 const $ = require('../selectors');
-const overall = require("./overall");
+const overall = require("./totalView");
 /*
 New View Design
 

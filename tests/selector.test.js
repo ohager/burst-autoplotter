@@ -36,7 +36,7 @@ test("Test cacheFile selector", () => {
 
 test("Test elapsedTime selector", () => {
 
-	store.update( () => ({startTime:10000, endTime:20000}));
+	store.update( () => ({startTime:Date.now()-(10*1000)}));
 	
 	expect(s.selectElapsedTimeInSecs()).toBe(10);
 	
@@ -45,7 +45,7 @@ test("Test elapsedTime selector", () => {
 test("Test selectTotalNoncesPerMin selector", () => {
 
 	// writes 100 nonces in 10 secs -> 600 nonces per minute
-	store.update( () => ({totalNonces: 100, startTime:10000, endTime:20000}));
+	store.update( () => ({totalNonces: 100, startTime:Date.now() - (10*1000)}));
 	
 	expect(s.selectTotalNoncesPerMin()).toBe(600);
 	

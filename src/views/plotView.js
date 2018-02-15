@@ -2,7 +2,7 @@ const chalk = require("chalk");
 const {version} = require("../../package.json");
 const {format} = require("date-fns");
 const {normalizeProgress, formatTimeString} = require('../utils');
-const progressBar = require("./progressBar");
+const progressBar = require("./progressBarView");
 
 /*
  

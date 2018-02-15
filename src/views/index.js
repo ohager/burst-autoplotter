@@ -1,3 +1,3 @@
-const main = require("./main");
+const mainView = require("./mainView");
 
-module.exports = main;
+module.exports = mainView;
