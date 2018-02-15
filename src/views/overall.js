@@ -1,7 +1,8 @@
 const chalk = require("chalk");
-const {normalizeProgress} = require('../utils');
+const {version} = require("../../package.json");
+const {format} = require("date-fns");
+const {normalizeProgress, formatTimeString} = require('../utils');
 const progressBar = require("./progressBar");
-const formatTimeString = require("../utils").formatTimeString;
 
 /*
  
@@ -33,8 +34,9 @@ function update({
 	const percentage = ((totalWrittenNonces/totalNonces) * 100).toFixed(2);
 	const progress = progressBar(0, totalNonces, totalWrittenNonces, 50);
 	
-	writeAtLine(0, chalk`Elapsed: {whiteBright ${formatTimeString(elapsed)}}`);
-	writeAtLine(1, chalk`{green ${progress}} {whiteBright ${totalWrittenNonces}/${totalNonces} - ${percentage}%}`);
+	writeAtLine(0, chalk`{yellowBright BURST Autoplotter Version ${version} by ohager} - Credits to Blago for XPlotter`);
+	writeAtLine(1, chalk`Elapsed: {whiteBright ${formatTimeString(elapsed)}} - Started: {whiteBright ${format(started, "DD-MM-YYYY HH:mm:ss")}}`);
+	writeAtLine(2, chalk`{green ${progress}} {whiteBright ${totalWrittenNonces}/${totalNonces} - ${percentage}%}`);
 	
 }
 

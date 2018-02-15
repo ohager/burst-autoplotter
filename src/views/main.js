@@ -18,13 +18,16 @@ New View Design
 ...
  */
 
+let listener = null;
 let interval = null;
 function start () {
 	console.clear();
-	interval = setInterval( updateView , 1000);
+	listener = store.listen( updateView ); // immediate update on state changes
+	interval = setInterval( updateView , 1000); // steady update
 }
 
 function stop() {
+	if(listener) store.unlisten(listener);
 	if(interval) clearInterval(interval);
 }
 

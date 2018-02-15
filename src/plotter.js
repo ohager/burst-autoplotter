@@ -64,16 +64,16 @@ const execValidator = function* (plot) {
 const onStdoutData = (output) => {
 	const text = output.toString();
 	
-	if($.selectIsAVX()){
+	if ($.selectIsAVX()) {
 		
 		const currentNonceChunk = extractor.avx.tryGetNoncesChunkedRange(text);
-		if(currentNonceChunk){
-			store.update( state => (
+		if (currentNonceChunk) {
+			store.update(state => (
 				// state is immutable - need to create copies
 				{
-					currentPlot : {
+					currentPlot: {
 						...state.currentPlot,
-						avx : {
+						avx: {
 							...state.currentPlot.avx,
 							chunkStart: +currentNonceChunk.$1,
 							chunkEnd: +currentNonceChunk.$2
@@ -84,40 +84,41 @@ const onStdoutData = (output) => {
 		}
 		
 		const currentChunkPercentage = extractor.avx.tryGetCurrentChunkPercentage(text);
-		if(currentChunkPercentage){
+		if (currentChunkPercentage) {
 			
-			store.update( state => {
-				const percentage = +currentChunkPercentage.$1;
-				const chunkSize = state.currentPlot.avx.chunkEnd - state.currentPlot.avx.chunkStart;
-				const chunkWrittenNonces = Math.floor(chunkSize * (percentage/100));
-				const writtenNoncesDelta = chunkWrittenNonces >  state.currentPlot.avx.chunkWrittenNonces ?
-					chunkWrittenNonces - state.currentPlot.avx.chunkWrittenNonces : chunkWrittenNonces;
-				
-				// state is immutable - need to create copies
-				return {
-					totalWrittenNonces: state.totalWrittenNonces + writtenNoncesDelta,
-					currentPlot : {
-						...state.currentPlot,
-						writtenNonces: state.currentPlot.writtenNonces + writtenNoncesDelta,
-						avx : {
-							...state.currentPlot.avx,
-							chunkWrittenNonces: chunkWrittenNonces,
-							chunkPercentage: percentage,
-						}
-					},
-				}}
+			store.update(state => {
+					const percentage = +currentChunkPercentage.$1;
+					const chunkSize = state.currentPlot.avx.chunkEnd - state.currentPlot.avx.chunkStart;
+					const chunkWrittenNonces = Math.floor(chunkSize * (percentage / 100));
+					const writtenNoncesDelta = chunkWrittenNonces > state.currentPlot.avx.chunkWrittenNonces ?
+						chunkWrittenNonces - state.currentPlot.avx.chunkWrittenNonces : chunkWrittenNonces;
+					
+					// state is immutable - need to create copies
+					return {
+						totalWrittenNonces: state.totalWrittenNonces + writtenNoncesDelta,
+						currentPlot: {
+							...state.currentPlot,
+							writtenNonces: state.currentPlot.writtenNonces + writtenNoncesDelta,
+							avx: {
+								...state.currentPlot.avx,
+								chunkWrittenNonces: chunkWrittenNonces,
+								chunkPercentage: percentage,
+							}
+						},
+					}
+				}
 			);
 		}
 	}
-	else{
+	else {
 		const currentNonces = extractor.sse.tryGetNoncesPerMin(text);
-		if(currentNonces){
+		if (currentNonces) {
 			const plotWrittenNonces = +currentNonces.$1;
 			
-			store.update( state => (
+			store.update(state => (
 				{
 					totalWrittenNonces: state.totalWrittenNonces + plotWrittenNonces,
-					currentPlot : {
+					currentPlot: {
 						...state.currentPlot,
 						writtenNonces: plotWrittenNonces,
 					}
@@ -150,7 +151,7 @@ const execPlot = function* (args) {
 	yield new Promise(function (resolve, reject) {
 		
 		const process = spawn(xplotter, plotterArgs);
-
+		
 		process.stdout.on('data', onStdoutData);
 		
 		process.stderr.on('data', err => {
@@ -161,12 +162,24 @@ const execPlot = function* (args) {
 		process.on('close', code => {
 			
 			//logPlotterEnd(context);
+			store.update(state => {
+				const remainingNonces = state.currentPlot.nonces - state.currentPlot.writtenNonces;
+				return {
+					totalWrittenNonces: state.totalWrittenNonces + remainingNonces,
+					currentPlot: {
+						...state.currentPlot,
+						writtenNonces: state.currentPlot.totalNonces,
+					}
+				}
+			});
+			
+			// TODO: set all progress to completed (totalnonces, 100%, etc.)
 			
 			if (code !== 0) {
 				console.log(chalk`{redBright 🖕Bah!} - Plotting failed.`);
 			}
 			else {
-				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot ${state.currentPlot.index} created successfully`);
+				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot created successfully`);
 			}
 			resolve()
 		});
@@ -216,17 +229,18 @@ function start(args) {
 				const plot = plots[i];
 				
 				// TODO: output must be moved to ui!
+				/*
 				console.log(chalk`{green ------------------------------------------}`);
 				console.log(chalk`{whiteBright Starting plot ${i + 1}/${plots.length}} - Nonces {whiteBright ${plot.startNonce}} to {whiteBright ${plot.startNonce + plot.nonces}}`);
 				console.log(chalk`{green ------------------------------------------}`);
 				console.log("");
-				
+				*/
 				// reset current plot state
 				store.update(() => ({
 						currentPlot: {
 							index: i + 1,
 							nonces: plot.nonces,
-							writtenNonces : 0,
+							writtenNonces: 0,
 							avx: {
 								chunkPercentage: 0.0,
 								chunkStart: 0,
