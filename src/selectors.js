@@ -70,6 +70,15 @@ const selectCurrentPlotEstimatedDurationInSecs = select(
 	state => Math.floor(selectCurrentPlotRemainingNonces() / selectEffectiveNoncesPerSeconds())
 );
 
+const selectScoopPercentage = select(
+	state => state.scoopPercentage
+);
+
+const selectIsWritingScoops = select(
+	state => state.isWritingScoops
+);
+
+
 module.exports = {
 	select,
 	selectInstructionSet,
@@ -86,5 +95,7 @@ module.exports = {
 	selectEffectiveNoncesPerSeconds,
 	selectCurrentPlotEstimatedDurationInSecs,
 	selectTotalEstimatedDurationInSecs,
-	selectCurrentPlotRemainingNonces
+	selectCurrentPlotRemainingNonces,
+	selectIsWritingScoops,
+	selectScoopPercentage
 };

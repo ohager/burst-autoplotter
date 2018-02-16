@@ -1,7 +1,7 @@
 const avx = require("./avx");
 const sse = require("./sse");
 const validation = require("./validation");
-const writingScoops = require("./writingScoops");
+const scoops = require("./writingScoops");
 
 /**
  * This is a tiny but very useful extract function with fluent API
@@ -30,6 +30,6 @@ module.exports = {
 		avx,
 		sse,
 		validation,
-		writingScoops,
+		scoops,
 	}
 };

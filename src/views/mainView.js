@@ -2,6 +2,7 @@ const store = require('../store');
 const $ = require('../selectors');
 const totalView = require("./totalView");
 const plotView = require("./plotView");
+const scoopView = require("./scoopView");
 const {addSeconds} = require("date-fns");
 /*
 New View Design
@@ -47,6 +48,7 @@ function render() {
 		eta: addSeconds(Date.now(), $.selectTotalEstimatedDurationInSecs()),
 		totalNonces: $.selectTotalNonces(),
 		totalWrittenNonces: $.selectTotalWrittenNonces(),
+		noncesPerMinute: $.selectEffectiveNoncesPerSeconds() * 60
 	});
 	
 	//if($.selectPlotCount() >= 1)
@@ -61,7 +63,14 @@ function render() {
 		writtenNonces: $.selectCurrentPlotWrittenNonces()
 	});
 	//}
+
+	line = scoopView.render({
+		line: line + 2,
+		percentage: $.selectScoopPercentage(),
+		isScooping: $.selectIsWritingScoops(),
+	});
 	
+	process.stdout.moveCursor(0,2);
 }
 
 module.exports = {

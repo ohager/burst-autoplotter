@@ -29,7 +29,8 @@ function render({
 	                remaining,
 	                eta,
 	                totalNonces,
-	                totalWrittenNonces
+	                totalWrittenNonces,
+					noncesPerMinute
                 }) {
 	
 	const percentage = ((totalWrittenNonces / totalNonces) * 100).toFixed(2);
@@ -39,7 +40,9 @@ function render({
 	
 	line++; // skip one line
 	writeAtLine(++line, chalk`Elapsed: {whiteBright ${formatTimeString(elapsed)}} - Started: {whiteBright ${format(started, "DD-MM-YYYY HH:mm:ss")}}`);
-	writeAtLine(++line, chalk`Remaining: {whiteBright ${formatTimeString(remaining)}} - ETA: {whiteBright ${format(eta, "DD-MM-YYYY HH:mm:ss")}}`);
+	writeAtLine(++line, chalk`Remaining: {whiteBright ${formatTimeString(remaining)}} - ETA: {whiteBright ${format(eta, "DD-MM-YYYY HH:mm:ss")}} - {yellow nonces/min: ${noncesPerMinute}}`);
+
+		line++; // skip one line
 	writeAtLine(++line, chalk`{greenBright ${progress}} {whiteBright ${totalWrittenNonces}/${totalNonces} - ${percentage}%}`);
 	
 	return line;
