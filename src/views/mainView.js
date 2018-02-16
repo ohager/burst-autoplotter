@@ -71,6 +71,7 @@ function render() {
 	});
 	
 	process.stdout.moveCursor(0,2);
+	process.stdout.cursorTo(0);
 }
 
 module.exports = {

@@ -75,15 +75,17 @@ function handleData(output) {
 		handleDataSSE(text);
 	}
 	
-	store.update({
-		isWritingScoops : false
-	});
+	store.update(() => ({
+			isWritingScoops: false
+		})
+	);
 	
 	extract.on(text, extractors.scoops.getWritingScoops).do(groups => {
-		store.update({
-			isWritingScoops: true,
-			scoopPercentage: +groups.$1,
-		})
+		store.update(() => ({
+				isWritingScoops: true,
+				scoopPercentage: +groups.$1,
+			})
+		);
 	})
 }
 
