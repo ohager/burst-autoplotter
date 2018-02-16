@@ -6,14 +6,15 @@ const chalk = require('chalk');
 const {format} = require('date-fns');
 const {formatTimeString} = require('../utils');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
-const {logPlotter, logPlotterEnd, logValidator, error} = require('../outputRenderer');
 const validator = require("../validator");
 
 const store = require("../store");
 const $ = require("../selectors");
 const view = require("../views/index");
 
-const {handleData} = require("./onDataHandler");
+const handleStdoutData = require("./stdoutHandler");
+const handleStderrData = require("./stderrHandler");
+const handleClose = require("./closeHandler");
 
 const getPlotterPath = () => {
 	
@@ -56,32 +57,19 @@ const plotter = function* (args) {
 		
 		const process = spawn(xplotter, plotterArgs);
 		
-		process.stdout.on('data', handleData);
+		process.stdout.on('data', handleStdoutData);
 		
 		process.stderr.on('data', err => {
-			error(err);
+			handleStderrData(err);
 			reject(err);
 		});
-		
 		
 		// TODO: handler for close event
 		process.on('close', code => {
 			
-			//logPlotterEnd(context);
-		
-			console.log("closes received");
+			handleClose(code);
 			
-			store.update(state => {
-				const remainingNonces = state.currentPlot.nonces - state.currentPlot.writtenNonces;
-				return {
-					totalWrittenNonces: state.totalWrittenNonces + remainingNonces,
-					currentPlot: {
-						...state.currentPlot,
-						writtenNonces: state.currentPlot.totalNonces,
-					}
-				}
-			});
-			
+			// TODO remove here -> responsibilty of views
 			if (code !== 0) {
 				console.log(chalk`{redBright 🖕Bah!} - Plotting failed.`);
 				//reject();// use reject or not?
@@ -146,6 +134,7 @@ function start(args) {
 				*/
 				// reset current plot state
 				store.update(() => ({
+						plotCount: plots.length,
 						currentPlot: {
 							index: i + 1,
 							nonces: plot.nonces,

@@ -77,6 +77,4 @@ function handleData(output) {
 	
 }
 
-module.exports = {
-	handleData
-};
+module.exports = handleData;

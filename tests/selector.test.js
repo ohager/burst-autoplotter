@@ -42,12 +42,40 @@ test("Test elapsedTime selector", () => {
 	
 });
 
-test("Test selectTotalNoncesPerMin selector", () => {
+test("Test selectEffectiveNoncesPerSeconds selector", () => {
 
-	// writes 100 nonces in 10 secs -> 600 nonces per minute
-	store.update( () => ({totalNonces: 100, startTime:Date.now() - (10*1000)}));
+	// writes 100 nonces in 10 secs -> 10 nonces per second
+	store.update( () => ({totalWrittenNonces: 100, startTime:Date.now() - (10*1000)}));
 	
-	expect(s.selectTotalNoncesPerMin()).toBe(600);
+	expect(s.selectEffectiveNoncesPerSeconds()).toBe(10);
+	
+});
+
+test("Test selectTotalEstimatedDurationInSecs selector", () => {
+	
+	// writes 100 nonces in 10 secs -> 10 nonces per minute
+	store.update( () => ({
+		totalNonces: 1000,
+		totalWrittenNonces: 100,
+		startTime:Date.now() - (10*1000)})
+	);
+	// 900 remaining @10 nps
+	expect(s.selectTotalEstimatedDurationInSecs()).toBe(90);
+	
+});
+
+
+test("Test selectCurrentPlotEstimatedDurationInSecs selector", () => {
+
+	// writes 500 nonces in 10 secs -> 10 nonces per minute
+	store.update( () => ({
+		totalWrittenNonces: 100,
+		currentPlot: {
+			nonces: 500,
+			writtenNonces: 100
+		}, startTime:Date.now() - (10*1000)}));
+	// 400 remaining @10 nps
+	expect(s.selectCurrentPlotEstimatedDurationInSecs()).toBe(40);
 	
 });
 

@@ -11,7 +11,7 @@ afterEach(() => {
 
 test("Load Cache", () => {
 	const {accountId, lastNonce} = load(TestCache);
-	expect(accountId).toBe("");
+	expect(accountId).toBe("1234567890123456789");
 	expect(lastNonce).toBe(0);
 });
 

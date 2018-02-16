@@ -30,6 +30,14 @@ const selectCacheFile = select(
 	state => state.cacheFile
 );
 
+const selectPlotCount = select(
+	state => state.plotCount
+);
+
+const selectCurrentPlotIndex = select(
+	state => state.currentPlot.index
+);
+
 const selectTotalRemainingNonces = select(
 	state => state.totalNonces - state.totalWrittenNonces
 );
@@ -38,8 +46,28 @@ const selectElapsedTimeInSecs = select(
 	state => Math.floor((Date.now() - state.startTime) / 1000)
 );
 
-const selectTotalNoncesPerMin = select(
-	state => Math.floor(state.totalNonces / (selectElapsedTimeInSecs() / 60))
+const selectCurrentPlotNonces = select(
+	state => state.currentPlot.nonces
+);
+
+const selectCurrentPlotWrittenNonces = select(
+	state => state.currentPlot.writtenNonces
+);
+
+const selectCurrentPlotRemainingNonces = select(
+	state => state.currentPlot.nonces - state.currentPlot.writtenNonces
+);
+
+const selectEffectiveNoncesPerSeconds = select(
+	state => Math.floor(state.totalWrittenNonces / selectElapsedTimeInSecs())
+);
+
+const selectTotalEstimatedDurationInSecs = select(
+	state => Math.floor(selectTotalRemainingNonces() / selectEffectiveNoncesPerSeconds())
+);
+
+const selectCurrentPlotEstimatedDurationInSecs = select(
+	state => Math.floor(selectCurrentPlotRemainingNonces() / selectEffectiveNoncesPerSeconds())
 );
 
 module.exports = {
@@ -48,8 +76,15 @@ module.exports = {
 	selectIsAVX,
 	selectCacheFile,
 	selectElapsedTimeInSecs,
-	selectTotalNoncesPerMin,
 	selectTotalRemainingNonces,
 	selectTotalWrittenNonces,
 	selectTotalNonces,
+	selectPlotCount,
+	selectCurrentPlotIndex,
+	selectCurrentPlotWrittenNonces,
+	selectCurrentPlotNonces,
+	selectEffectiveNoncesPerSeconds,
+	selectCurrentPlotEstimatedDurationInSecs,
+	selectTotalEstimatedDurationInSecs,
+	selectCurrentPlotRemainingNonces
 };

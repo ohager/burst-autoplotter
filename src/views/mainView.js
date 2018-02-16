@@ -1,6 +1,8 @@
 const store = require('../store');
 const $ = require('../selectors');
-const overall = require("./totalView");
+const totalView = require("./totalView");
+const plotView = require("./plotView");
+const {addSeconds} = require("date-fns");
 /*
 New View Design
 
@@ -18,30 +20,48 @@ New View Design
 ...
  */
 
+
 let listener = null;
 let interval = null;
-function start () {
+
+function start() {
 	console.clear();
-	listener = store.listen( updateView ); // immediate update on state changes
-	interval = setInterval( updateView , 1000); // steady update
+	listener = store.listen(render); // immediate update on state changes
+	interval = setInterval(render, 250); // steady update
 }
 
 function stop() {
-	if(listener) store.unlisten(listener);
-	if(interval) clearInterval(interval);
+	if (listener) store.unlisten(listener);
+	if (interval) clearInterval(interval);
 }
 
-function updateView( ) {
+function render() {
 	
-	const state = store.get();
+	const state = store.get(); // use selectors instead
 	
-	overall.update({
+	let line = totalView.render({
+		line: 0,
 		started: state.startTime,
 		elapsed: $.selectElapsedTimeInSecs(),
-		eta: Date.now(), // TODO: calculate some how ... or use selectors
+		remaining: $.selectTotalEstimatedDurationInSecs(),
+		eta: addSeconds(Date.now(), $.selectTotalEstimatedDurationInSecs()),
 		totalNonces: $.selectTotalNonces(),
-		totalWrittenNonces : $.selectTotalWrittenNonces(),
+		totalWrittenNonces: $.selectTotalWrittenNonces(),
 	});
+	
+	//if($.selectPlotCount() >= 1)
+	//{
+	line = plotView.render({
+		line: line + 2,
+		plotIndex: $.selectCurrentPlotIndex(),
+		plotCount: $.selectPlotCount(),
+		remaining: $.selectCurrentPlotEstimatedDurationInSecs(),
+		eta: addSeconds(Date.now(), $.selectCurrentPlotEstimatedDurationInSecs()),
+		nonces: $.selectCurrentPlotNonces(),
+		writtenNonces: $.selectCurrentPlotWrittenNonces()
+	});
+	//}
+	
 }
 
 module.exports = {

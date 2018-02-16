@@ -13,15 +13,17 @@ const progressBar = require("./progressBarView");
  
  */
 
-const cli = process.stdout;
 
+// extract as util
 function writeAtLine(line, text) {
+	const cli = process.stdout;
 	cli.cursorTo(0, line);
 	cli.clearLine();
 	cli.write(text);
 }
 
-function update({
+function render({
+	                line,
 	                started,
 	                elapsed,
 	                remaining,
@@ -29,17 +31,20 @@ function update({
 	                totalNonces,
 	                totalWrittenNonces
                 }) {
-		
-	const remainingNonces = totalNonces - totalWrittenNonces;
-	const percentage = ((totalWrittenNonces/totalNonces) * 100).toFixed(2);
+	
+	const percentage = ((totalWrittenNonces / totalNonces) * 100).toFixed(2);
 	const progress = progressBar(0, totalNonces, totalWrittenNonces, 50);
 	
-	writeAtLine(0, chalk`{yellowBright BURST Autoplotter Version ${version} by ohager} - Credits to Blago for XPlotter`);
-	writeAtLine(1, chalk`Elapsed: {whiteBright ${formatTimeString(elapsed)}} - Started: {whiteBright ${format(started, "DD-MM-YYYY HH:mm:ss")}}`);
-	writeAtLine(2, chalk`{green ${progress}} {whiteBright ${totalWrittenNonces}/${totalNonces} - ${percentage}%}`);
+	writeAtLine(line, chalk`{yellowBright BURST Autoplotter Version ${version} by ohager} - Credits to Blago for XPlotter`);
 	
+	line++; // skip one line
+	writeAtLine(++line, chalk`Elapsed: {whiteBright ${formatTimeString(elapsed)}} - Started: {whiteBright ${format(started, "DD-MM-YYYY HH:mm:ss")}}`);
+	writeAtLine(++line, chalk`Remaining: {whiteBright ${formatTimeString(remaining)}} - ETA: {whiteBright ${format(eta, "DD-MM-YYYY HH:mm:ss")}}`);
+	writeAtLine(++line, chalk`{greenBright ${progress}} {whiteBright ${totalWrittenNonces}/${totalNonces} - ${percentage}%}`);
+	
+	return line;
 }
 
 module.exports = {
-	update
+	render
 };
