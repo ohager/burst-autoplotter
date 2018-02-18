@@ -6,44 +6,43 @@ const scoopView = require("./scoopView");
 const headerView = require("./headerView");
 const finalView = require("./finalView");
 const errorView = require("./errorView");
-const {addSeconds} = require("date-fns");
-
+const { addSeconds } = require("date-fns");
 
 let listener = null;
 
 function start() {
 	console.clear();
-	
+
 	const line = headerView.render({
 		line: 0,
 		instructionSet: $.selectInstructionSet(),
 		threads: $.selectUsedThreads(),
 		memoryInMiB: $.selectUsedMemory(),
 		totalPlotSizeInGiB: $.selectTotalPlotSizeInGiB(),
-		plotCount : $.selectPlotCount(),
-		totalNonces : $.selectTotalNonces(),
+		plotCount: $.selectPlotCount(),
+		totalNonces: $.selectTotalNonces()
 	});
-	
+
 	listener = store.listen(render.bind(null, line));
 }
 
 function stop() {
 	store.unlisten(listener);
-	
+
 	if ($.selectHasError()) return; // error is shown on catched rejection
-	
+
 	finalView.render({
 		outputPath: $.selectOutputPath(),
 		totalWrittenNonces: $.selectTotalWrittenNonces(),
 		totalPlots: $.selectPlotCount(),
 		noncesPerMinute: $.selectEffectiveNoncesPerSeconds() * 60,
 		elapsedTimeSecs: $.selectElapsedTimeInSecs(),
-		validatedPlots : $.selectValidatedPlots(),
+		validatedPlots: $.selectValidatedPlots()
 	});
 }
 
 function render(line) {
-	
+
 	const error = $.selectError();
 
 	if (error.length > 0) {
@@ -53,9 +52,9 @@ function render(line) {
 		});
 		return;
 	}
-	
+
 	const totalEstimatedDurationInSecs = $.selectTotalEstimatedDurationInSecs();
-	const etaTotal = totalEstimatedDurationInSecs  ? addSeconds(Date.now(), totalEstimatedDurationInSecs) : null;
+	const etaTotal = totalEstimatedDurationInSecs ? addSeconds(Date.now(), totalEstimatedDurationInSecs) : null;
 	line = totalView.render({
 		line,
 		started: $.selectStartTime(),
@@ -66,10 +65,10 @@ function render(line) {
 		totalWrittenNonces: $.selectTotalWrittenNonces(),
 		noncesPerMinute: $.selectEffectiveNoncesPerSeconds() * 60
 	});
-	
+
 	if ($.selectPlotCount() > 1) {
 		const plotEstimatedDurationInSecs = $.selectCurrentPlotEstimatedDurationInSecs();
-		const etaPlot = plotEstimatedDurationInSecs  ? addSeconds(Date.now(), plotEstimatedDurationInSecs) : null;
+		const etaPlot = plotEstimatedDurationInSecs ? addSeconds(Date.now(), plotEstimatedDurationInSecs) : null;
 		line = plotView.render({
 			line: line + 2,
 			plotIndex: $.selectCurrentPlotIndex(),
@@ -80,16 +79,14 @@ function render(line) {
 			writtenNonces: $.selectCurrentPlotWrittenNonces()
 		});
 	}
-	
+
 	scoopView.render({
 		line: line + 2,
-		percentage: $.selectScoopPercentage(),
+		percentage: $.selectScoopPercentage()
 	});
-	
 }
 
 module.exports = {
 	start,
 	stop
 };
-

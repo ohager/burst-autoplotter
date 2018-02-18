@@ -6,7 +6,8 @@ const b2mib = noBytes => noBytes / FACT_MIB;
 const b2gib = noBytes => (noBytes / FACT_GIB);
 
 function formatTimeString(seconds) {
-	if (seconds === null || seconds === undefined || typeof(seconds) !== 'number') return '00:00:00';
+	
+	if (seconds === null || seconds === undefined || typeof(seconds) !== 'number') return 'N/A';
 	
 	const p = (n) => n < 10 ? '0' + n : '' + n;
 	
@@ -26,5 +27,5 @@ module.exports = {
 	b2gib,
 	b2mib,
 	formatTimeString,
-	normalizeProgress,
+	normalizeProgress
 };

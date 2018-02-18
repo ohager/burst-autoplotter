@@ -1,5 +1,4 @@
 const os = require('os');
-const fs = require('fs');
 const prompt = require('inquirer').prompt;
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 
@@ -39,14 +38,17 @@ function nextQuestions(defaults, options, previousAnswers) {
 	const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
 	const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
 
-	const threadChoices = [];
+	let threadChoices = [];
 	for (let i = 1; i <= availableCPUs; ++i) threadChoices.push(i + '');
 	const defaultThreads = availableCPUs - 1;
 
-	const ramChoices = [];
+	let ramChoices = [];
 	const ram = Math.floor(availableRAM_mib);
 	for (let i = 1; i * 1024 < ram; ++i) ramChoices.push(i * 1024 + '');
 	const defaultMemory = ramChoices[ramChoices.length - 1];
+
+	const instSetChoices = options.instructionSetInfo.supported;
+	const defaultInstSet = options.instructionSetInfo.recommended;
 
 	const nextQuestions = [{
 		type: "input",
@@ -97,6 +99,12 @@ function nextQuestions(defaults, options, previousAnswers) {
 			message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
 			default: defaultMemory,
 			choices: ramChoices
+		}, {
+			type: "list",
+			name: "instructionSet",
+			message: "Select Instruction Set?",
+			default: defaultInstSet,
+			choices: instSetChoices
 		});
 	}
 
@@ -104,15 +112,16 @@ function nextQuestions(defaults, options, previousAnswers) {
 
 		nextAnswers.threads = nextAnswers.threads || defaultThreads;
 		nextAnswers.memory = nextAnswers.memory || defaultMemory;
+		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
 
 		return Object.assign({}, previousAnswers, nextAnswers);
 	});
 }
 
-function _run(defaults, opts) {
+function run(defaults, opts) {
 	return startQuestions(defaults, opts).then(nextQuestions.bind(null, defaults, opts));
 }
 
 module.exports = {
-	run: _run
+	run
 };

@@ -4,7 +4,7 @@ const NONCE_SIZE_BYTES = 262144;
 
 const calculateNonces = bytes => Math.floor(bytes / NONCE_SIZE_BYTES);
 
-function create(totalPlotSize, startNonce, chunks) {
+function createPlotPartition(totalPlotSize, startNonce, chunks) {
 
 	const totalNonces = calculateNonces(gib2b(totalPlotSize));
 	const noncesPerChunk = Math.floor(totalNonces / chunks);
@@ -24,6 +24,4 @@ function create(totalPlotSize, startNonce, chunks) {
 	};
 }
 
-module.exports = {
-	create
-};
+module.exports = createPlotPartition;

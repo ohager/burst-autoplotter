@@ -4,7 +4,8 @@ const path = require('path');
 
 const initialCacheData = {
 	accountId: "1234567890123456789",
-	lastNonce: 0
+	lastNonce: 0,
+	instructionSet: 'SSE'
 };
 const defaultCacheFile = path.join(process.env.APPDATA, CACHE_FILE);
 
@@ -21,7 +22,7 @@ const load = (file = defaultCacheFile) => fs.readJsonSync(guaranteeExistance(fil
 
 function update(obj, file = defaultCacheFile) {
 
-	const cache = _load(file);
+	const cache = load(file);
 	let isDirty = false;
 
 	let updatedCache;

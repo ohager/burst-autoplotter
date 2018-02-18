@@ -75,15 +75,25 @@ const selectCurrentPlotRemainingNonces = select(
 );
 
 const selectEffectiveNoncesPerSeconds = select(
-	state => Math.floor(state.totalWrittenNonces / selectElapsedTimeInSecs())
+	state => {
+		const elapsed = selectElapsedTimeInSecs();
+		return elapsed > 0 && state.totalWrittenNonces > 0 ? Math.floor(state.totalWrittenNonces / elapsed ) : null;
+	}
 );
 
 const selectTotalEstimatedDurationInSecs = select(
-	state => Math.floor(selectTotalRemainingNonces() / selectEffectiveNoncesPerSeconds())
+	state => {
+		const npm = selectEffectiveNoncesPerSeconds();
+		return npm ? Math.floor(selectTotalRemainingNonces() / npm) : null
+	}
 );
 
 const selectCurrentPlotEstimatedDurationInSecs = select(
-	state => Math.floor(selectCurrentPlotRemainingNonces() / selectEffectiveNoncesPerSeconds())
+	state => {
+		const npm = selectEffectiveNoncesPerSeconds();
+		return npm ? Math.floor(selectCurrentPlotRemainingNonces() / npm) : null;
+	}
+
 );
 
 const selectScoopPercentage = select(

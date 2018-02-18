@@ -72,15 +72,15 @@ const getInstructionSetInformation = () => {
 			fs.ensureDirSync(path);
 			
 			const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
-
+			
 			store.update(() => ({
 				totalPlotSize,
-				account:accountId,
+				account: accountId,
 				cacheFile: options.cache,
 				usedThreads: threads,
 				usedMemory: memory,
 				startTime: Date.now(),
-				totalNonces: totalNonces,
+				totalNonces,
 				totalWrittenNonces: 0,
 				instructionSet,
 				outputPath: path,

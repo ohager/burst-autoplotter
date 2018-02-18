@@ -124,6 +124,7 @@ function nextQuestions(defaults, options, previousAnswers) {
 		
 		nextAnswers.threads = nextAnswers.threads || defaultThreads;
 		nextAnswers.memory = nextAnswers.memory || defaultMemory;
+		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
 		
 		return Object.assign({}, previousAnswers, nextAnswers)
 	})

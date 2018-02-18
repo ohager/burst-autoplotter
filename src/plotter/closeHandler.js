@@ -6,6 +6,7 @@ function handleClose(code) {
 	store.update(state => {
 		const remainingNonces = state.currentPlot.nonces - state.currentPlot.writtenNonces;
 		return {
+			scoopPercentage : 0,
 			totalWrittenNonces: state.totalWrittenNonces + remainingNonces,
 			currentPlot: {
 				...state.currentPlot,

@@ -31,9 +31,9 @@ test("Bytes to MegaBytes", () => {
 
 test("Seconds to timestring", () => {
 	
-	expect(formatTimeString("bla")).toBe('00:00:00');
-	expect(formatTimeString(null)).toBe('00:00:00');
-	expect(formatTimeString(undefined)).toBe('00:00:00');
+	expect(formatTimeString("bla")).toBe('N/A');
+	expect(formatTimeString(null)).toBe('N/A');
+	expect(formatTimeString(undefined)).toBe('N/A');
 	expect(formatTimeString(0)).toBe('00:00:00');
 	expect(formatTimeString(15)).toBe('00:00:15');
 	expect(formatTimeString(60)).toBe('00:01:00');

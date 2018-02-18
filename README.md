@@ -1,12 +1,14 @@
 # burst-autoplotter
 
+> NEW VERSION 0.2: Entirely refactored using reactive approach. Correct calculations, new UI, more tests.  
+
 Automates plotting for BURST coin
 
 Features:
 
 - CLI-based UI for simple interaction
 - Split large plots in smaller plots
-- Comprehensive progress indicator
+- Comprehensive progress indicators
 - Support for SSE, AVX, and AVX2
 - Duration estimates
 - Caches relevant information, like Account ID, and last written nonces
@@ -29,7 +31,7 @@ Afterwards, you just need to call `autoplot` in the console.
 > __You need to run as administrator__ 
 
 ### Extended Mode
-Since 0.0.9 there's is an extended mode, which allows you to set advanced settings like Threads and Memory.
+Since 0.0.9 there's is an extended mode, which allows you to set advanced settings like Threads, Memory, and Instruction Set.
 
 To plot in extended mode you just need to call `autoplot -e`.
 

@@ -1,14 +1,15 @@
+const fs = require('fs-extra');
 const chalk = require('chalk');
 const commandLineArgs = require('command-line-args');
-const fs = require('fs-extra');
 
-const store = require("./`")
+const store = require('./store');
 const { PLOTS_DIR } = require('./config');
 const { version, author } = require('../package.json');
+
 const plotter = require('./plotter');
-const { create: createPlotPartition } = require('./plotPartition');
+const createPlotPartition = require('./plotPartition');
 const { hasAdminPrivileges } = require('./privilege');
-const { checkInstructionSet } = require('./isc');
+const { getSupportedInstructionSets } = require('./instructionSet');
 const ui = require('./ui');
 const cache = require('./cache');
 
@@ -18,7 +19,7 @@ const options = commandLineArgs([{ name: 'cache', alias: 'c', type: String }, { 
 
 const getInstructionSetInformation = () => {
 
-	const instSet = checkInstructionSet();
+	const instSet = getSupportedInstructionSets();
 	let recommended = 'SSE';
 	if (instSet.avx) recommended = 'AVX';
 	if (instSet.avx2) recommended = 'AVX2';
@@ -53,33 +54,35 @@ const getInstructionSetInformation = () => {
 	}
 
 	const instructionSetInfo = getInstructionSetInformation();
-	console.log(chalk`Supported Instruction Sets: {whiteBright ${instructionSetInfo.supported}}`);
-	console.log(chalk`Selected Instruction Set: {yellowBright ${instructionSetInfo.recommended}}`);
-	console.log('\n');
 
-	ui.run(cache.load(options.cache), { extended: options.extended }).then(answers => {
+	ui.run(cache.load(options.cache), { extended: options.extended, instructionSetInfo: instructionSetInfo }).then(answers => {
 		cache.update(answers, options.cache);
 		return answers;
 	}).then(answers => {
 
 		let path = '';
 		try {
-			const { accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory } = answers;
+			const { accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory, instructionSet } = answers;
 			path = `${hardDisk}:/${PLOTS_DIR}`;
 
 			fs.ensureDirSync(path);
 
 			const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
 
-			const lastPlot = plots[plots.length - 1];
+			store.update(() => ({
+				totalPlotSize,
+				account: accountId,
+				cacheFile: options.cache,
+				usedThreads: threads,
+				usedMemory: memory,
+				startTime: Date.now(),
+				totalNonces,
+				totalWrittenNonces: 0,
+				instructionSet,
+				outputPath: path,
+				plotCount: plots.length
+			}));
 
-			console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);
-			console.log(chalk`Overall nonces to be written: {whiteBright ${totalNonces}}`);
-			console.log(chalk`Threads used: {whiteBright ${threads}}`);
-			console.log(chalk`Memory used: {whiteBright ${memory}MiB}`);
-
-			store.update(() => {cacheFilename: options.cache});
-			
 			plotter.start({
 				totalNonces,
 				plots,
@@ -87,10 +90,10 @@ const getInstructionSetInformation = () => {
 				path,
 				threads,
 				memory,
-				instSet: instructionSetInfo.recommended
+				instSet: instructionSet
 			});
 		} catch (e) {
-			console.error(`Couldn't create directory ${path} - reason: ${e}`);
+			console.error(`Woop: Something failed - reason: ${e}`);
 			process.exit(666);
 		}
 	});

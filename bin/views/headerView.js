@@ -1,17 +1,17 @@
 const chalk = require("chalk");
-const {writeAtLine} = require("./viewUtils");
-const {version, author} = require("../../package.json");
+const { writeAtLine } = require("./viewUtils");
+const { version, author } = require("../../package.json");
 
 function render({
-	                line,
-	                threads,
-	                memoryInMiB,
-	                totalPlotSizeInGiB,
-	                plotCount,
-	                totalNonces,
-					instructionSet
-                }) {
-	
+	line,
+	threads,
+	memoryInMiB,
+	totalPlotSizeInGiB,
+	plotCount,
+	totalNonces,
+	instructionSet
+}) {
+
 	writeAtLine(line, chalk`{blueBright BURST Autoplotter Version ${version} by ${author.name}}`);
 	writeAtLine(++line, chalk`{grey Credits to Blago for XPlotter}`);
 	writeAtLine(++line, chalk`{yellowBright ${"-".repeat(50)}}`);
@@ -21,7 +21,7 @@ function render({
 	writeAtLine(++line, chalk`Memory: {whiteBright ${memoryInMiB} MiB}`);
 	writeAtLine(++line, chalk`Instruction Set: {whiteBright ${instructionSet}}`);
 	writeAtLine(++line, chalk`{yellowBright ${"-".repeat(50)}}`);
-	
+
 	return line;
 }
 
