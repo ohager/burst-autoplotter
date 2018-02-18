@@ -20,7 +20,7 @@ Features:
 
 > Currently, the plotter works only! on Windows (as XPlotter is used internally)
 
-![autoplotter-in-action](https://devbutze.com/wp-content/uploads/2018/02/burst-autoplotter.gif)
+![autoplotter-in-action](https://devbutze.com/wp-content/uploads/2018/02/burst-autoplotter-0.2.0.gif)
  
 ## Installation
 
