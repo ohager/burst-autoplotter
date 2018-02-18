@@ -51,14 +51,18 @@ function handleDataSSE(text) {
 	
 	extract.on(text, extractors.sse.tryGetNoncesPerMin).do(groups => {
 			const plotWrittenNonces = +groups.$1;
-			store.update(state => (
-				{
-					totalWrittenNonces: state.totalWrittenNonces + plotWrittenNonces,
-					currentPlot: {
-						...state.currentPlot,
-						writtenNonces: plotWrittenNonces,
+			store.update(state => {
+				const writtenNoncesDelta = plotWrittenNonces > state.currentPlot.writtenNonces ?
+					plotWrittenNonces - state.currentPlot.writtenNonces : plotWrittenNonces;
+				
+					return {
+						totalWrittenNonces: state.totalWrittenNonces + writtenNoncesDelta,
+						currentPlot: {
+							...state.currentPlot,
+							writtenNonces: plotWrittenNonces,
+						}
 					}
-				})
+				}
 			);
 		}
 	)
