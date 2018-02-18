@@ -7,7 +7,13 @@ const initialCacheData = {
 	lastNonce: 0,
 	instructionSet: 'SSE'
 };
-const defaultCacheFile = path.join(process.env.APPDATA, CACHE_FILE);
+
+let rootPath = process.env.APPDATA;
+if (process.env.NODE_ENV === "test") {
+	rootPath = "./";
+}
+
+const defaultCacheFile = path.join(rootPath, CACHE_FILE);
 
 const cacheableProps = Object.keys(initialCacheData);
 
