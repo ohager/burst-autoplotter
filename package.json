@@ -35,7 +35,7 @@
   "scripts": {
     "build": "babel src --out-dir bin",
     "test:dev": "cross-env NODE_ENV=test jest",
-    "test": "cross-env NODE_ENV=test jest --coverage && coverage",
+    "test": "cross-env NODE_ENV=test jest --coverage && codecov",
     "start": "cross-env NODE_ENV=development node ./src/autoplot.js"
   }
 }
