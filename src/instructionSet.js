@@ -9,7 +9,6 @@ function getSupportedInstructionSets(){
 		
 		return {
 			sse : /SSE supported/.test(text),
-			sse2 : /SSE supported/.test(text),
 			avx : /AVX supported/.test(text),
 			avx2 : /AVX2 supported/.test(text)
 		};

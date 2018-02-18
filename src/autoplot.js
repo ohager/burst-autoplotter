@@ -57,11 +57,8 @@ const getInstructionSetInformation = () => {
 	}
 	
 	const instructionSetInfo = getInstructionSetInformation();
-	console.log(chalk`Supported Instruction Sets: {whiteBright ${instructionSetInfo.supported}}`);
-	console.log(chalk`Selected Instruction Set: {yellowBright ${instructionSetInfo.recommended}}`);
-	console.log('\n');
 	
-	ui.run(cache.load(options.cache), {extended: options.extended})
+	ui.run(cache.load(options.cache), {extended: options.extended, instructionSetInfo: instructionSetInfo})
 		.then(answers => {
 			cache.update(answers, options.cache);
 			return answers;
@@ -69,7 +66,7 @@ const getInstructionSetInformation = () => {
 		
 		let path = '';
 		try {
-			const {accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory} = answers;
+			const {accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory, instructionSet} = answers;
 			path = `${hardDisk}:/${PLOTS_DIR}`;
 			
 			fs.ensureDirSync(path);
@@ -85,7 +82,7 @@ const getInstructionSetInformation = () => {
 				startTime: Date.now(),
 				totalNonces: totalNonces,
 				totalWrittenNonces: 0,
-				instructionSet: instructionSetInfo.recommended,
+				instructionSet,
 				outputPath: path,
 				plotCount: plots.length,
 			}));
@@ -97,7 +94,7 @@ const getInstructionSetInformation = () => {
 				path,
 				threads,
 				memory,
-				instSet: instructionSetInfo.recommended,
+				instSet: instructionSet,
 			});
 			
 		} catch (e) {

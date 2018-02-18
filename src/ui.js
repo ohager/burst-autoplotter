@@ -41,14 +41,18 @@ function nextQuestions(defaults, options, previousAnswers) {
 	const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
 	const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
 	
-	const threadChoices = [];
+	let threadChoices = [];
 	for(let i=1; i<=availableCPUs;++i) threadChoices.push(i + '');
 	const defaultThreads = availableCPUs - 1;
 	
-	const ramChoices = [];
+	let ramChoices = [];
 	const ram = Math.floor(availableRAM_mib);
 	for(let i=1; (i*1024)<ram ;++i) ramChoices.push(i*1024 + '');
 	const defaultMemory = ramChoices[ramChoices.length - 1];
+	
+	const instSetChoices = options.instructionSetInfo.supported;
+	const defaultInstSet = options.instructionSetInfo.recommended;
+	
 	
 	const nextQuestions = [
 		{
@@ -105,7 +109,15 @@ function nextQuestions(defaults, options, previousAnswers) {
 				message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
 				default: defaultMemory,
 				choices: ramChoices
-			});
+			},
+			{
+				type: "list",
+				name: "instructionSet",
+				message: "Select Instruction Set?",
+				default: defaultInstSet,
+				choices: instSetChoices
+			},
+		);
 	}
 	
 	return prompt(nextQuestions).then(nextAnswers => {

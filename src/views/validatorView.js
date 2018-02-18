@@ -7,7 +7,7 @@ function renderSingleValidation({
                 }) {
 	
 	if (isValid) {
-		writeLine(chalk`{green [{greenBright ✔}]}{white Plot ${plot}}`);
+		writeLine(chalk`{green [{greenBright ✔}]} {white Plot ${plot}}`);
 	}
 	else {
 		writeLine(chalk`{redBright [{yellowBright 💥}] Plot ${plot}} (replot recommended)`);
@@ -17,7 +17,6 @@ function renderSingleValidation({
 function render(validatedPlots){
 	writeLine(chalk`{yellow ----------------- Validated Plots ----------------}`);
 	validatedPlots.forEach(renderSingleValidation);
-	skipLine();
 }
 
 module.exports = {
