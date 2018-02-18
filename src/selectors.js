@@ -18,6 +18,22 @@ const selectInstructionSet = select(
 	state => state.instructionSet
 );
 
+const selectOutputPath = select(
+	state => state.outputPath
+);
+
+const selectUsedThreads = select(
+	state => state.usedThreads
+);
+
+const selectUsedMemory = select(
+	state => state.usedMemory
+);
+
+const selectAccount = select(
+	state => state.account
+);
+
 const selectTotalWrittenNonces = select(
 	state => state.totalWrittenNonces
 );
@@ -71,13 +87,28 @@ const selectCurrentPlotEstimatedDurationInSecs = select(
 );
 
 const selectScoopPercentage = select(
-	state => state.scoopPercentage
+	state => state.scoopPercentage || 0
 );
 
-const selectIsWritingScoops = select(
-	state => state.isWritingScoops
+const selectStartTime = select(
+	state => state.startTime
 );
 
+const selectValidatedPlots = select(
+	state => state.validatedPlots || []
+);
+
+const selectTotalPlotSizeInGiB = select(
+	state => state.totalPlotSize
+);
+
+const selectError = select(
+	state => state.error || ""
+);
+
+const selectHasError = select(
+	state => selectError().length > 0
+);
 
 module.exports = {
 	select,
@@ -96,6 +127,14 @@ module.exports = {
 	selectCurrentPlotEstimatedDurationInSecs,
 	selectTotalEstimatedDurationInSecs,
 	selectCurrentPlotRemainingNonces,
-	selectIsWritingScoops,
-	selectScoopPercentage
+	selectScoopPercentage,
+	selectStartTime,
+	selectValidatedPlots,
+	selectOutputPath,
+	selectUsedMemory,
+	selectAccount,
+	selectUsedThreads,
+	selectTotalPlotSizeInGiB,
+	selectHasError,
+	selectError,
 };

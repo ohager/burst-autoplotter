@@ -14,6 +14,7 @@
     "jest": "^20.0.4"
   },
   "dependencies": {
+    "blessed": "^0.1.81",
     "chalk": "^2.0.1",
     "co": "^4.6.0",
     "command-line-args": "^4.0.6",

@@ -2,18 +2,14 @@ const {spawn} = require('child_process');
 const path = require("path");
 const cache = require('../cache');
 const co = require('co');
-const chalk = require('chalk');
-const {format} = require('date-fns');
-const {formatTimeString} = require('../utils');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
-const validator = require("../validator");
+const validator = require("../validator/validator");
 
 const store = require("../store");
 const $ = require("../selectors");
 const view = require("../views/index");
 
 const handleStdoutData = require("./stdoutHandler");
-const handleStderrData = require("./stderrHandler");
 const handleClose = require("./closeHandler");
 
 const getPlotterPath = () => {
@@ -60,24 +56,11 @@ const plotter = function* (args) {
 		process.stdout.on('data', handleStdoutData);
 		
 		process.stderr.on('data', err => {
-			handleStderrData(err);
-			reject(err);
+			reject(err.toString());
 		});
 		
-		// TODO: handler for close event
 		process.on('close', code => {
-			
 			handleClose(code);
-			
-			// TODO remove here -> responsibilty of views
-			if (code !== 0) {
-				console.log(chalk`{redBright 🖕Bah!} - Plotting failed.`);
-				//reject();// use reject or not?
-			}
-			else {
-				console.log(chalk`{yellowBright 🍻}{greenBright Yay!} - Plot created successfully`);
-			}
-			
 			resolve();
 		});
 		
@@ -85,56 +68,25 @@ const plotter = function* (args) {
 	
 };
 
-function _writeFinalStats() {
-	
-	const state = store.get(); // TODO: use selectors instead - decouple dependency
-	const elapsedTimeSecs = $.selectElapsedTimeInSecs();
-	const totalNoncesPerMin = $.selectTotalNoncesPerMin();
-	
-	console.log(chalk`{greenBright ===========================================}`);
-	console.log(chalk`Written Nonces: {whiteBright ${state.totalNonces}}`);
-	console.log(chalk`Created Plots: {whiteBright ${state.currentPlot.index}}`);
-	console.log(chalk`Time: {whiteBright ${format(new Date(), 'DD-MM-YYYY hh:mm:ss')}}`);
-	console.log(chalk`Overall duration: {whiteBright ${formatTimeString(elapsedTimeSecs)}}`);
-	console.log(chalk`Effective Nonces/min: {whiteBright ${totalNoncesPerMin}}`);
-	console.log(chalk`Plots written to: {whiteBright ${state.outputPath}}`);
-	
-	console.log("\n");
-	console.log(chalk`{blueBright Credits to Blago, Cerr Janro, and DCCT for their amazing XPlotter}`);
-	console.log("\n");
-}
-
-function start(args) {
-	
-	const {totalNonces, plots, accountId, path, threads, memory, instSet} = args;
-	
-	store.update(() => ({
-		startTime: Date.now(),
-		totalNonces: totalNonces,
-		totalWrittenNonces: 0,
-		instructionSet: instSet,
-		outputPath: path,
-	}));
+function start({totalNonces, plots, accountId, path, threads, memory, instSet}) {
 	
 	return co(function* () {
 		
 		view.start();
+		
+		const interval = setInterval(() => {
+			store.update(()=>({
+				elapsedTime :  Date.now()
+			}))
+		}, 1000);
 		
 		try {
 			for (let i = 0; i < plots.length; ++i) {
 				
 				const plot = plots[i];
 				
-				// TODO: output must be moved to ui!
-				/*
-				console.log(chalk`{green ------------------------------------------}`);
-				console.log(chalk`{whiteBright Starting plot ${i + 1}/${plots.length}} - Nonces {whiteBright ${plot.startNonce}} to {whiteBright ${plot.startNonce + plot.nonces}}`);
-				console.log(chalk`{green ------------------------------------------}`);
-				console.log("");
-				*/
 				// reset current plot state
 				store.update(() => ({
-						plotCount: plots.length,
 						currentPlot: {
 							index: i + 1,
 							nonces: plot.nonces,
@@ -148,7 +100,7 @@ function start(args) {
 					}
 				));
 				
-				// TODO use store instead of arguments
+				// may reject
 				yield plotter.call(this,
 					{
 						accountId,
@@ -158,30 +110,21 @@ function start(args) {
 						threads,
 						memory
 					});
-			
-				// once successful update the shit! :)
+				
+				// once successful update the cache!
 				cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 			}
 			
-			// TODO: move to views
-			//console.log(chalk`{green ------------------------------------------}`);
-			//console.log(chalk`{whiteBright Validating plot(s) in ${path}}`);
-			//console.log(chalk`{green ------------------------------------------}`);
+			yield validator.call(this, path);
 			
-			// TODO: activate here
-			//yield validator.call(this, path);
-			
-			
-			// TODO: move to views
-			//_writeFinalStats();
-			
-			//console.log(chalk`{greenBright 🎉 Tadaa 🍾} {whiteBright Finished Plotting. Awesome...} {magentaBright 💲Happy Mining!💰}`)
 		} catch (e) {
-			// TODO handle error correctly
-			console.error(e);
-			// noop, already handled? really!!>@?!
+			store.update(() => ({
+					error: e
+				})
+			);
 		}
 		
+		clearInterval(interval);
 		view.stop();
 	});
 }

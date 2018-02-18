@@ -75,14 +75,21 @@ const getInstructionSetInformation = () => {
 			fs.ensureDirSync(path);
 			
 			const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
-			store.update(() => ({cacheFile: options.cache}));
+
+			store.update(() => ({
+				totalPlotSize,
+				account:accountId,
+				cacheFile: options.cache,
+				usedThreads: threads,
+				usedMemory: memory,
+				startTime: Date.now(),
+				totalNonces: totalNonces,
+				totalWrittenNonces: 0,
+				instructionSet: instructionSetInfo.recommended,
+				outputPath: path,
+				plotCount: plots.length,
+			}));
 			
-			console.log(chalk`Created partition for {whiteBright ${totalPlotSize} GiB} in {whiteBright ${chunks} chunk(s)}`);
-			console.log(chalk`Overall nonces to be written: {whiteBright ${totalNonces}}`);
-			console.log(chalk`Threads used: {whiteBright ${threads}}`);
-			console.log(chalk`Memory used: {whiteBright ${memory}MiB}`);
-			
-			// TODO: pass arguments to store -> centralize things!
 			plotter.start({
 				totalNonces,
 				plots,
@@ -94,8 +101,7 @@ const getInstructionSetInformation = () => {
 			});
 			
 		} catch (e) {
-			//TODO review this exception here!
-			console.error(`Couldn't create directory ${path} - reason: ${e}`);
+			console.error(`Woop: Something failed - reason: ${e}`);
 			process.exit(666);
 		}
 	});

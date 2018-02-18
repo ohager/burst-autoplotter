@@ -1,48 +1,62 @@
-const store = require('../store');
 const $ = require('../selectors');
+const store = require('../store');
 const totalView = require("./totalView");
 const plotView = require("./plotView");
 const scoopView = require("./scoopView");
+const headerView = require("./headerView");
+const finalView = require("./finalView");
+const errorView = require("./errorView");
 const {addSeconds} = require("date-fns");
-/*
-New View Design
-
-0 OVERALL
-1 Elapsed Time: 00:12:34  - Started: 01-03-2-18 16:02:12
-2 Remaining Time: 01:23:45 - ETA: 01-03-2018 17:45:10
-3 [###########                                      ] 10000/50000 - 20%
-4
-5 PLOT 1/5 Remaining Time: 00:12:34 - ETA: 01-03-2018 16:23:10
-6 [*****************************                    ] 5000/10000 - 50%
-7
-8 SCOOPS
-9 [...........................................      ] 85%
-10
-...
- */
 
 
 let listener = null;
-let interval = null;
 
 function start() {
 	console.clear();
-	listener = store.listen(render); // immediate update on state changes
-	interval = setInterval(render, 250); // steady update
+	
+	const line = headerView.render({
+		line: 0,
+		instructionSet: $.selectInstructionSet(),
+		threads: $.selectUsedThreads(),
+		memoryInMiB: $.selectUsedMemory(),
+		totalPlotSizeInGiB: $.selectTotalPlotSizeInGiB(),
+		plotCount : $.selectPlotCount(),
+		totalNonces : $.selectTotalNonces(),
+	});
+	
+	listener = store.listen(render.bind(null, line));
 }
 
 function stop() {
-	if (listener) store.unlisten(listener);
-	if (interval) clearInterval(interval);
+	store.unlisten(listener);
+	
+	if ($.selectHasError()) return; // error is shown on catched rejection
+	
+	finalView.render({
+		outputPath: $.selectOutputPath(),
+		totalWrittenNonces: $.selectTotalWrittenNonces(),
+		totalPlots: $.selectPlotCount(),
+		noncesPerMinute: $.selectEffectiveNoncesPerSeconds() * 60,
+		elapsedTimeSecs: $.selectElapsedTimeInSecs(),
+		validatedPlots : $.selectValidatedPlots(),
+	});
 }
 
-function render() {
+function render(line) {
 	
-	const state = store.get(); // use selectors instead
+	const error = $.selectError();
+
+	if (error.length > 0) {
+		errorView.render({
+			line,
+			error
+		});
+		return;
+	}
 	
-	let line = totalView.render({
-		line: 0,
-		started: state.startTime,
+	line = totalView.render({
+		line,
+		started: $.selectStartTime(),
 		elapsed: $.selectElapsedTimeInSecs(),
 		remaining: $.selectTotalEstimatedDurationInSecs(),
 		eta: addSeconds(Date.now(), $.selectTotalEstimatedDurationInSecs()),
@@ -51,27 +65,23 @@ function render() {
 		noncesPerMinute: $.selectEffectiveNoncesPerSeconds() * 60
 	});
 	
-	//if($.selectPlotCount() >= 1)
-	//{
-	line = plotView.render({
-		line: line + 2,
-		plotIndex: $.selectCurrentPlotIndex(),
-		plotCount: $.selectPlotCount(),
-		remaining: $.selectCurrentPlotEstimatedDurationInSecs(),
-		eta: addSeconds(Date.now(), $.selectCurrentPlotEstimatedDurationInSecs()),
-		nonces: $.selectCurrentPlotNonces(),
-		writtenNonces: $.selectCurrentPlotWrittenNonces()
-	});
-	//}
-
-	line = scoopView.render({
+	if ($.selectPlotCount() > 1) {
+		line = plotView.render({
+			line: line + 2,
+			plotIndex: $.selectCurrentPlotIndex(),
+			plotCount: $.selectPlotCount(),
+			remaining: $.selectCurrentPlotEstimatedDurationInSecs(),
+			eta: addSeconds(Date.now(), $.selectCurrentPlotEstimatedDurationInSecs()),
+			nonces: $.selectCurrentPlotNonces(),
+			writtenNonces: $.selectCurrentPlotWrittenNonces()
+		});
+	}
+	
+	scoopView.render({
 		line: line + 2,
 		percentage: $.selectScoopPercentage(),
-		isScooping: $.selectIsWritingScoops(),
 	});
 	
-	process.stdout.moveCursor(0,2);
-	process.stdout.cursorTo(0);
 }
 
 module.exports = {

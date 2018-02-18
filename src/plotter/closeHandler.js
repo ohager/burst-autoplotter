@@ -1,5 +1,4 @@
 const store = require('../store');
-const $ = require("../selectors");
 
 function handleClose(code) {
 
@@ -14,6 +13,7 @@ function handleClose(code) {
 			}
 		}
 	});
+	
 }
 
 module.exports = handleClose;

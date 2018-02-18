@@ -1,5 +1,4 @@
 const chalk = require("chalk");
-const {normalizeProgress} = require('../utils');
 const progressBar = require("./progressBarView");
 
 /*
@@ -18,17 +17,16 @@ function writeAtLine(line, text) {
 
 function render({
 	                line,
-	                isScooping,
 	                percentage,
                 }) {
 	
 	const progress = progressBar(0, 100, percentage, 50, ".");
 	
-	if(isScooping) {
-		writeAtLine(line, chalk`Writing Scoops: {gray ${progress} ${percentage}%}`);
+	if(percentage !== 0) {
+		writeAtLine(line, chalk`{white Writing Scoops: ${progress} ${percentage}%}`);
 	}
 	else{
-		writeAtLine(line, "");
+		writeAtLine(line, chalk`{gray Writing Scoops: ${progress} ${percentage}%}`);
 	}
 	
 	return ++line;
