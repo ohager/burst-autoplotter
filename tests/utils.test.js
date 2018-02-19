@@ -45,6 +45,8 @@ test("Seconds to timestring", () => {
 
 test("Calculate normalized progress", () => {
 	
+	expect(normalizeProgress(0,0,0,100)).toBe(0);
+	expect(normalizeProgress(1000,1000,0,100)).toBe(0);
 	expect(normalizeProgress(0,100,0,100)).toBe(0);
 	expect(normalizeProgress(0,100,100,100)).toBe(100);
 	expect(normalizeProgress(0,100,120,100)).toBe(100);

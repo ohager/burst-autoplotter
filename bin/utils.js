@@ -19,6 +19,7 @@ function formatTimeString(seconds) {
 }
 
 function normalizeProgress(min, max, current, target) {
+	if (max === min) return 0;
 	return Math.floor((Math.min(current, max) - min) / (max - min) * target + min);
 }
 
