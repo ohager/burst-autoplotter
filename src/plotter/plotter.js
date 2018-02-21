@@ -7,7 +7,7 @@ const validator = require("../validator/validator");
 
 const store = require("../store");
 const $ = require("../selectors");
-const view = require("../views/index");
+const view = require("../views/blessed");
 
 const handleStdoutData = require("./stdoutHandler");
 const handleClose = require("./closeHandler");

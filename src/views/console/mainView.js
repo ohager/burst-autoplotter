@@ -1,5 +1,5 @@
-const $ = require('../selectors');
-const store = require('../store');
+const $ = require('../../selectors');
+const store = require('../../store');
 const totalView = require("./totalView");
 const plotView = require("./plotView");
 const scoopView = require("./scoopView");

@@ -1,4 +1,4 @@
-const progressBar = require("../../src/views/progressBarView");
+const progressBar = require("../../../src/views/console/progressBarView");
 
 it("Test progressBar View", () => {
 	

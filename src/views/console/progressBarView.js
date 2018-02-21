@@ -1,4 +1,4 @@
-const {normalizeProgress} = require("../utils");
+const {normalizeProgress} = require("../../utils");
 
 function progressBar(min, max, current, length, sign = '#') {
 	let progress = normalizeProgress(min, max, current, length);

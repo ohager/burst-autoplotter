@@ -1,6 +1,6 @@
 const chalk = require("chalk");
 const {writeAtLine} = require("./viewUtils");
-const {version, author} = require("../../package.json");
+const {version, author} = require("../../../package.json");
 
 function render({
 	                line,

@@ -1,7 +1,7 @@
 const chalk = require("chalk");
 const {format} = require("date-fns");
 const {writeAtLine} = require("./viewUtils");
-const {formatTimeString} = require('../utils');
+const {formatTimeString} = require('../../utils');
 const progressBar = require("./progressBarView");
 
 /*

@@ -1,5 +1,5 @@
 const chalk = require("chalk");
-const {formatTimeString} = require("../utils");
+const {formatTimeString} = require("../../utils");
 const {format} = require("date-fns");
 const {writeLine, skipLine} = require("./viewUtils");
 const validatorView = require("./validatorView");
