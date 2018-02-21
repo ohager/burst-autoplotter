@@ -20,29 +20,13 @@ class Scene {
 			}
 		);
 		
-		
 		// Quit on Escape, q, or Control-C.
-		this
-			.screen
-			.key(['escape', 'q', 'C-c'],
-				
-				(ch
-					,
-                 key) => {
-					// todo: Ask to quit
-					this
-						.screen
-						.destroy();
-					
-					return
-					process
-						.exit(
-							0
-						)
-					;
-				}
-			)
-		;
+		this.screen.key(['escape', 'q', 'C-c'], (ch, key) => {
+				// todo: Ask to quit
+				this.screen.destroy();
+				return process.exit(0);
+			}
+		);
 	}
 	
 	addView(name, viewClass) {
