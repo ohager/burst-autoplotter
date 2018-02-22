@@ -55,8 +55,6 @@ test("Calculate normalized progress", () => {
 	expect(normalizeProgress(0,100,100,50)).toBe(50);
 	expect(normalizeProgress(10,110,20,50)).toBe(15);
 
-
-
-	expect(normalizeProgress(0,100,20,200)).toBe(10);
+	expect(normalizeProgress(0,100,20,200)).toBe(40);
 	
 });
