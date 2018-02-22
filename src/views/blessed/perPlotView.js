@@ -8,7 +8,7 @@ class TotalView {
 	constructor() {
 		
 		this.boxElement = blessed.box({
-			top: 11,
+			top: 13,
 			left: 'center',
 			width: '100%',
 			height: 6,
@@ -101,7 +101,7 @@ class TotalView {
 	updateRemaining() {
 		const estimatedDurationInSecs = $.selectCurrentPlotEstimatedDurationInSecs();
 		const eta = estimatedDurationInSecs ? addSeconds(Date.now(), estimatedDurationInSecs) : null;
-		const text = `Remaining Time: {white-fg}${formatTimeString(estimatedDurationInSecs)}{/}\tETA {white-fg}${format(eta, "DD-MM-YYYY HH:mm:ss")}{/}`;
+		const text = `Remaining Time: {white-fg}${formatTimeString(estimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format( eta, "DD-MM-YYYY HH:mm:ss") : "N/A"}{/}`;
 		this.remainingTextElement.setLine(0, text);
 	}
 }

@@ -8,7 +8,7 @@ class TotalView {
 	constructor() {
 		
 		this.boxElement = blessed.box({
-			top: 5,
+			top: 6,
 			left: 'center',
 			width: '100%',
 			height: 6,
@@ -86,6 +86,11 @@ class TotalView {
 		const totalNonces = $.selectTotalNonces();
 		const totalWrittenNonces = $.selectTotalWrittenNonces();
 		const progress = Math.min(normalizeProgress(0, totalNonces, totalWrittenNonces, 100), 100);
+		
+		const colorProgress = Math.min(normalizeProgress(0,100,progress,3),3);
+		const barColors = ['red', 'yellow', 'green', 'lightgreen'];
+		
+		this.progressElement.style.bar = { bg: barColors[colorProgress] };
 		this.progressElement.setProgress(progress);
 	}
 	
@@ -93,14 +98,14 @@ class TotalView {
 		const totalNonces = $.selectTotalNonces();
 		const totalWrittenNonces = $.selectTotalWrittenNonces();
 		const noncesPerMinute = $.selectEffectiveNoncesPerSeconds() * 60;
-		const labelText = `Overall Progress [${totalWrittenNonces}/${totalNonces}] - {yellow-fg}Nonces/min ${noncesPerMinute}{/}`;
+		const labelText = `Overall Progress [${totalWrittenNonces}/${totalNonces}] - {yellow-fg}${noncesPerMinute} nonces/min{/}`;
 		this.element.setLabel({text: labelText, side: "left"});
 	}
 	
 	updateRemaining() {
 		const totalEstimatedDurationInSecs = $.selectTotalEstimatedDurationInSecs();
 		const eta = totalEstimatedDurationInSecs ? addSeconds(Date.now(), totalEstimatedDurationInSecs) : null;
-		const text = `Remaining Time: {white-fg}${formatTimeString(totalEstimatedDurationInSecs)}{/}\tETA {white-fg}${format(eta, "DD-MM-YYYY HH:mm:ss")}{/}`;
+		const text = `Remaining Time: {white-fg}${formatTimeString(totalEstimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format( eta, "DD-MM-YYYY HH:mm:ss") : "N/A"}{/}`;
 		this.remainingTextElement.setLine(0, text);
 	}
 }

@@ -68,7 +68,7 @@ const plotter = function* (args) {
 	
 };
 
-function start({totalNonces, plots, accountId, path, threads, memory, instSet}) {
+function start({totalNonces, plots, accountId, path, threads, memory}) {
 	
 	return co(function* () {
 		
