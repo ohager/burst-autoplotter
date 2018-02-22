@@ -2,10 +2,10 @@ const $ = require('../../selectors');
 const store = require('../../store');
 const Scene = require("./scene");
 const HeaderView = require("./headerView");
-const BodyView = require("./bodyView");
+const TotalView = require("./totalView");
+const PerPlotView = require("./perPlotView");
 
 let listener = null;
-
 let scene = null;
 
 function start() {
@@ -24,8 +24,10 @@ function start() {
 	
 	scene = new Scene();
 	scene.addView("header", HeaderView);
-	scene.addView("body", BodyView);
+	scene.addView("total", TotalView);
+	scene.addView("perPlot", PerPlotView);
 	
+	// for some reasons need to wrap render() in an arrow function, otherwise it doesn't work
 	listener = store.listen( () => scene.render() );
 	
 }
@@ -35,7 +37,7 @@ function stop() {
 	
 	if ($.selectHasError()) return; // error is shown on catched rejection
 	
-	scene.destroy();
+	//scene.destroy();
 	
 	
 	/*

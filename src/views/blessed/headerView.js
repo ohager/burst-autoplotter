@@ -8,10 +8,10 @@ class HeaderView {
 	constructor() {
 		
 		this.box = blessed.box({
-			top: 'top',
+			top: 0,
 			left: 'center',
 			width: '100%',
-			height: '20%',
+			height: 5,
 			tags: true,
 			label: {text: `BURST Autoplotter ${version} by ${author.name}`, side: 'left'},
 			border: {
@@ -25,24 +25,56 @@ class HeaderView {
 				},
 			}
 		});
+		
+		const textBaseSettings = {
+			parent: this.box,
+			top: 0,
+			width: '40%',
+			tags: true,
+			style: {
+				fg: 'yellow',
+				bg: 'black',
+				border: {
+					fg: '#ffffff'
+				},
+			}
+		};
+		
+		this.leftText = blessed.text({
+			...textBaseSettings,
+			left: 0,
+		});
+
+		this.rightText = blessed.text({
+			...textBaseSettings,
+			left: '50%+1',
+		});
+		
 	}
 
 	get element() { return this.box; }
 	
 	update() {
 		
-		//const instructionSet = $.selectInstructionSet();
-		//const threads = $.selectUsedThreads();
-		//const memoryInMiB = $.selectUsedMemory();
+		const instructionSet = $.selectInstructionSet();
+		const threads = $.selectUsedThreads();
+		const memoryInMiB = $.selectUsedMemory();
 		const totalPlotSizeInGiB = $.selectTotalPlotSizeInGiB();
 		const plotCount = $.selectPlotCount();
 		const totalNonces = $.selectTotalNonces();
 		const elapsed = $.selectElapsedTimeInSecs();
 		
 		let line = 0;
-		this.element.setLine(line, `Partition: {white-fg}${totalPlotSizeInGiB}{/} GiB in {white-fg}${plotCount}{/} plot(s)`);
-		this.element.setLine(++line, `Total nonces to be written: {white-fg}${totalNonces}{/}`);
-		this.element.setLine(++line, `Elapsed Time: {white-fg}${formatTimeString(elapsed)}{/}`);
+		let target = this.leftText;
+		target.setLine(line, `Partition: {white-fg}${totalPlotSizeInGiB}{/} GiB in {white-fg}${plotCount}{/} plot(s)`);
+		target.setLine(++line, `Total nonces to be written: {white-fg}${totalNonces}{/}`);
+		target.setLine(++line, `Elapsed Time: {white-fg}${formatTimeString(elapsed)}{/}`);
+
+		line = 0;
+		target = this.rightText;
+		target.setLine(line, `Used Memory: {white-fg}${memoryInMiB} MiB{/}`);
+		target.setLine(++line, `Used Threads: {white-fg}${threads}{/}`);
+		target.setLine(++line, `Instruction Set: {white-fg}${instructionSet}{/}`);
 	}
 }
 

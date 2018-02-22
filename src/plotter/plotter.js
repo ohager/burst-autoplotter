@@ -122,6 +122,8 @@ function start({totalNonces, plots, accountId, path, threads, memory, instSet}) 
 					error: e
 				})
 			);
+			
+			console.error(e);
 		}
 		
 		clearInterval(interval);
