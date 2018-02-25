@@ -11,20 +11,19 @@ class TotalView {
 			top: 6,
 			left: 'center',
 			width: '100%',
-			height: 6,
+			height: 7,
 			tags: true,
 			label: {text: `Overall Progress`, side: 'left'},
 			border: {
 				type: 'line'
 			},
 			style: {
+				bold: true,
 				fg: 'green',
 				bg: 'black',
 				border: {
-					fg: '#ffffff'
-				},
-				hover: {
-					bg: 'green'
+					bold: true,
+					fg: 'white'
 				}
 			}
 		});
@@ -37,9 +36,10 @@ class TotalView {
 				left: 'center',
 				tags: true,
 				width: "90%",
-				height: 3,
+				height: 4,
 				border: 'line',
 				style: {
+					bold: true,
 					fg: 'blue',
 					bg: 'black',
 					bar: {
@@ -47,6 +47,7 @@ class TotalView {
 						fg: 'blue'
 					},
 					border: {
+						bold: true,
 						fg: 'default',
 						bg: 'default'
 					}
@@ -56,15 +57,17 @@ class TotalView {
 		
 		this.remainingTextElement = blessed.text({
 			parent: this.boxElement,
-			top: 3,
+			top: 4,
 			left: 'center',
 			width: '90%',
 			tags: true,
 			style: {
 				fg: 'yellow',
 				bg: 'black',
+				bold: true,
 				border: {
-					fg: '#ffffff'
+					fg: 'white',
+					bold: true,
 				},
 			}
 		});
@@ -87,10 +90,17 @@ class TotalView {
 		const totalWrittenNonces = $.selectTotalWrittenNonces();
 		const progress = Math.min(normalizeProgress(0, totalNonces, totalWrittenNonces, 100), 100);
 		
-		const colorProgress = Math.min(normalizeProgress(0,100,progress,3),3);
-		const barColors = ['red', 'yellow', 'green', 'lightgreen'];
+		const barColors = [
+			{bg: 'yellow', bold: false},
+			{bg: 'green', bold: false},
+			{bg: 'green', bold: true}
+		];
+		const colorProgress = Math.min(normalizeProgress(0, 100, progress, barColors.length - 1), barColors.length - 1);
 		
-		this.progressElement.style.bar = { bg: barColors[colorProgress] };
+		this.progressElement.style.bar = {
+			bg: barColors[colorProgress].bg,
+			bold: barColors[colorProgress].bold
+		};
 		this.progressElement.setProgress(progress);
 	}
 	
@@ -105,7 +115,7 @@ class TotalView {
 	updateRemaining() {
 		const totalEstimatedDurationInSecs = $.selectTotalEstimatedDurationInSecs();
 		const eta = totalEstimatedDurationInSecs ? addSeconds(Date.now(), totalEstimatedDurationInSecs) : null;
-		const text = `Remaining Time: {white-fg}${formatTimeString(totalEstimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format( eta, "DD-MM-YYYY HH:mm:ss") : "N/A"}{/}`;
+		const text = `Remaining Time: {white-fg}${formatTimeString(totalEstimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format(eta, "DD-MM-YYYY HH:mm:ss") : "N/A"}{/}`;
 		this.remainingTextElement.setLine(0, text);
 	}
 }

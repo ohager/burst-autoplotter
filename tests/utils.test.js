@@ -39,6 +39,7 @@ test("Seconds to timestring", () => {
 	expect(formatTimeString(60)).toBe('00:01:00');
 	expect(formatTimeString(152)).toBe('00:02:32');
 	expect(formatTimeString(3752)).toBe('01:02:32');
+	expect(formatTimeString(1003752)).toBe('278:49:12');
 	
 });
 

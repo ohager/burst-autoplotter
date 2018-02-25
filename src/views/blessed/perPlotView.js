@@ -8,7 +8,7 @@ class TotalView {
 	constructor() {
 		
 		this.boxElement = blessed.box({
-			top: 13,
+			top: 14,
 			left: 'center',
 			width: '100%',
 			height: 6,
@@ -20,12 +20,11 @@ class TotalView {
 			style: {
 				fg: 'green',
 				bg: 'black',
+				bold: true,
 				border: {
-					fg: '#ffffff'
+					fg: 'white',
+					bold: true,
 				},
-				hover: {
-					bg: 'green'
-				}
 			}
 		});
 		
@@ -40,6 +39,7 @@ class TotalView {
 				height: 3,
 				border: 'line',
 				style: {
+					bold: true,
 					fg: 'blue',
 					bg: 'black',
 					bar: {
@@ -47,6 +47,7 @@ class TotalView {
 						fg: 'blue'
 					},
 					border: {
+						bold: true,
 						fg: 'default',
 						bg: 'default'
 					}
@@ -62,9 +63,11 @@ class TotalView {
 			tags: true,
 			style: {
 				fg: 'yellow',
+				bold: true,
 				bg: 'black',
 				border: {
-					fg: '#ffffff'
+					fg: 'white',
+					bold: true,
 				},
 			}
 		});
@@ -101,7 +104,7 @@ class TotalView {
 	updateRemaining() {
 		const estimatedDurationInSecs = $.selectCurrentPlotEstimatedDurationInSecs();
 		const eta = estimatedDurationInSecs ? addSeconds(Date.now(), estimatedDurationInSecs) : null;
-		const text = `Remaining Time: {white-fg}${formatTimeString(estimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format( eta, "DD-MM-YYYY HH:mm:ss") : "N/A"}{/}`;
+		const text = `Remaining Time: {white-fg}${formatTimeString(estimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format(eta, "DD-MM-YYYY HH:mm:ss") : "N/A"}{/}`;
 		this.remainingTextElement.setLine(0, text);
 	}
 }

@@ -57,6 +57,7 @@ function startPlotter(answers) {
 			instructionSet,
 			outputPath: path,
 			plotCount: plots.length,
+			done: false,
 		}));
 		
 		plotter.start({
@@ -81,8 +82,8 @@ function startPlotter(answers) {
 		const devAnswers = {
 			accountId: '1234567890123456700',
 			hardDisk: 'C',
-			totalPlotSize: '2',
-			chunks: '2',
+			totalPlotSize: '1',
+			chunks: '1',
 			startNonce: '0',
 			threads: 7,
 			memory: '8192',

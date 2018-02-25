@@ -117,13 +117,18 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 			
 			yield validator.call(this, path);
 			
-		} catch (e) {
 			store.update(() => ({
-					error: e
+					done: true
 				})
 			);
 			
-			console.error(e);
+		} catch (e) {
+			store.update(() => ({
+					error: e,
+					done: true
+				})
+			);
+			throw e;
 		}
 		
 		clearInterval(interval);

@@ -13,15 +13,15 @@ class HeaderView {
 			width: '100%',
 			height: 5,
 			tags: true,
-			label: {text: `BURST Autoplotter ${version} by ${author.name}`, side: 'left'},
+			label: {text: `{bold}BURST Autoplotter ${version} by ${author.name}{/}`, side: 'right'},
 			border: {
 				type: 'line'
 			},
 			style: {
-				fg: 'yellow',
 				bg: 'black',
 				border: {
-					fg: '#ffffff'
+					fg: 'white',
+					bold: true,
 				},
 			}
 		});
@@ -33,6 +33,7 @@ class HeaderView {
 			tags: true,
 			style: {
 				fg: 'yellow',
+				bold: true,
 				bg: 'black',
 				border: {
 					fg: '#ffffff'

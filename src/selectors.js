@@ -120,6 +120,10 @@ const selectHasError = select(
 	state => selectError().length > 0
 );
 
+const selectHasFinished = select(
+	state => selectHasError() || state.done
+);
+
 module.exports = {
 	select,
 	selectInstructionSet,
@@ -147,4 +151,5 @@ module.exports = {
 	selectTotalPlotSizeInGiB,
 	selectHasError,
 	selectError,
+	selectHasFinished,
 };
