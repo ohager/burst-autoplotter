@@ -10,7 +10,8 @@ cache:
   - node_modules
 
 script:
-  - npm run build
+  - yarn test
+  - yarn build
 
 #deploy:
 #  provider: npm
@@ -20,5 +21,5 @@ script:
 #    tags: true
 #    branch: master
 
-# after-success:
-#  - bash <(curl -s https://codecov.io/bash)
+after-success:
+  - bash <(curl -s https://codecov.io/bash)
