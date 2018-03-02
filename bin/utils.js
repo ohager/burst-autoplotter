@@ -1,3 +1,4 @@
+const { format } = require("date-fns");
 
 const FACT_MIB = 1024 * 1024;
 const FACT_GIB = FACT_MIB * 1024;
@@ -19,6 +20,9 @@ function formatTimeString(seconds) {
 	return `${p(h)}:${p(m)}:${p(s)}`;
 }
 
+function formatDateTime(date) {
+	return format(date, "DD/MM/YYYY HH:mm:ss");
+}
 
 function normalizeProgress(min, max, current, target) {
 	if (max === min) return 0;

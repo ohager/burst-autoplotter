@@ -67,6 +67,15 @@ const selectError = select(state => state.error || "");
 
 const selectHasError = select(state => selectError().length > 0);
 
+const selectHasFinished = select(state => selectHasError() || state.done);
+
+const selectTotalNonceRange = select(state => ({
+	startNonce: state.totalStartNonce,
+	endNonce: state.totalStartNonce + state.totalNonces
+}));
+
+const selectIsWritingScoops = select(state => selectScoopPercentage() > 0);
+
 module.exports = {
 	select,
 	selectInstructionSet,
@@ -85,6 +94,7 @@ module.exports = {
 	selectTotalEstimatedDurationInSecs,
 	selectCurrentPlotRemainingNonces,
 	selectScoopPercentage,
+	selectIsWritingScoops,
 	selectStartTime,
 	selectValidatedPlots,
 	selectOutputPath,
@@ -93,5 +103,7 @@ module.exports = {
 	selectUsedThreads,
 	selectTotalPlotSizeInGiB,
 	selectHasError,
-	selectError
+	selectError,
+	selectHasFinished,
+	selectTotalNonceRange
 };

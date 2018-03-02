@@ -7,7 +7,7 @@ const validator = require("../validator/validator");
 
 const store = require("../store");
 const $ = require("../selectors");
-const view = require("../views/index");
+const view = require("../views/blessed");
 
 const handleStdoutData = require("./stdoutHandler");
 const handleClose = require("./closeHandler");
@@ -60,7 +60,7 @@ const plotter = function* (args) {
 	});
 };
 
-function start({ totalNonces, plots, accountId, path, threads, memory, instSet }) {
+function start({ totalNonces, plots, accountId, path, threads, memory }) {
 
 	return co(function* () {
 
@@ -106,10 +106,16 @@ function start({ totalNonces, plots, accountId, path, threads, memory, instSet }
 			}
 
 			yield validator.call(this, path);
+
+			store.update(() => ({
+				done: true
+			}));
 		} catch (e) {
 			store.update(() => ({
-				error: e
+				error: e,
+				done: true
 			}));
+			throw e;
 		}
 
 		clearInterval(interval);

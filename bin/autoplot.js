@@ -31,7 +31,65 @@ const getInstructionSetInformation = () => {
 	};
 };
 
+function startPlotter(answers) {
+	let path = '';
+	try {
+		const { accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory, instructionSet } = answers;
+
+		path = `${hardDisk}:/${PLOTS_DIR}`;
+
+		fs.ensureDirSync(path);
+
+		const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
+
+		store.update(() => ({
+			totalPlotSize,
+			account: accountId,
+			cacheFile: options.cache,
+			usedThreads: threads,
+			usedMemory: memory,
+			startTime: Date.now(),
+			totalNonces,
+			totalWrittenNonces: 0,
+			totalStartNonce: +startNonce,
+			instructionSet,
+			outputPath: path,
+			plotCount: plots.length,
+			done: false
+		}));
+
+		plotter.start({
+			totalNonces,
+			plots,
+			accountId,
+			path,
+			threads,
+			memory,
+			instSet: instructionSet
+		});
+	} catch (e) {
+		console.error(`Woop: Something failed - reason: ${e}`);
+		process.exit(666);
+	}
+}
+
 (function run() {
+
+	if (process.env.NODE_ENV === "development") {
+		const devAnswers = {
+			accountId: '1234567890123456700',
+			hardDisk: 'C',
+			totalPlotSize: '3',
+			chunks: '1',
+			startNonce: '0',
+			threads: 2,
+			memory: '512',
+			instructionSet: 'AVX2'
+		};
+		fs.removeSync(`${devAnswers.hardDisk}:/${PLOTS_DIR}`);
+		startPlotter(devAnswers);
+		return;
+	}
 
 	console.log('\n');
 	console.log(chalk`{whiteBright --------------------------------------------------}`);
@@ -58,43 +116,5 @@ const getInstructionSetInformation = () => {
 	ui.run(cache.load(options.cache), { extended: options.extended, instructionSetInfo: instructionSetInfo }).then(answers => {
 		cache.update(answers, options.cache);
 		return answers;
-	}).then(answers => {
-
-		let path = '';
-		try {
-			const { accountId, hardDisk, startNonce, totalPlotSize, chunks, threads, memory, instructionSet } = answers;
-			path = `${hardDisk}:/${PLOTS_DIR}`;
-
-			fs.ensureDirSync(path);
-
-			const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
-
-			store.update(() => ({
-				totalPlotSize,
-				account: accountId,
-				cacheFile: options.cache,
-				usedThreads: threads,
-				usedMemory: memory,
-				startTime: Date.now(),
-				totalNonces,
-				totalWrittenNonces: 0,
-				instructionSet,
-				outputPath: path,
-				plotCount: plots.length
-			}));
-
-			plotter.start({
-				totalNonces,
-				plots,
-				accountId,
-				path,
-				threads,
-				memory,
-				instSet: instructionSet
-			});
-		} catch (e) {
-			console.error(`Woop: Something failed - reason: ${e}`);
-			process.exit(666);
-		}
-	});
+	}).then(startPlotter);
 })();
