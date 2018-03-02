@@ -8,7 +8,7 @@ class TotalView {
 	constructor() {
 		
 		this.boxElement = blessed.box({
-			top: 6,
+			top: 7,
 			left: 'center',
 			width: '100%',
 			height: 7,
@@ -115,7 +115,7 @@ class TotalView {
 	updateRemaining() {
 		const totalEstimatedDurationInSecs = $.selectTotalEstimatedDurationInSecs();
 		const eta = totalEstimatedDurationInSecs ? addSeconds(Date.now(), totalEstimatedDurationInSecs) : null;
-		const text = `Remaining Time: {white-fg}${formatTimeString(totalEstimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format(eta, "DD-MM-YYYY HH:mm:ss") : "N/A"}{/}`;
+		const text = `Remaining Time: {white-fg}${formatTimeString(totalEstimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format(eta, "DD/MM/YYYY HH:mm:ss") : "N/A"}{/}`;
 		this.remainingTextElement.setLine(0, text);
 	}
 }

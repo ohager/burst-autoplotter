@@ -2,8 +2,6 @@ const blessed = require("blessed");
 const {formatTimeString} = require("../../utils");
 const $ = require("../../selectors");
 
-const {version, author} = require("../../../package.json");
-
 class FinalView {
 	constructor() {
 		

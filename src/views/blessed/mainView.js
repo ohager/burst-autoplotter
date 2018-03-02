@@ -5,7 +5,7 @@ const HeaderView = require("./headerView");
 const TotalView = require("./totalView");
 const PerPlotView = require("./perPlotView");
 const FinalView = require("./finalView");
-const chalk = require("chalk");
+const ScoopsView = require("./scoopsView");
 
 let listener = null;
 let scene = null;
@@ -15,6 +15,7 @@ function handleExit({reason}) {
 	scene.destroy();
 	if(reason === 'abort'){
 		console.log('Plotting aborted by user!');
+		console.log(`Note, that the last written plot in ${$.selectOutputPath()} may not be valid`);
 		process.exit(0);
 		return;
 	}
@@ -33,7 +34,7 @@ function handleExit({reason}) {
 
 	console.log(message);
 	process.exit(0);
-};
+}
 
 function start() {
 	
@@ -41,6 +42,7 @@ function start() {
 	scene.addView("header", HeaderView);
 	scene.addView("total", TotalView);
 	scene.addView("perPlot", PerPlotView);
+	scene.addView("scoopsView", ScoopsView);
 	scene.addView("final", FinalView);
 	scene.onExit(handleExit);
 	// for some reasons need to wrap render() in an arrow function, otherwise it doesn't work

@@ -10,8 +10,8 @@ const select = (fn) => () => fn(store.get());
 
 const selectIsAVX = select(
 	state =>
-	state.instructionSet &&
-	state.instructionSet.indexOf('AVX') !== -1
+		state.instructionSet &&
+		state.instructionSet.indexOf('AVX') !== -1
 );
 
 const selectInstructionSet = select(
@@ -77,7 +77,7 @@ const selectCurrentPlotRemainingNonces = select(
 const selectEffectiveNoncesPerSeconds = select(
 	state => {
 		const elapsed = selectElapsedTimeInSecs();
-		return elapsed > 0 && state.totalWrittenNonces > 0 ? Math.floor(state.totalWrittenNonces / elapsed ) : null;
+		return elapsed > 0 && state.totalWrittenNonces > 0 ? Math.floor(state.totalWrittenNonces / elapsed) : null;
 	}
 );
 
@@ -93,7 +93,6 @@ const selectCurrentPlotEstimatedDurationInSecs = select(
 		const npm = selectEffectiveNoncesPerSeconds();
 		return npm ? Math.floor(selectCurrentPlotRemainingNonces() / npm) : null;
 	}
-
 );
 
 const selectScoopPercentage = select(
@@ -124,6 +123,18 @@ const selectHasFinished = select(
 	state => selectHasError() || state.done
 );
 
+const selectTotalNonceRange = select(
+	state => ({
+		startNonce: state.totalStartNonce,
+		endNonce: state.totalStartNonce + state.totalNonces
+	})
+);
+
+const selectIsWritingScoops = select(
+	state => selectScoopPercentage() > 0
+);
+
+
 module.exports = {
 	select,
 	selectInstructionSet,
@@ -142,6 +153,7 @@ module.exports = {
 	selectTotalEstimatedDurationInSecs,
 	selectCurrentPlotRemainingNonces,
 	selectScoopPercentage,
+	selectIsWritingScoops,
 	selectStartTime,
 	selectValidatedPlots,
 	selectOutputPath,
@@ -152,4 +164,5 @@ module.exports = {
 	selectHasError,
 	selectError,
 	selectHasFinished,
+	selectTotalNonceRange,
 };

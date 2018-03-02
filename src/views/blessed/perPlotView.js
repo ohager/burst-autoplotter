@@ -1,14 +1,14 @@
 const blessed = require("blessed");
-const {normalizeProgress, formatTimeString} = require("../../utils");
+const {normalizeProgress, formatTimeString, formatDateTime} = require("../../utils");
 const $ = require("../../selectors");
-const {addSeconds, format} = require("date-fns");
+const {addSeconds} = require("date-fns");
 
 class TotalView {
 	
 	constructor() {
 		
 		this.boxElement = blessed.box({
-			top: 14,
+			top: 15,
 			left: 'center',
 			width: '100%',
 			height: 6,
@@ -104,7 +104,7 @@ class TotalView {
 	updateRemaining() {
 		const estimatedDurationInSecs = $.selectCurrentPlotEstimatedDurationInSecs();
 		const eta = estimatedDurationInSecs ? addSeconds(Date.now(), estimatedDurationInSecs) : null;
-		const text = `Remaining Time: {white-fg}${formatTimeString(estimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format(eta, "DD-MM-YYYY HH:mm:ss") : "N/A"}{/}`;
+		const text = `Remaining Time: {white-fg}${formatTimeString(estimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? formatDateTime(eta) : "N/A"}{/}`;
 		this.remainingTextElement.setLine(0, text);
 	}
 }

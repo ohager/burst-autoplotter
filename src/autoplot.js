@@ -54,6 +54,7 @@ function startPlotter(answers) {
 			startTime: Date.now(),
 			totalNonces,
 			totalWrittenNonces: 0,
+			totalStartNonce: +startNonce,
 			instructionSet,
 			outputPath: path,
 			plotCount: plots.length,
@@ -82,11 +83,11 @@ function startPlotter(answers) {
 		const devAnswers = {
 			accountId: '1234567890123456700',
 			hardDisk: 'C',
-			totalPlotSize: '1',
+			totalPlotSize: '3',
 			chunks: '1',
 			startNonce: '0',
-			threads: 7,
-			memory: '8192',
+			threads: 2,
+			memory: '512',
 			instructionSet: 'AVX2'
 		};
 		fs.removeSync(`${devAnswers.hardDisk}:/${PLOTS_DIR}`);

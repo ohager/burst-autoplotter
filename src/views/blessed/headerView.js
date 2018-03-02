@@ -11,7 +11,7 @@ class HeaderView {
 			top: 0,
 			left: 'center',
 			width: '100%',
-			height: 5,
+			height: 6,
 			tags: true,
 			label: {text: `{bold}BURST Autoplotter ${version} by ${author.name}{/}`, side: 'right'},
 			border: {
@@ -64,10 +64,12 @@ class HeaderView {
 		const plotCount = $.selectPlotCount();
 		const totalNonces = $.selectTotalNonces();
 		const elapsed = $.selectElapsedTimeInSecs();
+		const {startNonce, endNonce} = $.selectTotalNonceRange();
 		
 		let line = 0;
 		let target = this.leftText;
 		target.setLine(line, `Partition: {white-fg}${totalPlotSizeInGiB}{/} GiB in {white-fg}${plotCount}{/} plot(s)`);
+		target.setLine(++line, `Nonce Range: {white-fg}${startNonce}{/} to {white-fg}${endNonce}{/}`);
 		target.setLine(++line, `Total nonces to be written: {white-fg}${totalNonces}{/}`);
 		target.setLine(++line, `Elapsed Time: {white-fg}${formatTimeString(elapsed)}{/}`);
 

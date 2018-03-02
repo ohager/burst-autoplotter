@@ -1,6 +1,5 @@
 const chalk = require("chalk");
-const {formatTimeString} = require("../../utils");
-const {format} = require("date-fns");
+const {formatTimeString,formatDateTime} = require("../../utils");
 const {writeLine, skipLine} = require("./viewUtils");
 const validatorView = require("./validatorView");
 
@@ -17,7 +16,7 @@ function render({
 	skipLine();
 	validatorView.render(validatedPlots);
 	writeLine(chalk`{greenBright ${"=".repeat(50)}}`);
-	writeLine(chalk`End Time: {whiteBright ${format(Date.now(),"DD-MM-YYYY HH:mm:ss")}}`);
+	writeLine(chalk`End Time: {whiteBright ${formatDateTime(Date.now())}}`);
 	writeLine(chalk`Overall duration: {whiteBright ${formatTimeString(elapsedTimeSecs)}}`);
 	writeLine(chalk`Plots written to: {whiteBright ${outputPath}}`);
 	writeLine(chalk`Created Plots: {whiteBright ${totalPlots}}`);

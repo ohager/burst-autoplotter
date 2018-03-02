@@ -1,3 +1,4 @@
+
 const FACT_MIB = 1024 * 1024;
 const FACT_GIB = FACT_MIB * 1024;
 
@@ -18,6 +19,7 @@ function formatTimeString(seconds) {
 	return `${p(h)}:${p(m)}:${p(s)}`;
 }
 
+
 function normalizeProgress(min, max, current, target) {
 	if (max === min) return 0;
 	return Math.floor((Math.min(current, max) - min) / (max - min) * target + min);
@@ -28,5 +30,6 @@ module.exports = {
 	b2gib,
 	b2mib,
 	formatTimeString,
+	formatDateTime,
 	normalizeProgress
 };
