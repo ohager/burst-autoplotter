@@ -17,8 +17,8 @@ function startQuestions(defaults, options) {
 		name: "accountId",
 		message: "What's your numeric BURST Account ID?",
 		validate: v => {
-			const isValid = /^\d{19,}$/.test(v);
-			return isValid ? true : "Use your *numeric* account ID (minimum 19 digits), dude!";
+			const isValid = /^\d{18,}$/.test(v);
+			return isValid ? true : "Use your *numeric* account ID (minimum 18 digits), dude!";
 		},
 		default: defaults.accountId
 	}, {
