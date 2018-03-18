@@ -21,3 +21,4 @@ deploy:
   on:
     tags: true
     repo: ohager/burst-autoplotter
+    all_branches: true
