@@ -29,11 +29,16 @@ function normalizeProgress(min, max, current, target) {
 	return Math.floor((Math.min(current, max) - min) / (max - min) * target + min);
 }
 
+function asMultipleOf(number, multiple) {
+	return Math.floor(number / multiple) * multiple;
+}
+
 module.exports = {
 	gib2b,
 	b2gib,
 	b2mib,
 	formatTimeString,
 	formatDateTime,
-	normalizeProgress
+	normalizeProgress,
+	asMultipleOf
 };
