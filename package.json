@@ -5,7 +5,7 @@
   },
   "license": "MIT",
   "name": "burst-autoplotter",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Plot automation for BURST coin",
   "private": false,
   "repository": "ohager/burst-autoplotter",
