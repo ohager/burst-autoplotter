@@ -86,8 +86,8 @@ function startPlotter(answers) {
 			totalPlotSize: '3',
 			chunks: '1',
 			startNonce: '0',
-			threads: 2,
-			memory: '512',
+			threads: 7,
+			memory: '8192',
 			instructionSet: 'AVX2'
 		};
 		fs.removeSync(`${devAnswers.hardDisk}:/${PLOTS_DIR}`);

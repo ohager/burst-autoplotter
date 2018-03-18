@@ -1,6 +1,7 @@
 {
   "author": {
-    "name": "ohager"
+    "name": "ohager",
+    "email": "oliver@devbutze.com"
   },
   "license": "MIT",
   "name": "burst-autoplotter",
@@ -30,7 +31,7 @@
     "autoplot": "./bin/index.js"
   },
   "engines": {
-    "node": ">=6.0.0"
+    "node": ">=8.9.0"
   },
   "preferGlobal": true,
   "scripts": {
