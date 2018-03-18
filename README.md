@@ -3,7 +3,7 @@
 
 # burst-autoplotter
 
-> NEW VERSION 0.2: Entirely refactored using reactive approach. Correct calculations, new UI, more tests.  
+> NEW VERSION 0.3: Complete rewritten UI using blessedjs
 
 Automates plotting for BURST coin
 
@@ -20,11 +20,11 @@ Features:
 
 > Currently, the plotter works only! on Windows (as XPlotter is used internally)
 
-![autoplotter-in-action](https://devbutze.com/wp-content/uploads/2018/02/burst-autoplotter-0.2.0.gif)
+![autoplotter-in-action](https://devbutze.com/wp-content/uploads/2018/03/autoplot_v0.3.gif)
  
 ## Installation
 
-The Autoplotter is based on nodejs (>= Version 6), so - if not already installed - you need to install [NodeJS](https://nodejs.org/en/download/) first.
+The Autoplotter is based on nodejs (>= Version 8.9 (LTS Carbon), so - if not already installed - you need to install [NodeJS](https://nodejs.org/en/download/) first.
 Once installed simply call 
 
 `npm i -g burst-autoplotter`
