@@ -18,6 +18,7 @@ deploy:
   email: oliver@devbutze.com
   api_key:
     secure: ks8Xy1m+YB4rRLZiFTtB6e9khWRvwW2Igm4jTBwMB4aR5H4/aIYnjRcOHSEbQEKtxEzdSCBaXEYQ2j86Ny0Dt8UwNPDSlco4HFNpKziF1t+0B7teqspkhyGhBqS4TddywM0luV6cbNklAUjWUmiKmnH2ioku+sQpajHYd4zrKlNrvxL3urGX/eCuOEaspaOOPxpy0n3ZUef++vHLAlnBj7pf246x0vKqO2prJRZC2yXPz/3MzOKPMPdU/55zcMAmu3IjXQReGyL8i7s+4OyHeZ6rYHj3GlnRwB2xrcJa3PN2CRPULWVNquYEnJ2yqNAAgGO4vfdejqXuOCLtNWsLgqlPJ72ip2Obq048mOyDoZN2WwCSfaGDmMyjghLtEbReIbinYUdbQtu7SRstu0CVbr8kLy8FmB28kwPswQBdd/CfszSDSzXY5fL44V+5NrhqS8fBH/V26OVVGqsak9mLZE7Ng5VUoc65je6THUIi3WO6gC+wj8RwGyYeTPuK59sdNJ7ou0rGVkUrFv+jJTJeI+bxjypb9OQfbSdjuy9wPF3ZuOf/KHVpGDvJ0kvEFWo944HQX2T6iZX1JO2FQxBMZRgx8Ugh04pFMg7GRZc5jgAD/drrKeI4ygP17FJNkGzv+91+II5/n0eydXgz4ZHrloqz2fGWakp4PrBIQ2D8CtE=
+  skip_cleanup: true
   on:
     tags: true
     repo: ohager/burst-autoplotter

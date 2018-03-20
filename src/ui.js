@@ -10,29 +10,29 @@ const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
 
-function startQuestions(defaults, options) {
-	
-	const questions = [
-		{
-			type: "input",
-			name: "accountId",
-			message: "What's your numeric BURST Account ID?",
-			validate: v => {
-				const isValid = /^\d{18,}$/.test(v);
-				return isValid ? true : "Use your *numeric* account ID (minimum 18 digits), dude!"
+	function startQuestions(defaults, options) {
+		
+		const questions = [
+			{
+				type: "input",
+				name: "accountId",
+				message: "What's your numeric BURST Account ID?",
+				validate: v => {
+					const isValid = /^\d{18,}$/.test(v);
+					return isValid ? true : "Use your *numeric* account ID (minimum 18 digits), dude!"
+				},
+				default: defaults.accountId
 			},
-			default: defaults.accountId
-		},
-		{
-			type: "list",
-			name: "hardDisk",
-			message: "Select your disk to plot?",
-			choices: availableDrives,
-		}
-	];
-	
-	return prompt(questions)
-}
+			{
+				type: "list",
+				name: "hardDisk",
+				message: "Select your disk to plot?",
+				choices: availableDrives,
+			}
+		];
+		
+		return prompt(questions)
+	}
 
 function nextQuestions(defaults, options, previousAnswers) {
 	
