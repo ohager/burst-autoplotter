@@ -9,26 +9,38 @@ const {version} = packageJson;
 const STDIO_OPTIONS = {stdio: 'inherit'};
 const PACKAGE_JSON_FILE = path.join(__dirname, '../package.json');
 
+const exep = (cmd, args) => new Promise((resolve, reject) => {
+	const process = spawn(cmd, args);
+	process.on('close', (code) => {
+		if (code !== 0) {
+			reject("Ooops, something failed");
+		}
+		else {
+			resolve();
+		}
+	})
+});
+
 const updatePackageJson = version => {
 	packageJson.version = version;
 	return writeJson(PACKAGE_JSON_FILE, packageJson, {spaces: '\t'});
 };
 
-const gitCommit = message => spawn('git', [
+const gitCommit = message => exep('git', [
 	'commit',
 	'-am', message,
 ], STDIO_OPTIONS);
 
-const gitPush = () => spawn('git', [
+const gitPush = () => exep('git', [
 	'push',
 ], STDIO_OPTIONS);
 
-const gitNewTag = version => spawn('git', [
+const gitNewTag = version => exep('git', [
 	'tag',
 	version[0] === 'v' ? version : 'v' + version,
 ], STDIO_OPTIONS);
 
-const gitPushTag = () => spawn('git', [
+const gitPushTag = () => exep('git', [
 	'push',
 	'origin',
 	'--tags',
