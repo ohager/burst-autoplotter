@@ -5,7 +5,7 @@
 	},
 	"license": "UNLICENSED",
 	"name": "burst-autoplotter",
-	"version": "0.3.6",
+	"version": "0.3.7",
 	"description": "Plot automation for BURST coin",
 	"keywords": [
 		"burst",
@@ -49,6 +49,6 @@
 		"test": "cross-env NODE_ENV=test jest --coverage && codecov",
 		"start": "cross-env NODE_ENV=development node ./src/autoplot.js",
 		"start:qa": "cross-env NODE_ENV=qa node ./src/autoplot.js",
-		"release": "npm run build && node ./tools/tag.js && npm publish"
+		"release": "npm run build && node ./tools/tag.js"
 	}
 }
