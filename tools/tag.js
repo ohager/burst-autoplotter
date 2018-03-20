@@ -9,9 +9,9 @@ const {version} = packageJson;
 const STDIO_OPTIONS = {stdio: 'inherit'};
 const PACKAGE_JSON_FILE = path.join(__dirname, '../package.json');
 
-const exep = (cmd, args) => new Promise((resolve, reject) => {
+const exep = (cmd, args, opts) => new Promise((resolve, reject) => {
 	console.log(`Executing ${cmd} ${args.join(" ")}`);
-	const process = spawn(cmd, args);
+	const process = spawn(cmd, args, opts);
 	process.on('close', (code) => {
 		if (code !== 0) {
 			reject("Ooops, something failed");
