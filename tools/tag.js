@@ -1,13 +1,14 @@
 const PACKAGE_JSON_FILE = '../package.json';
 
-const prompt = require('inquirer').prompt;
+const {prompt} = require('inquirer');
 const semver = require('semver');
-const {promisify} = require('util');
 const {writeJson} = require('fs-extra');
 const packageJson = require(PACKAGE_JSON_FILE);
 const {version} = packageJson;
 const {spawn} = require('child_process');
 
+
+const promisify = Promise.resolve;
 const STDIO_OPTIONS = {stdio: 'inherit'};
 
 const updatePackageJson = version => {
