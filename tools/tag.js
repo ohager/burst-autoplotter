@@ -55,11 +55,9 @@ const gitPushTag = () => spawn('git', [
 			return updatePackageJson(nextVersion);
 		})
 		.then(() => gitCommit(`Releasing new version ${nextVersion}`))
-		/*
-			.then(() => gitPush())
-			.then(() => gitNewTag(nextVersion))
-			.then(() => gitPushTag())
-		*/
+		.then(() => gitPush())
+		.then(() => gitNewTag(nextVersion))
+		.then(() => gitPushTag())
 		.catch(e => {
 			console.error("FUCK, didn't work: " + e);
 		});
