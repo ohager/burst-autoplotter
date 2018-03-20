@@ -3,7 +3,7 @@ const PACKAGE_JSON_FILE = '../package.json';
 const prompt = require('inquirer').prompt;
 const semver = require('semver');
 const {promisify} = require('util');
-const {writeJsonSync} = require('fs-extra');
+const {writeJson} = require('fs-extra');
 const packageJson = require(PACKAGE_JSON_FILE);
 const {version} = packageJson;
 const {spawn} = require('child_process');
@@ -12,7 +12,7 @@ const STDIO_OPTIONS = {stdio: 'inherit'};
 
 const updatePackageJson = version => {
 	packageJson.version = version;
-	return promisify(writeJsonSync(PACKAGE_JSON_FILE, packageJson, {spaces: '\t'}));
+	return writeJson(PACKAGE_JSON_FILE, packageJson, {spaces: '\t'});
 };
 
 const gitCommit = message => promisify(spawn('git', [
@@ -56,9 +56,11 @@ const gitPushTag = () => promisify(spawn('git', [
 		return updatePackageJson(nextVersion);
 	})
 	.then(() => gitCommit(`Releasing new version ${nextVersion}`))
+/*
 	.then(() => gitPush())
 	.then(() => gitNewTag(nextVersion))
 	.then(() => gitPushTag())
+*/
 	.catch(e => {
 		console.error("FUCK, didn't work: " + e);
 	});
