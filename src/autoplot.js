@@ -18,6 +18,7 @@ const isDevMode = process.env.NODE_ENV === 'development';
 const options = commandLineArgs([
 	{name: 'cache', alias: 'c', type: String},
 	{name: 'extended', alias: 'e', type: Boolean},
+	{name: 'mail', alias: 'm', type: Boolean},
 ]);
 
 const getInstructionSetInformation = () => {
@@ -110,14 +111,23 @@ function startPlotter(answers) {
 	
 	if (!isDevMode && !hasAdminPrivileges()) {
 		console.log(chalk`🚸 {redBright No Admin rights!}`);
-		console.log('For significantly faster writes you should run autoplotter as administrator');
+		console.log('You need to run autoplotter as administrator');
 		process.exit(666);
 		return;
 	}
 	
 	const instructionSetInfo = getInstructionSetInformation();
 	
-	ui.run(cache.load(options.cache), {extended: options.extended, instructionSetInfo: instructionSetInfo})
+	ui
+		.run(cache.load(options.cache), {
+			extended: options.extended,
+			mail: options.mail,
+			instructionSetInfo: instructionSetInfo
+		})
+		.then(answers => {
+			console.log(answers);
+			throw new Error("forced abort")
+		})
 		.then(answers => {
 			cache.update(answers, options.cache);
 			return answers;

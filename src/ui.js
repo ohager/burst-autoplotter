@@ -1,5 +1,6 @@
 const os = require('os');
-const prompt = require('inquirer').prompt;
+const {prompt} = require('inquirer');
+const emailValidator = require("email-validator");
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 
 const {b2mib, b2gib} = require('./utils');
@@ -10,29 +11,29 @@ const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
 
-	function startQuestions(defaults, options) {
-		
-		const questions = [
-			{
-				type: "input",
-				name: "accountId",
-				message: "What's your numeric BURST Account ID?",
-				validate: v => {
-					const isValid = /^\d{18,}$/.test(v);
-					return isValid ? true : "Use your *numeric* account ID (minimum 18 digits), dude!"
-				},
-				default: defaults.accountId
+function startQuestions(defaults, options) {
+	
+	const questions = [
+		{
+			type: "input",
+			name: "accountId",
+			message: "What's your numeric BURST Account ID?",
+			validate: v => {
+				const isValid = /^\d{18,}$/.test(v);
+				return isValid ? true : "Use your *numeric* account ID (minimum 18 digits), dude!"
 			},
-			{
-				type: "list",
-				name: "hardDisk",
-				message: "Select your disk to plot?",
-				choices: availableDrives,
-			}
-		];
-		
-		return prompt(questions)
-	}
+			default: defaults.accountId
+		},
+		{
+			type: "list",
+			name: "hardDisk",
+			message: "Select your disk to plot?",
+			choices: availableDrives,
+		}
+	];
+	
+	return prompt(questions)
+}
 
 function nextQuestions(defaults, options, previousAnswers) {
 	
@@ -42,17 +43,16 @@ function nextQuestions(defaults, options, previousAnswers) {
 	const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
 	
 	let threadChoices = [];
-	for(let i=1; i<=availableCPUs;++i) threadChoices.push(i + '');
+	for (let i = 1; i <= availableCPUs; ++i) threadChoices.push(i + '');
 	const defaultThreads = availableCPUs - 1;
 	
 	let ramChoices = [];
 	const ram = Math.floor(availableRAM_mib);
-	for(let i=1; (i*1024)<ram ;++i) ramChoices.push(i*1024 + '');
+	for (let i = 1; (i * 1024) < ram; ++i) ramChoices.push(i * 1024 + '');
 	const defaultMemory = ramChoices[ramChoices.length - 1];
 	
 	const instSetChoices = options.instructionSetInfo.supported;
 	const defaultInstSet = options.instructionSetInfo.recommended;
-	
 	
 	const nextQuestions = [
 		{
@@ -92,9 +92,7 @@ function nextQuestions(defaults, options, previousAnswers) {
 		}
 	];
 	
-
-	if(options.extended){
-		
+	if (options.extended) {
 		nextQuestions.push(
 			{
 				type: "list",
@@ -116,7 +114,7 @@ function nextQuestions(defaults, options, previousAnswers) {
 				message: "Select Instruction Set?",
 				default: defaultInstSet,
 				choices: instSetChoices
-			},
+			}
 		);
 	}
 	
@@ -126,13 +124,97 @@ function nextQuestions(defaults, options, previousAnswers) {
 		nextAnswers.memory = nextAnswers.memory || defaultMemory;
 		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
 		
-		return Object.assign({}, previousAnswers, nextAnswers)
+		return {
+			...previousAnswers,
+			...nextAnswers
+		}
 	})
 }
 
-function run(defaults, opts){
+
+function mailQuestions(defaults, options, previousAnswers) {
+	
+	if (!options.mail) return null;
+	
+	const defaultMail = defaults.email || "you@mail.com";
+	const defaultSmtp = defaults.smtp || {
+		host: "smtp.mailtrap.io",
+		port: 2525,
+		secure: true,
+		auth: {
+			user: "user",
+			pass: "password"
+		}
+	};
+	
+	const questions = [
+		{
+			type: "input",
+			name: "email",
+			message: "What's your email address?",
+			validate: email => {
+				return emailValidator.validate(email) ? true : "I need a valid email address, man!"
+			},
+			default: defaultMail
+		},
+		{
+			type: "input",
+			name: "host",
+			message: "Enter the SMTP host",
+			default: defaultSmtp.host,
+		},
+		{
+			type: "input",
+			name: "port",
+			message: "Enter the hosts port",
+			validate: port => {
+				return /^\d{4}$/.test(port) ? true : "Port must be a number!"
+			},
+			default: defaultSmtp.port,
+		},
+		{
+			type: "confirm",
+			name: "secure",
+			message: "Does it use TLS/SSL",
+			default: defaultSmtp.secure,
+		},
+		{
+			type: "input",
+			name: "user",
+			message: "SMTP Account User",
+			default: defaultSmtp.auth.user,
+		},
+		{
+			type: "password",
+			name: "pass",
+			mask: "*",
+			message: "SMTP Account Password",
+			default: defaultSmtp.auth.pass,
+		}
+	];
+	
+	return prompt(questions).then(answers => {
+		return {
+			...previousAnswers,
+			email: answers.mail || defaultMail,
+			smtp: {
+				host: answers.host || defaultSmtp.host,
+				port: answers.port || defaultSmtp.port,
+				secure: answers.secure || defaultSmtp.secure,
+				auth: {
+					user: answers.user || defaultSmtp.auth.user,
+					pass: answers.pass || defaultSmtp.auth.pass,
+				}
+			}
+		}
+	});
+}
+
+
+function run(defaults, opts) {
 	return startQuestions(defaults, opts)
 		.then(nextQuestions.bind(null, defaults, opts))
+		.then(mailQuestions.bind(null, defaults, opts))
 }
 
 module.exports = {

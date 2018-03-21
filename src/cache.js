@@ -3,13 +3,23 @@ const fs = require('fs-extra');
 const path = require('path');
 
 const initialCacheData = {
-	accountId : "1234567890123456789",
-	lastNonce : 0,
+	accountId: "1234567890123456789",
+	lastNonce: 0,
 	instructionSet: 'SSE',
+	email: 'yourmail@mailer.com',
+	smtp: {
+		host: 'smtp.mailtrap.io',
+		port: 2525,
+		secure: true,
+		auth: {
+			user: 'user',
+			pass: 'password'
+		}
+	}
 };
 
 let rootPath = process.env.APPDATA;
-if(process.env.NODE_ENV === "test"){
+if (process.env.NODE_ENV === "test") {
 	rootPath = "./";
 }
 
@@ -19,7 +29,7 @@ const cacheableProps = Object.keys(initialCacheData);
 
 const guaranteeExistance = (file) => {
 	if (!fs.existsSync(file)) {
-		fs.writeJsonSync(file,initialCacheData);
+		fs.writeJsonSync(file, initialCacheData);
 	}
 	return file;
 };
@@ -34,7 +44,7 @@ function update(obj, file = defaultCacheFile) {
 	let updatedCache;
 	for (let i = 0; i < cacheableProps.length; ++i) {
 		const prop = cacheableProps[i];
-
+		
 		if (obj[prop] === undefined) continue;
 		
 		updatedCache = Object.assign(cache, {
@@ -50,5 +60,5 @@ function update(obj, file = defaultCacheFile) {
 
 module.exports = {
 	load,
-	update
+	update,
 };

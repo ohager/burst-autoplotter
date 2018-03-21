@@ -10,16 +10,35 @@ afterEach(() => {
 });
 
 test("Load Cache", () => {
-	const {accountId, lastNonce} = load(TestCache);
+	const {accountId, lastNonce, instructionSet, smtp} = load(TestCache);
 	expect(accountId).toBe("1234567890123456789");
 	expect(lastNonce).toBe(0);
+	expect(instructionSet).toBe("SSE");
+	
+	const {host, port, secure, auth} = smtp;
+	expect(host).toBe("smtp.mailtrap.io");
+	expect(port).toBe(2525);
+	expect(secure).toBe(true);
+	expect(auth).toEqual({
+		user: 'user',
+		pass: 'password'
+	});
 });
 
 test("Update Cache", () => {
 	
 	const testData = {
 		notCacheable: "NotCacheable",
-		accountId: "123456789"
+		accountId: "123456789",
+		smtp: {
+			host: "smtp.mailtrap.io",
+			port: 100,
+			secure: false,
+			auth: {
+				user: "user",
+				pass: "password"
+			}
+		}
 	};
 	
 	update(testData, TestCache);
@@ -28,5 +47,9 @@ test("Update Cache", () => {
 	expect(cacheData.notCacheable).not.toBeDefined();
 	expect(cacheData.accountId).toBe("123456789");
 	expect(cacheData.lastNonce).toBe(0);
+	
+	const {smtp} = cacheData;
+	expect(smtp.port).toBe(100);
+	expect(smtp.secure).toBe(false);
 	
 });
