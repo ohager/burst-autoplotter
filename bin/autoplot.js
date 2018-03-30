@@ -113,7 +113,7 @@ function startPlotter(answers) {
 
 	const instructionSetInfo = getInstructionSetInformation();
 
-	ui.run(cache.load(options.cache), { extended: options.extended, instructionSetInfo: instructionSetInfo }).then(answers => {
+	ui.Run(cache.load(options.cache), { extended: options.extended, instructionSetInfo: instructionSetInfo }).then(answers => {
 		cache.update(answers, options.cache);
 		return answers;
 	}).then(startPlotter);

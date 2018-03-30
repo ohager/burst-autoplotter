@@ -29,7 +29,7 @@
 		"blessed": "^0.1.81",
 		"chalk": "^2.0.1",
 		"co": "^4.6.0",
-		"command-line-args": "^4.0.6",
+		"command-line-args": "^5.0.2",
 		"date-fns": "^1.29.0",
 		"email-validator": "^1.1.1",
 		"fd-diskspace": "^1.0.0",

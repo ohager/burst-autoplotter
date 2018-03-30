@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const chalk = require('chalk');
-const commandLineArgs = require('command-line-args');
+//const commandLineArgs = require('command-line-args');
 
 const store = require('./store');
 const {PLOTS_DIR} = require('./config');
@@ -10,17 +10,18 @@ const plotter = require('./plotter');
 const createPlotPartition = require('./plotPartition');
 const {hasAdminPrivileges} = require('./privilege');
 const {getSupportedInstructionSets} = require('./instructionSet');
-const ui = require('./ui');
+const command = require('./command/command');
 const cache = require('./cache');
 
 const isDevMode = process.env.NODE_ENV === 'development';
-
+/*
 const options = commandLineArgs([
 	{name: 'cache', alias: 'c', type: String},
 	{name: 'extended', alias: 'e', type: Boolean},
 	{name: 'mail', alias: 'm', type: Boolean},
+	{name: 'setup', alias: 'm', type: Boolean},
 ]);
-
+*/
 const getInstructionSetInformation = () => {
 	
 	const instSet = getSupportedInstructionSets();
@@ -80,6 +81,9 @@ function startPlotter(answers) {
 
 (function run() {
 	
+	command.start();
+	return;
+	
 	if (process.env.NODE_ENV === "development") {
 		const devAnswers = {
 			accountId: '1234567890123456700',
@@ -118,8 +122,8 @@ function startPlotter(answers) {
 	
 	const instructionSetInfo = getInstructionSetInformation();
 	
-	ui
-		.run(cache.load(options.cache), {
+	run
+		.Run(cache.load(options.cache), {
 			extended: options.extended,
 			mail: options.mail,
 			instructionSetInfo: instructionSetInfo

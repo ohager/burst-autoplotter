@@ -3,7 +3,7 @@ const {prompt} = require('inquirer');
 const emailValidator = require("email-validator");
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 
-const {b2mib, b2gib} = require('./utils');
+const {b2mib, b2gib} = require('../../utils');
 
 const availableDrives = Object.keys(diskInfo.disks);
 
@@ -210,13 +210,14 @@ function mailQuestions(defaults, options, previousAnswers) {
 	});
 }
 
-
 function run(defaults, opts) {
+
+	console.log("Executing Run Command", defaults, opts);
+	return;
+	
 	return startQuestions(defaults, opts)
 		.then(nextQuestions.bind(null, defaults, opts))
 		.then(mailQuestions.bind(null, defaults, opts))
 }
 
-module.exports = {
-	run
-};
+module.exports = run;
