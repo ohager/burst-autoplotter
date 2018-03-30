@@ -11,7 +11,7 @@ function readCommand(argv) {
 }
 
 function usage(handler) {
-	console.info("Following commands are available: ");
+	console.info("Following commands are available:\n");
 	Object.keys(handler).forEach( command => console.info(command) );
 }
 
@@ -31,14 +31,24 @@ const setupHandler = {
 	mail : commandSetup.mail
 };
 
-function readSetupCommand(arguments) {
+function handleSetupCommand(arguments) {
 	const {name, args} = readCommand(arguments);
 	callCommand(name || 'mail', setupHandler)(args);
 }
 
+function handleRunCommand(argv){
+	
+	const options = commandLineArgs([
+		{name: 'cache', alias: 'c', type: String},
+		{name: 'extended', alias: 'e', type: Boolean},
+	], {argv});
+	
+	commandRun(options);
+}
+
 const mainHandler = {
-	run : commandRun,
-	setup: readSetupCommand
+	run : handleRunCommand,
+	setup: handleSetupCommand
 };
 
 function start() {

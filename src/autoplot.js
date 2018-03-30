@@ -1,6 +1,5 @@
 const fs = require('fs-extra');
 const chalk = require('chalk');
-//const commandLineArgs = require('command-line-args');
 
 const store = require('./store');
 const {PLOTS_DIR} = require('./config');
@@ -9,32 +8,10 @@ const {version, author} = require('../package.json');
 const plotter = require('./plotter');
 const createPlotPartition = require('./plotPartition');
 const {hasAdminPrivileges} = require('./privilege');
-const {getSupportedInstructionSets} = require('./instructionSet');
 const command = require('./command/command');
 const cache = require('./cache');
 
-const isDevMode = process.env.NODE_ENV === 'development';
-/*
-const options = commandLineArgs([
-	{name: 'cache', alias: 'c', type: String},
-	{name: 'extended', alias: 'e', type: Boolean},
-	{name: 'mail', alias: 'm', type: Boolean},
-	{name: 'setup', alias: 'm', type: Boolean},
-]);
-*/
-const getInstructionSetInformation = () => {
-	
-	const instSet = getSupportedInstructionSets();
-	let recommended = 'SSE';
-	if (instSet.avx) recommended = 'AVX';
-	if (instSet.avx2) recommended = 'AVX2';
-	
-	return {
-		raw: instSet,
-		supported: Object.keys(instSet).map(k => instSet[k] ? k.toUpperCase() : ''),
-		recommended: recommended
-	}
-};
+const isDevMode = () => process.env.NODE_ENV === 'development';
 
 function startPlotter(answers) {
 	let path = '';
@@ -79,12 +56,12 @@ function startPlotter(answers) {
 	}
 }
 
-(function run() {
+command.start();
+
+/*
+function deprecated() {
 	
-	command.start();
-	return;
-	
-	if (process.env.NODE_ENV === "development") {
+	if (isDevMode()) {
 		const devAnswers = {
 			accountId: '1234567890123456700',
 			hardDisk: 'C',
@@ -113,14 +90,14 @@ function startPlotter(answers) {
 	console.log(chalk`{whiteBright --------------------------------------------------}`);
 	console.log('\n');
 	
-	if (!isDevMode && !hasAdminPrivileges()) {
+	if (!isDevMode() && !hasAdminPrivileges()) {
 		console.log(chalk`🚸 {redBright No Admin rights!}`);
 		console.log('You need to run autoplotter as administrator');
 		process.exit(666);
 		return;
 	}
 	
-	const instructionSetInfo = getInstructionSetInformation();
+	const instructionSetInfo = {}; //getInstructionSetInformation();
 	
 	run
 		.Run(cache.load(options.cache), {
@@ -137,4 +114,4 @@ function startPlotter(answers) {
 			return answers;
 		}).then(startPlotter);
 	
-})();
+}*/
