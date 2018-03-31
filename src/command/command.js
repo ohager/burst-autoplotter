@@ -31,8 +31,8 @@ const setupHandler = {
 	mail : commandSetup.mail
 };
 
-function handleSetupCommand(arguments) {
-	const {name, args} = readCommand(arguments);
+function handleSetupCommand(argv) {
+	const {name, args} = readCommand(argv);
 	callCommand(name || 'mail', setupHandler)(args);
 }
 
