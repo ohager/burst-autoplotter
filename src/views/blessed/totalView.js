@@ -90,16 +90,9 @@ class TotalView {
 		const totalWrittenNonces = $.selectTotalWrittenNonces();
 		const progress = Math.min(normalizeProgress(0, totalNonces, totalWrittenNonces, 100), 100);
 		
-		const barColors = [
-			{bg: 'yellow', bold: false},
-			{bg: 'green', bold: false},
-			{bg: 'green', bold: true}
-		];
-		const colorProgress = Math.min(normalizeProgress(0, 100, progress, barColors.length - 1), barColors.length - 1);
-		
 		this.progressElement.style.bar = {
-			bg: barColors[colorProgress].bg,
-			bold: barColors[colorProgress].bold
+			bg: 'green',
+			bold: true
 		};
 		this.progressElement.setProgress(progress);
 	}

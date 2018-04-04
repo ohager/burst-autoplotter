@@ -1,6 +1,6 @@
 const chalk = require("chalk");
 const {writeAtLine} = require("./viewUtils");
-const {formatTimeString,formatDateTime} = require('../../utils');
+const {formatTimeString, formatDateTime} = require('../../utils');
 const progressBar = require("./progressBarView");
 
 /*
@@ -11,16 +11,16 @@ const progressBar = require("./progressBarView");
  3 [###########                                      ] 10000/50000 - 20%
  
 */
-	function render({
-		                line,
-		                started,
-		                elapsed,
-		                remaining,
-		                eta,
-		                totalNonces,
-		                totalWrittenNonces,
-						noncesPerMinute
-	                }) {
+function render({
+	                line,
+	                started,
+	                elapsed,
+	                remaining,
+	                eta,
+	                totalNonces,
+	                totalWrittenNonces,
+	                noncesPerMinute
+                }) {
 	
 	const percentage = ((totalWrittenNonces / totalNonces) * 100).toFixed(2);
 	const progress = progressBar(0, totalNonces, totalWrittenNonces, 50);
@@ -29,7 +29,7 @@ const progressBar = require("./progressBarView");
 	line++; // skip one line
 	writeAtLine(++line, chalk`Elapsed: {whiteBright ${formatTimeString(elapsed)}} - Started: {whiteBright ${formatDateTime(started)}}`);
 	writeAtLine(++line, chalk`Remaining: {whiteBright ${formatTimeString(remaining)}} - ETA: {whiteBright ${etaStr}} - {yellow nonces/min: ${noncesPerMinute}}`);
-
+	
 	line++; // skip one line
 	writeAtLine(++line, chalk`{greenBright ${progress}} {whiteBright ${totalWrittenNonces}/${totalNonces} - ${percentage}%}`);
 	
