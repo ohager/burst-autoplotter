@@ -157,7 +157,6 @@ function ask(options) {
  
 	return startQuestions(defaults, options)
 		.then(nextQuestions.bind(null, defaults, options))
-		//.then(mailQuestions.bind(null, defaults, options))
 }
 
 module.exports = {

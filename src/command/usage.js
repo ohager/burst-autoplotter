@@ -6,8 +6,7 @@ function printCommand(command) {
 }
 
 
-
-function printUnknownCommand(unknownCommand, handler){
+function printUnknownCommand(unknownCommand, handler) {
 	
 	console.log("\n");
 	console.log(chalk`{redBright Meh! Unknown Command} {yellowBright ${unknownCommand.toUpperCase()}}`);
@@ -20,7 +19,7 @@ function printUnknownCommand(unknownCommand, handler){
 	
 }
 
-function printUnknownOption(unknownOption){
+function printUnknownOption(unknownOption) {
 	
 	console.log("\n");
 	console.log(chalk`{redBright Meh! Unknown Option} {yellowBright ${unknownOption}}`);
@@ -28,8 +27,9 @@ function printUnknownOption(unknownOption){
 	
 }
 
-function printUsage(command, options){
-	const usage = commandLineUsage([
+function printUsage(command, options, commands) {
+	
+	let sections = [
 		{
 			header: 'BURST Auto Plotter Help',
 			content: `Current Command: {whiteBright ${command.toUpperCase()}}`
@@ -38,8 +38,16 @@ function printUsage(command, options){
 			header: 'Options',
 			optionList: options
 		}
-	]);
-	console.log(usage)
+	];
+	
+	if (commands) {
+		sections.push({
+				header: 'Commands',
+				content: commands
+			})
+	}
+	
+	console.log(commandLineUsage(sections))
 }
 
 module.exports = {

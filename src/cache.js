@@ -6,7 +6,10 @@ const initialCacheData = {
 	accountId: "1234567890123456789",
 	lastNonce: 0,
 	instructionSet: 'SSE',
-	email: 'yourmail@mailer.com',
+	email: {
+		enabled : false,
+		address: 'yourmail@mailer.com'
+	},
 	smtp: {
 		host: 'smtp.mailtrap.io',
 		port: 2525,
