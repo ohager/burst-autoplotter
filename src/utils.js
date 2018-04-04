@@ -1,5 +1,7 @@
 const {format} = require("date-fns");
 
+const isDevelopmentMode = () => process.env.NODE_ENV === 'development';
+
 const FACT_MIB = 1024 * 1024;
 const FACT_GIB = FACT_MIB * 1024;
 
@@ -20,18 +22,20 @@ function formatTimeString(seconds) {
 	return `${p(h)}:${p(m)}:${p(s)}`;
 }
 
-function formatDateTime(date){
+function formatDateTime(date) {
 	return format(date, "DD/MM/YYYY HH:mm:ss")
 }
 
-function normalizeProgress(min, max, current, target){
-	if(max===min) return 0;
-	return Math.floor( (((Math.min(current,max) - min)/(max-min))*target) + min );
+function normalizeProgress(min, max, current, target) {
+	if (max === min) return 0;
+	return Math.floor((((Math.min(current, max) - min) / (max - min)) * target) + min);
 }
 
-function asMultipleOf(number, multiple){
+function asMultipleOf(number, multiple) {
 	return Math.floor(number / multiple) * multiple;
 }
+
+
 
 module.exports = {
 	gib2b,
@@ -40,5 +44,6 @@ module.exports = {
 	formatTimeString,
 	formatDateTime,
 	normalizeProgress,
-	asMultipleOf
+	asMultipleOf,
+	isDevelopmentMode,
 };

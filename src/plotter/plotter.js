@@ -75,8 +75,8 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 		view.start();
 		
 		const interval = setInterval(() => {
-			store.update(()=>({
-				elapsedTime :  Date.now()
+			store.update(() => ({
+				elapsedTime: Date.now()
 			}))
 		}, 1000);
 		

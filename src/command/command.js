@@ -1,58 +1,82 @@
 const commandLineArgs = require("command-line-args");
 const commandRun = require("./run");
 const commandSetup = require("./setup");
+const printHeader = require("./header");
+const {printUsage, printUnknownCommand, printUnknownOption} = require("./usage");
 
-function readCommand(argv) {
-	const command = commandLineArgs([{name: 'name', defaultOption: true}],{argv, stopAtFirstUnknown: true});
+const VoidFunc = () => {};
+
+function ifHelp(currentCommand, argv, optionList) {
+	let options;
+	try {
+		options = commandLineArgs(optionList, {argv});
+	} catch (e) {
+		printUnknownOption(argv);
+		options = {help: true};
+	}
+	
+	if (options.help) {
+		printUsage(currentCommand, optionList);
+	}
+	
 	return {
-		name : command.name,
-		args : command._unknown || []
+		otherwise: options.help ? VoidFunc : fn => fn(options)
 	}
 }
 
-function usage(handler) {
-	console.info("Following commands are available:\n");
-	Object.keys(handler).forEach( command => console.info(command) );
+
+const DefaultOptionList = [
+	{name: 'cache', alias: 'c', type: String, description: "Set cache file", typeLabel: "<filename>"},
+	{name: 'help', alias: 'h', type: Boolean, description: "Get help for current command",},
+	{name: 'version', alias: 'v', type: Boolean, description: "Prints out version without plotter",},
+];
+
+function readCommand(argv) {
+	const command = commandLineArgs([{name: 'name', defaultOption: true}], {argv, stopAtFirstUnknown: true});
+	return {
+		name: command.name,
+		args: command._unknown || []
+	}
 }
 
-function callCommand(command, handler){
+function callCommand(command, handler) {
 	const commandFn = handler[command.toLowerCase()];
-	if(!commandFn){
-		
-		console.error(`Unknown command '${command}'`);
-		usage(handler);
-		
-		return () => {};
+	if (!commandFn) {
+		printUnknownCommand(command, handler);
+		return VoidFunc;
 	}
 	return commandFn;
 }
 
 const setupHandler = {
-	mail : commandSetup.mail
+	mail: commandSetup.mail
 };
-
-function handleSetupCommand(argv) {
-	const {name, args} = readCommand(argv);
-	callCommand(name || 'mail', setupHandler)(args);
-}
-
-function handleRunCommand(argv){
-	
-	const options = commandLineArgs([
-		{name: 'cache', alias: 'c', type: String},
-		{name: 'extended', alias: 'e', type: Boolean},
-	], {argv});
-	
-	commandRun(options);
-}
 
 const mainHandler = {
-	run : handleRunCommand,
-	setup: handleSetupCommand
+	run: onRunCommand,
+	setup: onSetupCommand
 };
+
+function onRunCommand(argv) {
+	
+	const optionList = DefaultOptionList.concat([
+		{name: 'extended', alias: 'e', type: Boolean, description: "Runs in extended mode with additional settings"}
+	]);
+	
+	ifHelp('run', argv, optionList).otherwise(options => commandRun(options));
+}
+
+function onSetupCommand(argv) {
+	const {name, args} = readCommand(argv);
+	
+	ifHelp('setup', argv, DefaultOptionList).otherwise(options => callCommand(name || 'mail', setupHandler)(args));
+
+}
+
 
 function start() {
 	const {name, args} = readCommand();
+	printHeader();
 	callCommand(name || 'run', mainHandler)(args);
 }
 

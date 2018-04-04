@@ -1,13 +1,13 @@
 const fs = require('fs-extra');
 const chalk = require('chalk');
+const {version, author} = require('../package.json');
+const {hasAdminPrivileges} = require('./privilege');
 
 const store = require('./store');
 const {PLOTS_DIR} = require('./config');
-const {version, author} = require('../package.json');
 
 const plotter = require('./plotter');
 const createPlotPartition = require('./plotPartition');
-const {hasAdminPrivileges} = require('./privilege');
 const command = require('./command/command');
 const cache = require('./cache');
 

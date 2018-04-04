@@ -1,6 +1,5 @@
 const os = require('os');
 const {prompt} = require('inquirer');
-const emailValidator = require("email-validator");
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 
 const {b2mib, b2gib} = require('../../utils');
@@ -142,100 +141,23 @@ function nextQuestions(defaults, options, previousAnswers) {
 		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
 		
 		return {
+			cacheFile : options.cache,
 			...previousAnswers,
-			...nextAnswers
+			...nextAnswers,
 		}
 	})
 }
-
-
-function mailQuestions(defaults, options, previousAnswers) {
-	
-	if (!options.mail) return null;
-	
-	const defaultMail = defaults.email || "you@mail.com";
-	const defaultSmtp = defaults.smtp || {
-		host: "smtp.mailtrap.io",
-		port: 2525,
-		secure: true,
-		auth: {
-			user: "user",
-			pass: "password"
-		}
-	};
-	
-	const questions = [
-		{
-			type: "input",
-			name: "email",
-			message: "What's your email address?",
-			validate: email => {
-				return emailValidator.validate(email) ? true : "I need a valid email address, man!"
-			},
-			default: defaultMail
-		},
-		{
-			type: "input",
-			name: "host",
-			message: "Enter the SMTP host",
-			default: defaultSmtp.host,
-		},
-		{
-			type: "input",
-			name: "port",
-			message: "Enter the hosts port",
-			validate: port => {
-				return /^\d{4}$/.test(port) ? true : "Port must be a number!"
-			},
-			default: defaultSmtp.port,
-		},
-		{
-			type: "confirm",
-			name: "secure",
-			message: "Does it use TLS/SSL",
-			default: defaultSmtp.secure,
-		},
-		{
-			type: "input",
-			name: "user",
-			message: "SMTP Account User",
-			default: defaultSmtp.auth.user,
-		},
-		{
-			type: "password",
-			name: "pass",
-			mask: "*",
-			message: "SMTP Account Password",
-			default: defaultSmtp.auth.pass,
-		}
-	];
-	
-	return prompt(questions).then(answers => {
-		return {
-			...previousAnswers,
-			email: answers.mail || defaultMail,
-			smtp: {
-				host: answers.host || defaultSmtp.host,
-				port: answers.port || defaultSmtp.port,
-				secure: answers.secure || defaultSmtp.secure,
-				auth: {
-					user: answers.user || defaultSmtp.auth.user,
-					pass: answers.pass || defaultSmtp.auth.pass,
-				}
-			}
-		}
-	});
-}
-
 
 function ask(options) {
 	
 	const instructionSetInfo = getInstructionSetInformation();
 	const defaults = cache.load(options.cache);
 	
-	return startQuestions(defaults, {...options, instructionSetInfo})
+	options = {...options, instructionSetInfo };
+ 
+	return startQuestions(defaults, options)
 		.then(nextQuestions.bind(null, defaults, options))
-		.then(mailQuestions.bind(null, defaults, options))
+		//.then(mailQuestions.bind(null, defaults, options))
 }
 
 module.exports = {
