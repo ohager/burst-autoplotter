@@ -30,6 +30,8 @@ function normalizeProgress(min, max, current, target) {
 	if (max === min) return 0;
 	if(current < min) return min;
 	
+	console.log(arguments);
+	
 	return Math.floor((((Math.min(current, max) - min) / (max - min)) * target) + min);
 }
 

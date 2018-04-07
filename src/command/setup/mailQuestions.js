@@ -15,14 +15,15 @@ function startQuestions(defaults, options) {
 }
 
 function configQuestions(defaults, options, previousAnswers) {
-
-	if(!previousAnswers.mailEnabled){
+	
+	
+	if (!previousAnswers.mailEnabled) {
 		return prompt([]); // no more questions
 	}
 	
 	const defaultMail = defaults.email || {
-		enabled : previousAnswers.mailEnabled,
-		address : 'yourmail@mailer.com'
+		enabled: previousAnswers.mailEnabled,
+		address: 'yourmail@mailer.com'
 	};
 	
 	const defaultSmtp = defaults.smtp || {
@@ -73,9 +74,8 @@ function configQuestions(defaults, options, previousAnswers) {
 			default: defaultSmtp.auth.user,
 		},
 		{
-			type: "password",
+			type: "input",
 			name: "pass",
-			mask: "*",
 			message: "SMTP Account Password",
 			default: defaultSmtp.auth.pass,
 		}
@@ -84,12 +84,40 @@ function configQuestions(defaults, options, previousAnswers) {
 	return prompt(questions);
 }
 
+
+function mapAnswers(defaults, options, answers) {
+	
+	const _default = (section, field) => section && section[field];
+	
+	return {
+		email: {
+			enabled: !!answers.email ,
+			address: answers.email || _default('email', 'address')
+		},
+		smtp: {
+			host: answers.host || _default(defaults.smtp, 'host'),
+			port: answers.port || _default(defaults.smtp, 'port'),
+			secure: answers.secure || _default(defaults.smtp, 'secure'),
+			auth: {
+				user: answers.user || _default(defaults.smtp.auth, 'user'),
+				pass: answers.pass || _default(defaults.smtp.auth, 'pass'),
+			}
+		}
+	};
+}
+
+
 function ask(options) {
 	
 	const defaults = cache.load(options.cache);
 	
 	return startQuestions(defaults, options)
 		.then(configQuestions.bind(null, defaults, options))
+		.then(mapAnswers.bind(null, defaults, options))
+		.then(answers => {
+			cache.update(answers, options.cache);
+			return answers;
+		})
 }
 
 
