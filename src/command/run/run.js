@@ -71,8 +71,8 @@ function runPlotter(answers) {
 	const devAnswers = {
 		accountId: '1234567890123456700',
 		hardDisk: 'C',
-		totalPlotSize: '3',
-		chunks: '1',
+		totalPlotSize: '1',
+		chunks: '2',
 		startNonce: '0',
 		threads: 7,
 		memory: '8192',

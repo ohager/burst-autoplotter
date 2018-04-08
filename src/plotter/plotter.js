@@ -11,6 +11,7 @@ const view = require("../views/blessed");
 
 const handleStdoutData = require("./stdoutHandler");
 const handleClose = require("./closeHandler");
+const notification = require("../notification");
 
 const getPlotterPath = () => {
 	
@@ -111,8 +112,12 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 						memory
 					});
 				
-				// once successful update the cache!
 				cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
+
+				if(i < plots.length - 1){
+					notification.sendMailSinglePlotFinished();
+				}
+				
 			}
 			
 			yield validator.call(this, path);
@@ -122,12 +127,17 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 				})
 			);
 			
+			notification.sendMailAllPlotsCompleted();
+			
 		} catch (e) {
 			store.update(() => ({
 					error: e,
 					done: true
 				})
 			);
+			
+			notification.sendMailFailure(e);
+			
 			throw e;
 		}
 		

@@ -16,7 +16,6 @@ function startQuestions(defaults, options) {
 
 function configQuestions(defaults, options, previousAnswers) {
 	
-	
 	if (!previousAnswers.mailEnabled) {
 		return prompt([]); // no more questions
 	}
@@ -57,7 +56,7 @@ function configQuestions(defaults, options, previousAnswers) {
 			name: "port",
 			message: "Enter the hosts port",
 			validate: port => {
-				return /^\d{4}$/.test(port) ? true : "Port must be a number!"
+				return /^\d{3,4}$/.test(port) ? true : "Port must be a number!"
 			},
 			default: defaultSmtp.port,
 		},
@@ -97,7 +96,7 @@ function mapAnswers(defaults, options, answers) {
 		smtp: {
 			host: answers.host || _default(defaults.smtp, 'host'),
 			port: answers.port || _default(defaults.smtp, 'port'),
-			secure: answers.secure || _default(defaults.smtp, 'secure'),
+			secure: answers.secure === undefined  ?  _default(defaults.smtp, 'secure') : answers.secure,
 			auth: {
 				user: answers.user || _default(defaults.smtp.auth, 'user'),
 				pass: answers.pass || _default(defaults.smtp.auth, 'pass'),

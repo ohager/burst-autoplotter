@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Plot finished</title>
+    <style type="text/css">
+        body{
+            font-family: monospace;
+            background: #111111;
+            color: whitesmoke;
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #008800;
+            color: whitesmoke;
+            font-size: larger;
+        }
+        a {
+            color: lightyellow;
+            font-weight: bold;
+        }
+        .gs pre {
+            padding-left: 25%;
+        }
+    </style>
+</head>
+<body style="font-family: monospace;background: #111111;color: whitesmoke;text-align: center;">
+<h1 style="color: whitesmoke;padding: 1em">Finished Plot {{currentPlot}} of {{plotCount}} 🍻</h1>
+<header style="display: flex;justify-content: center;align-items: center;position: relative;background: #008800;color: whitesmoke;font-size: larger;">
+    <pre>
+█████╗ ██╗   ██╗████████╗ ██████╗ ██████╗ ██╗      ██████╗ ████████╗████████╗███████╗██████╗
+██╔══██╗██║   ██║╚══██╔══╝██╔═══██╗██╔══██╗██║     ██╔═══██╗╚══██╔══╝╚══██╔══╝██╔════╝██╔══██╗
+███████║██║   ██║   ██║   ██║   ██║██████╔╝██║     ██║   ██║   ██║      ██║   █████╗  ██████╔╝
+██╔══██║██║   ██║   ██║   ██║   ██║██╔═══╝ ██║     ██║   ██║   ██║      ██║   ██╔══╝  ██╔══██╗
+██║  ██║╚██████╔╝   ██║   ╚██████╔╝██║     ███████╗╚██████╔╝   ██║      ██║   ███████╗██║  ██║
+╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝ ╚═╝     ╚══════╝ ╚═════╝    ╚═╝      ╚═╝   ╚══════╝╚═╝  ╚═╝
+                                                                        version {{version}}
+    Don't forget to stargaze this <a href="https://github.com/ohager/burst-autoplotter" style="color: lightyellow;font-weight: bold;">project</a>
+    I also do accept donations: <a href="https://wallet.burst.cryptoguru.org:8125/index.html" style="color: lightyellow;font-weight: bold;">9K9L-4CB5-88Y5-F5G4Z</a>
+    </pre>
+</header>
+<h2 style="color: whitesmoke">Written nonces: {{writtenNonces}}</h2>
+<h2 style="color: whitesmoke">Duration: {{duration}}</h2>
+<h2 style="color: whitesmoke">Nonces/min: {{noncesPerMin}}</h2>
+<h2 style="color: whitesmoke">Estimated time to finish entire plot: {{eta}}</h2>
+</body>
+</html>
