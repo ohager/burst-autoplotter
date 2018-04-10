@@ -6,8 +6,12 @@ const initialCacheData = {
 	accountId: "1234567890123456789",
 	lastNonce: 0,
 	instructionSet: 'SSE',
+	telegram: {
+		enabled: false,
+		uuid: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+	},
 	email: {
-		enabled : false,
+		enabled: false,
 		address: 'yourmail@mailer.com'
 	},
 	smtp: {

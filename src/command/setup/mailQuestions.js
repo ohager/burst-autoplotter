@@ -91,7 +91,7 @@ function mapAnswers(defaults, options, answers) {
 	return {
 		email: {
 			enabled: !!answers.email ,
-			address: answers.email || _default('email', 'address')
+			address: answers.email || _default(defaults.email, 'address')
 		},
 		smtp: {
 			host: answers.host || _default(defaults.smtp, 'host'),

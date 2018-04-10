@@ -54,7 +54,8 @@ function callCommand(command, handler) {
 }
 
 const setupHandler = {
-	mail: commandSetup.mail
+	mail: commandSetup.mail,
+	telegram: commandSetup.telegram
 };
 
 const mainHandler = {
@@ -79,7 +80,8 @@ function onSetupCommand(argv) {
 	const options = readOptions(DefaultOptionList, args);
 	
 	ifHelp('setup', options, DefaultOptionList, [
-			{ name: 'mail', summary: 'Sets up mail for notification' }
+			{ name: 'mail', summary: 'Sets up mail for notification' },
+			{ name: 'telegram', summary: 'Sets up push notification for Telegram' },
 		]).otherwise(options => callCommand(name || 'mail', setupHandler)(args));
 
 }
