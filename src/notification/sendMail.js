@@ -1,6 +1,4 @@
 const nodemailer = require('nodemailer');
-const store = require('../store');
-const mustache = require('mustache');
 
 function sendMail(options, subject, htmlMessage){
 	
@@ -9,7 +7,7 @@ function sendMail(options, subject, htmlMessage){
 	const transporter = nodemailer.createTransport(options.smtp);
 
 	const mailOptions = {
-		from : "autoplotter@burstcoin.com",
+		from : "noreply@burst-autoplotter.org",
 		to: options.email.address,
 		subject: `💌 Autoplotter - Notification: ${subject}`,
 		html: htmlMessage
