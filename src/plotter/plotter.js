@@ -115,7 +115,7 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 				cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 
 				if(i < plots.length - 1){
-					notification.sendMailSinglePlotFinished();
+					notification.sendSinglePlotCompleted();
 				}
 				
 			}
@@ -127,7 +127,7 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 				})
 			);
 			
-			notification.sendMailAllPlotsCompleted();
+			notification.sendAllPlotsCompleted();
 			
 		} catch (e) {
 			store.update(() => ({
@@ -136,7 +136,7 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 				})
 			);
 			
-			notification.sendMailFailure(e);
+			notification.sendFailure(e);
 			
 			throw e;
 		}

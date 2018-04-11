@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-function sendMail(options, subject, htmlMessage){
+function send(options, subject, htmlMessage){
 	
 	if(!options.email.enabled) return;
 	
@@ -18,4 +18,4 @@ function sendMail(options, subject, htmlMessage){
 }
 
 
-module.exports = sendMail;
+module.exports = send;

@@ -1,5 +1,6 @@
 const {prompt} = require('inquirer');
 const cache = require("../../cache");
+const notification = require("../../notification");
 
 function startQuestions(defaults, options) {
 	const questions = [{
@@ -61,6 +62,10 @@ function ask(options) {
 		.then(mapAnswers.bind(null, defaults, options))
 		.then(answers => {
 			cache.update(answers, options.cache);
+			
+			notification.sendTelegramSetupSuccessMessage();
+			console.log("\nIf setup worked fine, you will receive a Telegram notification in a few seconds.\n");
+			
 			return answers;
 		})
 }

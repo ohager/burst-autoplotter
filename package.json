@@ -29,6 +29,7 @@
     "semver": "^5.5.0"
   },
   "dependencies": {
+    "axios": "^0.18.0",
     "blessed": "^0.1.81",
     "chalk": "^2.0.1",
     "co": "^4.6.0",

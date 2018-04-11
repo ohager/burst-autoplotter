@@ -1,5 +1,6 @@
 const {prompt} = require('inquirer');
 const cache = require("../../cache");
+const notification = require("../../notification");
 const emailValidator = require("email-validator");
 
 
@@ -80,7 +81,7 @@ function configQuestions(defaults, options, previousAnswers) {
 		}
 	];
 	
-	return prompt(questions);
+	return prompt(questions).then(answers => ({...previousAnswers, ...answers}));
 }
 
 
@@ -90,7 +91,7 @@ function mapAnswers(defaults, options, answers) {
 	
 	return {
 		email: {
-			enabled: !!answers.email ,
+			enabled: !!answers.mailEnabled,
 			address: answers.email || _default(defaults.email, 'address')
 		},
 		smtp: {
@@ -115,6 +116,10 @@ function ask(options) {
 		.then(mapAnswers.bind(null, defaults, options))
 		.then(answers => {
 			cache.update(answers, options.cache);
+			
+			notification.sendMailSetupSuccessMessage();
+			console.log("\nIf setup worked fine, you will receive an email in a few moments.\n");
+			
 			return answers;
 		})
 }
