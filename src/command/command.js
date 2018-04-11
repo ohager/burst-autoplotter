@@ -4,7 +4,7 @@ const commandSetup = require("./setup");
 const printHeader = require("./header");
 const {printUsage, printUnknownCommand, printUnknownOption} = require("./usage");
 
-const VoidFunc = () => {};
+const VoidFunc = () => { };
 
 function ifHelp(currentCommand, options, optionList, commandList) {
 	
