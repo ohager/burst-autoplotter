@@ -103,7 +103,7 @@ The Autoplotter uses the [Middleman-Bot](https://github.com/n1try/telegram-middl
 You just need to add the bot in your Telegram messenger,
 and you'll receive a token (e.g. `2a3137d2-2d6a-4e4d-985a-df0d278426b0`) that you need to enter while setup.
 
-![Telegram_notifications](https://devbutze.com/wp-content/uploads/2018/04/photo5075645325548562386.jpg)
+![Telegram_notifications](https://devbutze.com/wp-content/uploads/2018/04/photo5075645325548562386.jpg | height=400)
 
 
 # Credits
