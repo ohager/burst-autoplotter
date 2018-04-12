@@ -90,6 +90,8 @@ If configured correctly, you'll receive a success notification. Of course, it's 
 
 ### Notes on email notification setup for Gmail
 
+![gmail less secure](https://devbutze.com/wp-content/uploads/2018/04/google_mail_less_secure.jpg)
+
 Per default, Google considers authentication using login and password as not sufficient to met todays security needs. 
 You'll receive an email about a blocked sign in then, when trying to use Gmail as your mail transporter. In that case, 
 you need to [configure your Gmail Account to allow _less secure apps_](https://support.google.com/accounts/answer/6010255?hl=en).
@@ -100,6 +102,9 @@ you need to [configure your Gmail Account to allow _less secure apps_](https://s
 The Autoplotter uses the [Middleman-Bot](https://github.com/n1try/telegram-middleman-bot) for delivering notification.
 You just need to add the bot in your Telegram messenger,
 and you'll receive a token (e.g. `2a3137d2-2d6a-4e4d-985a-df0d278426b0`) that you need to enter while setup.
+
+![Telegram_notifications](https://devbutze.com/wp-content/uploads/2018/04/photo5075645325548562386.jpg)
+
 
 # Credits
 
