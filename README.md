@@ -19,7 +19,7 @@ Features:
 - Allows CPU and RAM selection (in enhanced mode)
 - Notification while plotting
     - Email notification
-    - Telegram Push Notification
+    - [Telegram](https://telegram.org/) Push Notification
 
 > Currently, the plotter works only! on Windows (as XPlotter is used internally)
 
@@ -57,14 +57,49 @@ At all time you may use the following options:
 | help         |   h   | Shows help for current command     | `autoplot setup -h`                          |
 | cache <file> |   c   | Defines the name of the cache file | `autoplot -c "c:\myfiles\autoplot-config.js"`|
 
-### Command `Run`
-### Command `Setup`
+> The default cache file is stored in `%AppData%/.autoplot-cache` 
 
-### Extended Mode
-Since 0.0.9 there's is an extended mode, which allows you to set advanced settings like Threads, Memory, and Instruction Set.
+### Command `run`
 
-To plot in extended mode you just need to call `autoplot -e`.
+This is the main command to run the plotter. `run` is the default command, such that `autoplot run` and `autoplot` do
+the same.
 
+#### `run` Options
+
+| option       | alias | description                        | Example                                      |
+|--------------|:-----:|------------------------------------|----------------------------------------------|
+| extended     |   e   | Runs the plotter in extended mode  | `autoplot run -e`                            |
+
+
+_Extended Mode_
+
+The extended mode allows you to set further settings like thread number and memory usage for plotting.
+
+
+### Command `setup`
+
+The setup command allows to execute additional setups, like configuring email transport, or [Telegram](https://telegram.org/) push notification
+There are no other options, than the common functions, but following sub-commands are possible:
+
+| command  | description                 | Example                   |
+|----------|-----------------------------|---------------------------|
+| mail     | Runs email configuration    | `autoplot setup mail`     |
+| telegram | Runs Telegram configuration | `autoplot setup telegram` |
+
+If configured correctly, you'll receive a success notification. Of course, it's possible to receive as email _and_ push notification.
+
+### Notes on email notification setup for Gmail
+
+Per default, Google considers authentication using login and password as not sufficient to met todays security needs. 
+You'll receive an email about a blocked sign in then, when trying to use Gmail as your mail transporter. In that case, 
+you need to [configure your Gmail Account to allow _less secure apps_](https://support.google.com/accounts/answer/6010255?hl=en).
+
+
+### How Telegram Push Notification works
+
+The Autoplotter uses the [Middleman-Bot](https://github.com/n1try/telegram-middleman-bot) for delivering notification.
+You just need to add the bot in your Telegram messenger,
+and you'll receive a token (e.g. `2a3137d2-2d6a-4e4d-985a-df0d278426b0`) that you need to enter while setup.
 
 # Credits
 
