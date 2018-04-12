@@ -27,6 +27,11 @@ const updatePackageJson = version => {
 	return writeJson(PACKAGE_JSON_FILE, packageJson, {spaces: '\t'});
 };
 
+const gitAdd = () => exep('git', [
+	'add',
+	'-A',
+], STDIO_OPTIONS);
+
 const gitCommit = message => exep('git', [
 	'commit',
 	'-am', message,
@@ -67,6 +72,7 @@ const gitPushTag = () => exep('git', [
 			nextVersion = selectedVersion;
 			return updatePackageJson(nextVersion);
 		})
+		.then(() => gitAdd())
 		.then(() => gitCommit(`Releasing new version ${nextVersion}`))
 		.then(() => gitPush())
 		.then(() => gitNewTag(nextVersion))

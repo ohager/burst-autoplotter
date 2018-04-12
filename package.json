@@ -52,7 +52,7 @@
 	},
 	"preferGlobal": true,
 	"scripts": {
-		"build": "babel src --out-dir bin",
+		"build": "babel src --out-dir bin --copy-files",
 		"test:dev": "cross-env NODE_ENV=test jest",
 		"test": "cross-env NODE_ENV=test jest --coverage && codecov",
 		"start": "cross-env NODE_ENV=development node ./src/autoplot.js",
