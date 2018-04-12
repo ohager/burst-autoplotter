@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Plot finished</title>
+    <style type="text/css">
+        body {
+            font-family: monospace;
+            background: #111111;
+            color: whitesmoke;
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            background: #C21F39;
+            color: whitesmoke;
+            font-size: larger;
+        }
+
+        a {
+            color: lightyellow;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #C21F39;
+            padding: 1em;
+            border: 1px solid #C21F39;
+        }
+    </style>
+</head>
+<body style="font-family: monospace;background: #111111;color: whitesmoke;text-align: center;">
+<h1 style="color: whitesmoke;padding: 1em">😭 Doh! Something went wrong.💥</h1>
+<header style="display: block;text-align: center;position: relative;background: #C21F39;color: whitesmoke;font-size: larger; padding:1em">
+    <div>
+        <img src="https://devbutze.com/wp-content/uploads/2018/04/autoplotter.png" height="64" alt="autoplotter">
+        v{{version}}
+    </div>
+    <div style="padding-top: 0.5em">
+        Although, something went wrong you may consider to stargaze this <a href="https://github.com/ohager/burst-autoplotter" style="color: lightyellow;font-weight: bold;">project</a>
+    </div>
+</header>
+<h2 style="color: whitesmoke">I'm so sorry for that...maybe it's even my fault</h2>
+<h2 style="color: whitesmoke">Don't hesitate to open an <a href="https://github.com/ohager/burst-autoplotter">issue</a></h2>
+<h2 style="color: whitesmoke">Reported error:</h2>
+<div class="error" style="color: #C21F39;padding: 1em;border: 1px solid #C21F39;">
+    {{error}}
+</div>
+</body>
+</html>
