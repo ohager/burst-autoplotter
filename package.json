@@ -1,62 +1,62 @@
 {
-  "author": {
-    "name": "ohager",
-    "email": "oliver@devbutze.com"
-  },
-  "license": "UNLICENSED",
-  "name": "burst-autoplotter",
-  "version": "0.4.0",
-  "description": "Plot automation for BURST coin",
-  "keywords": [
-    "burst",
-    "burstcoin",
-    "plotting",
-    "plot",
-    "plotter",
-    "automation"
-  ],
-  "private": false,
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ohager/burst-autoplotter.git"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-preset-stage-2": "^6.24.1",
-    "codecov": "^3.0.0",
-    "cross-env": "^5.0.1",
-    "jest": "^22.4.2",
-    "semver": "^5.5.0"
-  },
-  "dependencies": {
-    "axios": "^0.18.0",
-    "blessed": "^0.1.81",
-    "chalk": "^2.0.1",
-    "co": "^4.6.0",
-    "command-line-args": "^5.0.2",
-    "command-line-usage": "^5.0.4",
-    "date-fns": "^1.29.0",
-    "email-validator": "^1.1.1",
-    "fd-diskspace": "^1.0.0",
-    "fs-extra": "^4.0.0",
-    "inquirer": "^3.2.0",
-    "mustache": "^2.3.0",
-    "nodemailer": "^4.6.3",
-    "stappo": "^0.0.7"
-  },
-  "bin": {
-    "autoplot": "./bin/index.js"
-  },
-  "engines": {
-    "node": ">=8.9.0"
-  },
-  "preferGlobal": true,
-  "scripts": {
-    "build": "babel src --out-dir bin",
-    "test:dev": "cross-env NODE_ENV=test jest",
-    "test": "cross-env NODE_ENV=test jest --coverage && codecov",
-    "start": "cross-env NODE_ENV=development node ./src/autoplot.js",
-    "start:qa": "cross-env NODE_ENV=qa node ./src/autoplot.js",
-    "release": "npm run build && node ./tools/tag.js"
-  }
+	"author": {
+		"name": "ohager",
+		"email": "oliver@devbutze.com"
+	},
+	"license": "UNLICENSED",
+	"name": "burst-autoplotter",
+	"version": "0.4.0",
+	"description": "Plot automation for BURST coin",
+	"keywords": [
+		"burst",
+		"burstcoin",
+		"plotting",
+		"plot",
+		"plotter",
+		"automation"
+	],
+	"private": false,
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ohager/burst-autoplotter.git"
+	},
+	"devDependencies": {
+		"babel-cli": "^6.24.1",
+		"babel-preset-stage-2": "^6.24.1",
+		"codecov": "^3.0.0",
+		"cross-env": "^5.0.1",
+		"jest": "^22.4.2",
+		"semver": "^5.5.0"
+	},
+	"dependencies": {
+		"axios": "^0.18.0",
+		"blessed": "^0.1.81",
+		"chalk": "^2.0.1",
+		"co": "^4.6.0",
+		"command-line-args": "^5.0.2",
+		"command-line-usage": "^5.0.4",
+		"date-fns": "^1.29.0",
+		"email-validator": "^1.1.1",
+		"fd-diskspace": "^1.0.0",
+		"fs-extra": "^4.0.0",
+		"inquirer": "^3.2.0",
+		"mustache": "^2.3.0",
+		"nodemailer": "^4.6.3",
+		"stappo": "^0.0.7"
+	},
+	"bin": {
+		"autoplot": "./bin/index.js"
+	},
+	"engines": {
+		"node": ">=8.9.0"
+	},
+	"preferGlobal": true,
+	"scripts": {
+		"build": "babel src --out-dir bin",
+		"test:dev": "cross-env NODE_ENV=test jest",
+		"test": "cross-env NODE_ENV=test jest --coverage && codecov",
+		"start": "cross-env NODE_ENV=development node ./src/autoplot.js",
+		"start:qa": "cross-env NODE_ENV=qa node ./src/autoplot.js",
+		"release": "npm run build && node ./tools/tag.js"
+	}
 }

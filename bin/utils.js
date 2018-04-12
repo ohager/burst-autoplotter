@@ -1,5 +1,7 @@
 const { format } = require("date-fns");
 
+const isDevelopmentMode = () => process.env.NODE_ENV === 'development';
+
 const FACT_MIB = 1024 * 1024;
 const FACT_GIB = FACT_MIB * 1024;
 
@@ -26,6 +28,7 @@ function formatDateTime(date) {
 
 function normalizeProgress(min, max, current, target) {
 	if (max === min) return 0;
+	if (current < min) return min;
 	return Math.floor((Math.min(current, max) - min) / (max - min) * target + min);
 }
 
@@ -40,5 +43,6 @@ module.exports = {
 	formatTimeString,
 	formatDateTime,
 	normalizeProgress,
-	asMultipleOf
+	asMultipleOf,
+	isDevelopmentMode
 };
