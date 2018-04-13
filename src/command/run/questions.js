@@ -179,6 +179,8 @@ function movePlotQuestions(defaults, options, previousAnswers) {
 	})
 }
 
+
+
 //TODO review and try using Rx interface of inquirer
 function ask(options) {
 	
