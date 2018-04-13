@@ -27,7 +27,7 @@ const getInstructionSetInformation = () => {
 };
 
 
-function startQuestions(defaults, options) {
+function firstQuestions(defaults, options) {
 	
 	const questions = [
 		{
@@ -148,6 +148,38 @@ function nextQuestions(defaults, options, previousAnswers) {
 	})
 }
 
+
+function movePlotQuestions(defaults, options, previousAnswers) {
+	
+	//if(availableDrives.length <= 1) return previousAnswers;
+	
+	const {hardDisk} = previousAnswers;
+	
+	const questions = [
+		{
+			type: "confirm",
+			name: "isMovingPlot",
+			message: `Do you want to plot on another drive and then move to drive [${hardDisk}]`,
+			default: false
+		},
+		{
+			type: "list",
+			name: "hardDisk",
+			message: "Select your disk to plot?",
+			when : (answers) => answers.isMovingPlot,
+			choices: availableDrives,
+		}
+	];
+	
+	return prompt(questions).then(movePlotAnswers => {
+		return {
+			...previousAnswers,
+			...movePlotAnswers,
+		}
+	})
+}
+
+//TODO review and try using Rx interface of inquirer
 function ask(options) {
 	
 	const instructionSetInfo = getInstructionSetInformation();
@@ -155,8 +187,9 @@ function ask(options) {
 	
 	options = {...options, instructionSetInfo };
  
-	return startQuestions(defaults, options)
+	return firstQuestions(defaults, options)
 		.then(nextQuestions.bind(null, defaults, options))
+		.then(movePlotQuestions.bind(null, defaults, options))
 }
 
 module.exports = {

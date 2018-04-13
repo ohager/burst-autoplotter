@@ -27,30 +27,24 @@ const updatePackageJson = version => {
 	return writeJson(PACKAGE_JSON_FILE, packageJson, {spaces: '\t'});
 };
 
-const gitAdd = () => exep('git', [
-	'add',
-	'-A',
-], STDIO_OPTIONS);
+const objToArray = (obj) => Object.keys(obj).reduce((acc, arg) => {
+	acc.push(obj[arg]);
+	return acc;
+}, []);
 
-const gitCommit = message => exep('git', [
-	'commit',
-	'-am', message,
-], STDIO_OPTIONS);
+const git = function () {
+	return exep('git', objToArray(arguments), STDIO_OPTIONS)
+};
 
-const gitPush = () => exep('git', [
-	'push',
-], STDIO_OPTIONS);
+const gitAddAll = () => git('add', '-A');
 
-const gitNewTag = version => exep('git', [
-	'tag',
-	version[0] === 'v' ? version : 'v' + version,
-], STDIO_OPTIONS);
+const gitCommit = message => git('commit', '-am', message);
 
-const gitPushTag = () => exep('git', [
-	'push',
-	'origin',
-	'--tags',
-], STDIO_OPTIONS);
+const gitPush = () => git('push');
+
+const gitNewTag = version => git('tag', version[0] === 'v' ? version : 'v' + version);
+
+const gitPushTag = () => git('push', 'origin', '--tags');
 
 
 (function () {
@@ -72,7 +66,7 @@ const gitPushTag = () => exep('git', [
 			nextVersion = selectedVersion;
 			return updatePackageJson(nextVersion);
 		})
-		.then(() => gitAdd())
+		.then(() => gitAddAll())
 		.then(() => gitCommit(`Releasing new version ${nextVersion}`))
 		.then(() => gitPush())
 		.then(() => gitNewTag(nextVersion))
