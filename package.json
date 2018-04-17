@@ -42,7 +42,8 @@
 		"inquirer": "^3.2.0",
 		"mustache": "^2.3.0",
 		"nodemailer": "^4.6.3",
-		"stappo": "^0.0.7"
+		"stappo": "^0.0.7",
+		"windows-network-drive": "^2.1.0"
 	},
 	"bin": {
 		"autoplot": "./bin/index.js"

@@ -1,16 +1,19 @@
 const os = require('os');
 const {prompt} = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
-
+const networkDrive = require('windows-network-drive');
 const {b2mib, b2gib} = require('../../utils');
 const {getSupportedInstructionSets} = require('../../instructionSet');
 const cache = require('../../cache');
 
 const availableDrives = Object.keys(diskInfo.disks);
-
 const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
+
+let availableNetworkDrives = []; // will be fetched on start of this module, is async
+
+const getLocalDrives = () => availableDrives.filter(d => availableNetworkDrives.indexOf(d) === -1);
 
 const getInstructionSetInformation = () => {
 	
@@ -25,7 +28,6 @@ const getInstructionSetInformation = () => {
 		recommended: recommended
 	}
 };
-
 
 function firstQuestions(defaults, options) {
 	
@@ -105,34 +107,33 @@ function nextQuestions(defaults, options, previousAnswers) {
 				return /^\d+$/.test(v) ? true : "Nonce is a numeric value, man!";
 			},
 			default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
+		},
+		
+		{
+			type: "list",
+			name: "threads",
+			message: "How many threads do you want to use? (the more the faster the plotting)",
+			default: defaultThreads,
+			when: () => options.extended,
+			choices: threadChoices
+		},
+		{
+			type: "list",
+			name: "memory",
+			message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
+			default: defaultMemory,
+			when: () => options.extended,
+			choices: ramChoices
+		},
+		{
+			type: "list",
+			name: "instructionSet",
+			message: "Select Instruction Set?",
+			default: defaultInstSet,
+			when: () => options.extended,
+			choices: instSetChoices
 		}
 	];
-	
-	if (options.extended) {
-		nextQuestions.push(
-			{
-				type: "list",
-				name: "threads",
-				message: "How many threads do you want to use? (the more the faster the plotting)",
-				default: defaultThreads,
-				choices: threadChoices
-			},
-			{
-				type: "list",
-				name: "memory",
-				message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
-				default: defaultMemory,
-				choices: ramChoices
-			},
-			{
-				type: "list",
-				name: "instructionSet",
-				message: "Select Instruction Set?",
-				default: defaultInstSet,
-				choices: instSetChoices
-			}
-		);
-	}
 	
 	return prompt(nextQuestions).then(nextAnswers => {
 		
@@ -141,7 +142,7 @@ function nextQuestions(defaults, options, previousAnswers) {
 		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
 		
 		return {
-			cacheFile : options.cache,
+			cacheFile: options.cache,
 			...previousAnswers,
 			...nextAnswers,
 		}
@@ -151,7 +152,7 @@ function nextQuestions(defaults, options, previousAnswers) {
 
 function movePlotQuestions(defaults, options, previousAnswers) {
 	
-	//if(availableDrives.length <= 1) return previousAnswers;
+	if (availableDrives.length === 1) return previousAnswers;
 	
 	const {hardDisk} = previousAnswers;
 	
@@ -165,9 +166,9 @@ function movePlotQuestions(defaults, options, previousAnswers) {
 		{
 			type: "list",
 			name: "hardDisk",
-			message: "Select your disk to plot?",
-			when : (answers) => answers.isMovingPlot,
-			choices: availableDrives,
+			message: "Select the disk to plot?",
+			when: (answers) => answers.isMovingPlot,
+			choices: getLocalDrives().concat(availableNetworkDrives).filter(d => d !== hardDisk),
 		}
 	];
 	
@@ -180,16 +181,17 @@ function movePlotQuestions(defaults, options, previousAnswers) {
 }
 
 
-
 //TODO review and try using Rx interface of inquirer
 function ask(options) {
 	
 	const instructionSetInfo = getInstructionSetInformation();
 	const defaults = cache.load(options.cache);
 	
-	options = {...options, instructionSetInfo };
- 
-	return firstQuestions(defaults, options)
+	options = {...options, instructionSetInfo};
+	
+	return networkDrive.list()
+		.then( drives => { availableNetworkDrives = Object.keys(drives);} )
+		.then(firstQuestions.bind(null, defaults, options))
 		.then(nextQuestions.bind(null, defaults, options))
 		.then(movePlotQuestions.bind(null, defaults, options))
 }
