@@ -1,4 +1,4 @@
-const { format } = require("date-fns");
+const {format} = require("date-fns");
 
 const isDevelopmentMode = () => process.env.NODE_ENV === 'development';
 
@@ -9,16 +9,17 @@ const gib2b = gib => gib * FACT_GIB;
 const b2mib = noBytes => noBytes / FACT_MIB;
 const b2gib = noBytes => noBytes / FACT_GIB;
 
+
 function formatTimeString(seconds) {
-
+	
 	if (seconds === null || seconds === undefined || typeof seconds !== 'number') return 'N/A';
-
+	
 	const p = n => n < 10 ? '0' + n : '' + n;
-
+	
 	const h = Math.floor(seconds / 3600);
 	const m = Math.floor(seconds % 3600 / 60);
 	const s = seconds % 60;
-
+	
 	return `${p(h)}:${p(m)}:${p(s)}`;
 }
 
@@ -44,5 +45,6 @@ module.exports = {
 	formatDateTime,
 	normalizeProgress,
 	asMultipleOf,
-	isDevelopmentMode
+	isDevelopmentMode,
+	newestFileInDirectory
 };

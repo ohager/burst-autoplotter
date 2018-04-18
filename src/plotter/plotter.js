@@ -1,10 +1,11 @@
 const {spawn} = require('child_process');
 const path = require("path");
 const fs = require("fs-extra");
-const cache = require('../cache');
 const co = require('co');
+const cache = require('../cache');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
 const validator = require("../validator/validator");
+const {newestFileInDirectory}  = require("../utils");
 
 const store = require("../store");
 const $ = require("../selectors");
@@ -70,6 +71,17 @@ const plotter = function* (args) {
 	
 };
 
+function eventuallyMovePlot(plotPath, targetPath)
+{
+	if (targetPath === plotPath) return;
+
+	const currentPlotFile = newestFileInDirectory(plotPath);
+	
+	if(currentPlotFile){
+		fs.move(currentPlotFile, path.join(targetPath, path.basename(currentPlotFile)), {overwrite: true});
+	}
+}
+
 function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
 	
 	return co(function* () {
@@ -113,15 +125,11 @@ function start({totalNonces, plots, accountId, plotPath, targetPath, threads, me
 						memory
 					});
 				
-				
-				// FIXME: move plot file, not entire path!
-				if(targetPath !== plotPath){
-					fs.move(plotPath, targetPath);
-				}
+				eventuallyMovePlot(plotPath, targetPath);
 				
 				cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
-
-				if(i < plots.length - 1){
+				
+				if (i < plots.length - 1) {
 					notification.sendSinglePlotCompleted();
 				}
 				

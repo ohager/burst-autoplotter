@@ -150,9 +150,20 @@ function nextQuestions(defaults, options, previousAnswers) {
 
 function movePlotQuestions(defaults, options, previousAnswers) {
 	
-	if (availableDrives.length === 1) return previousAnswers;
+	const defaultAnswers = {
+		plotDisk: previousAnswers.targetDisk
+	};
+	
+	if (availableDrives.length === 1) {
+		return {
+			...previousAnswers,
+			...defaultAnswers
+		};
+	}
 	
 	const {targetDisk} = previousAnswers;
+	
+	const choices = availableDrives.filter(d => d !== targetDisk);
 	
 	const questions = [
 		{
@@ -165,9 +176,9 @@ function movePlotQuestions(defaults, options, previousAnswers) {
 			type: "list",
 			name: "plotDisk",
 			message: "Select the disk to use for creating the plot?",
-			when: (answers) => answers.isMovingPlot,
-			choices: availableDrives.filter(d => d !== targetDisk),
-			default: targetDisk
+			when: answers => answers.isMovingPlot,
+			choices: choices,
+			default: choices[0]
 		}
 	];
 	

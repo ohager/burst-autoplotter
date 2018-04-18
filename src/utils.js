@@ -1,3 +1,5 @@
+const fs = require("fs-extra");
+const path = require("path");
 const {format} = require("date-fns");
 
 const isDevelopmentMode = () => process.env.NODE_ENV === 'development';
@@ -37,6 +39,20 @@ function asMultipleOf(number, multiple) {
 }
 
 
+function newestFileInDirectory(dirPath) {
+	
+	const newestFile =  fs.readdirSync(dirPath)
+		.map(f => path.join(dirPath, f))
+		.map(f => ({
+			path: f,
+			ctime: fs.statSync(f).ctimeMs
+		}))
+		.sort((a, b) => a.ctime - b.ctime)
+		.pop();
+	
+	return newestFile && newestFile.path || null
+}
+
 
 module.exports = {
 	gib2b,
@@ -47,4 +63,5 @@ module.exports = {
 	normalizeProgress,
 	asMultipleOf,
 	isDevelopmentMode,
+	newestFileInDirectory
 };

@@ -1,10 +1,14 @@
+const fs = require("fs-extra");
+const path = require("path");
+
 const {
 	gib2b,
 	b2gib,
 	b2mib,
 	formatTimeString,
 	normalizeProgress,
-	asMultipleOf
+	asMultipleOf,
+	newestFileInDirectory,
 } = require('../src/utils');
 
 const ONEGIB = 1073741824;
@@ -85,5 +89,26 @@ test("asMultipleOf Test", () => {
 	expect(asMultipleOf(15, 8)).toBe(8);
 	expect(asMultipleOf(16, 8)).toBe(16);
 	expect(asMultipleOf(24, 8)).toBe(24);
+	
+});
+
+
+test("newestFileInDirectory", (done) => {
+
+	const TEST_DIR = path.join(__dirname, "/testfiles");
+	
+	new Promise( (resolve, reject) => {
+		let i = 0;
+		const interval = setInterval( () => {
+			fs.ensureFileSync(path.join(TEST_DIR,`test_${++i}.txt`));
+			if(i === 3) {
+				clearInterval(interval);
+				resolve();
+			}
+		}, 250);
+	}).then( () =>{
+		expect(newestFileInDirectory(TEST_DIR) ).toBe(path.join(TEST_DIR,`test_3.txt`));
+		fs.remove(TEST_DIR).then(done);
+	} );
 	
 });
