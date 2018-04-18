@@ -1,7 +1,6 @@
 const os = require('os');
 const {prompt} = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
-const networkDrive = require('windows-network-drive');
 const {b2mib, b2gib} = require('../../utils');
 const {getSupportedInstructionSets} = require('../../instructionSet');
 const cache = require('../../cache');
@@ -44,7 +43,7 @@ function firstQuestions(defaults, options) {
 		},
 		{
 			type: "list",
-			name: "hardDisk",
+			name: "targetDisk",
 			message: "Select your disk to plot?",
 			choices: availableDrives,
 		}
@@ -55,8 +54,8 @@ function firstQuestions(defaults, options) {
 
 function nextQuestions(defaults, options, previousAnswers) {
 	
-	const {hardDisk} = previousAnswers;
-	const selectedDrive = diskInfo.disks[hardDisk];
+	const {targetDisk} = previousAnswers;
+	const selectedDrive = diskInfo.disks[targetDisk];
 	const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
 	const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
 	
@@ -149,26 +148,26 @@ function nextQuestions(defaults, options, previousAnswers) {
 	})
 }
 
-
 function movePlotQuestions(defaults, options, previousAnswers) {
 	
 	if (availableDrives.length === 1) return previousAnswers;
 	
-	const {hardDisk} = previousAnswers;
+	const {targetDisk} = previousAnswers;
 	
 	const questions = [
 		{
 			type: "confirm",
 			name: "isMovingPlot",
-			message: `Do you want to plot on another drive and then move to drive [${hardDisk}]`,
+			message: `Do you want to plot on another drive and then move to drive [${targetDisk}]`,
 			default: false
 		},
 		{
 			type: "list",
-			name: "hardDisk",
-			message: "Select the disk to plot?",
+			name: "plotDisk",
+			message: "Select the disk to use for creating the plot?",
 			when: (answers) => answers.isMovingPlot,
-			choices: getLocalDrives().concat(availableNetworkDrives).filter(d => d !== hardDisk),
+			choices: availableDrives.filter(d => d !== targetDisk),
+			default: targetDisk
 		}
 	];
 	
@@ -180,8 +179,6 @@ function movePlotQuestions(defaults, options, previousAnswers) {
 	})
 }
 
-
-//TODO review and try using Rx interface of inquirer
 function ask(options) {
 	
 	const instructionSetInfo = getInstructionSetInformation();
@@ -189,9 +186,7 @@ function ask(options) {
 	
 	options = {...options, instructionSetInfo};
 	
-	return networkDrive.list()
-		.then( drives => { availableNetworkDrives = Object.keys(drives);} )
-		.then(firstQuestions.bind(null, defaults, options))
+	return firstQuestions(defaults, options)
 		.then(nextQuestions.bind(null, defaults, options))
 		.then(movePlotQuestions.bind(null, defaults, options))
 }

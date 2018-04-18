@@ -13,7 +13,8 @@ function startPlotter(answers) {
 		const {
 			accountId,
 			cacheFile,
-			hardDisk,
+			targetDisk,
+			plotDisk,
 			startNonce,
 			totalPlotSize,
 			chunks,
@@ -22,9 +23,11 @@ function startPlotter(answers) {
 			instructionSet
 		} = answers;
 		
-		const path = `${hardDisk}:/${PLOTS_DIR}`;
+		const targetPath = `${targetDisk}:/${PLOTS_DIR}`;
+		const plotPath = `${plotDisk}:/${PLOTS_DIR}`;
 		
-		fs.ensureDirSync(path);
+		fs.ensureDirSync(plotPath);
+		fs.ensureDirSync(targetPath);
 		
 		const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
 		
@@ -39,7 +42,7 @@ function startPlotter(answers) {
 			totalWrittenNonces: 0,
 			totalStartNonce: +startNonce,
 			instructionSet,
-			outputPath: path,
+			outputPath: targetPath,
 			plotCount: plots.length,
 			done: false,
 		}));
@@ -48,7 +51,8 @@ function startPlotter(answers) {
 			totalNonces,
 			plots,
 			accountId,
-			path,
+			plotPath,
+			targetPath,
 			threads,
 			memory,
 			instSet: instructionSet,
@@ -70,7 +74,8 @@ function runPlotter(answers) {
 	
 	const devAnswers = {
 		accountId: '1234567890123456700',
-		hardDisk: 'C',
+		targetDisk: 'C',
+		plotDisk: 'C',
 		totalPlotSize: '1',
 		chunks: '2',
 		startNonce: '0',
@@ -78,7 +83,10 @@ function runPlotter(answers) {
 		memory: '8192',
 		instructionSet: 'AVX2'
 	};
-	fs.removeSync(`${devAnswers.hardDisk}:/${PLOTS_DIR}`);
+	fs.removeSync(`${devAnswers.targetDisk}:/${PLOTS_DIR}`);
+	if(devAnswers.plotDisk !== devAnswers.targetDisk){
+		fs.removeSync(`${devAnswers.plotDisk}:/${PLOTS_DIR}`);
+	}
 	startPlotter(devAnswers);
 }
 

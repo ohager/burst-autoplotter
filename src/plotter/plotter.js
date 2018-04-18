@@ -1,5 +1,6 @@
 const {spawn} = require('child_process');
 const path = require("path");
+const fs = require("fs-extra");
 const cache = require('../cache');
 const co = require('co');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
@@ -32,14 +33,14 @@ const getPlotterPath = () => {
 
 const plotter = function* (args) {
 	
-	const {accountId, startNonce, nonces, threads, path, memory} = args;
+	const {accountId, startNonce, nonces, threads, plotPath, memory} = args;
 	
 	// Xplotter.exe -id <ID> -sn <start_nonce> [-n <nonces>] -t <threads> [-path <d:/plots>] [-mem <8G>]
 	let plotterArgs = [
 		'-id', accountId,
 		'-sn', startNonce,
 		'-n', nonces,
-		'-path', path.endsWith('/') ? path : path + '/',
+		'-path', plotPath.endsWith('/') ? plotPath : plotPath + '/',
 		'-t', threads,
 	];
 	
@@ -69,7 +70,7 @@ const plotter = function* (args) {
 	
 };
 
-function start({totalNonces, plots, accountId, path, threads, memory}) {
+function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
 	
 	return co(function* () {
 		
@@ -105,12 +106,18 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 				yield plotter.call(this,
 					{
 						accountId,
-						path,
+						plotPath,
 						startNonce: plot.startNonce,
 						nonces: plot.nonces,
 						threads,
 						memory
 					});
+				
+				
+				// FIXME: move plot file, not entire path!
+				if(targetPath !== plotPath){
+					fs.move(plotPath, targetPath);
+				}
 				
 				cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 
@@ -120,7 +127,7 @@ function start({totalNonces, plots, accountId, path, threads, memory}) {
 				
 			}
 			
-			yield validator.call(this, path);
+			yield validator.call(this, targetPath);
 			
 			store.update(() => ({
 					done: true

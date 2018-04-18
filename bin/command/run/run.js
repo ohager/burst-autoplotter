@@ -68,7 +68,7 @@ function runPlotter(answers) {
 
 	const devAnswers = {
 		accountId: '1234567890123456700',
-		hardDisk: 'C',
+		targetDisk: 'C',
 		totalPlotSize: '1',
 		chunks: '2',
 		startNonce: '0',
@@ -76,7 +76,7 @@ function runPlotter(answers) {
 		memory: '8192',
 		instructionSet: 'AVX2'
 	};
-	fs.removeSync(`${devAnswers.hardDisk}:/${PLOTS_DIR}`);
+	fs.removeSync(`${devAnswers.targetDisk}:/${PLOTS_DIR}`);
 	startPlotter(devAnswers);
 }
 
