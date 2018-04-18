@@ -71,14 +71,15 @@ const plotter = function* (args) {
 	
 };
 
-function eventuallyMovePlot(plotPath, targetPath)
+function eventuallyMovePlot(plotPath, targetPath, {sync = false})
 {
 	if (targetPath === plotPath) return;
 
 	const currentPlotFile = newestFileInDirectory(plotPath);
 	
 	if(currentPlotFile){
-		fs.move(currentPlotFile, path.join(targetPath, path.basename(currentPlotFile)), {overwrite: true});
+		const moveFn = sync ? fs.moveSync : fs.move;
+		moveFn(currentPlotFile, path.join(targetPath, path.basename(currentPlotFile)), {overwrite: true});
 	}
 }
 
@@ -97,6 +98,7 @@ function start({totalNonces, plots, accountId, plotPath, targetPath, threads, me
 		try {
 			for (let i = 0; i < plots.length; ++i) {
 				
+				const isLastPlot = i === plots.length - 1;
 				const plot = plots[i];
 				
 				// reset current plot state
@@ -125,11 +127,11 @@ function start({totalNonces, plots, accountId, plotPath, targetPath, threads, me
 						memory
 					});
 				
-				eventuallyMovePlot(plotPath, targetPath);
+				eventuallyMovePlot(plotPath, targetPath, { sync: isLastPlot });
 				
 				cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 				
-				if (i < plots.length - 1) {
+				if (!isLastPlot) {
 					notification.sendSinglePlotCompleted();
 				}
 				
