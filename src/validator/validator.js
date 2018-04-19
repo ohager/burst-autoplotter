@@ -5,12 +5,12 @@ const {PLOT_VALIDATOR} = require('../config');
 
 const validator = path.join(__dirname, "../../exe", PLOT_VALIDATOR);
 
-const execValidator = function* (plot) {
+async function execValidator(plot) {
 	
 	// PlotsChecker.exe c:\burst\plot
 	const validatorArgs = [plot];
 	
-	yield new Promise( resolve => {
+	return new Promise(resolve => {
 		
 		const validatorResult = spawnSync(validator, validatorArgs);
 		
@@ -20,6 +20,6 @@ const execValidator = function* (plot) {
 		resolve();
 	});
 	
-};
+}
 
 module.exports = execValidator;

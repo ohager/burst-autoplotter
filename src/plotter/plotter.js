@@ -4,7 +4,7 @@ const fs = require("fs-extra");
 const co = require('co');
 const cache = require('../cache');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
-const validator = require("../validator/validator");
+const execValidator = require("../validator/validator");
 const {newestFileInDirectory} = require("../utils");
 
 const store = require("../store");
@@ -32,7 +32,7 @@ const getPlotterPath = () => {
 	}
 };
 
-const plotter = async (args) => {
+const execPlotter = async (args) => {
 	
 	const {accountId, startNonce, nonces, threads, plotPath, memory} = args;
 	
@@ -113,7 +113,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			));
 			
 			// may reject
-			await plotter.call(this,
+			await execPlotter(
 				{
 					accountId,
 					plotPath,
@@ -123,26 +123,24 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 					memory
 				});
 			
-			// fixme is sync for last plot and async for others
 			eventuallyMovePlot(plotPath, targetPath, {sync: isLastPlot});
 			
 			cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 			
 			if (!isLastPlot) {
-				notification.sendSinglePlotCompleted();
+				await notification.sendSinglePlotCompleted();
 			}
 			
 		}
 		
-		await validator.call(this, targetPath);
+		await execValidator(targetPath);
 		
 		store.update(() => ({
 				done: true
 			})
 		);
 		
-		// FIXME is async
-		notification.sendAllPlotsCompleted();
+		await notification.sendAllPlotsCompleted();
 		
 	} catch (e) {
 		
@@ -154,7 +152,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			})
 		);
 		
-		notification.sendFailure(e);
+		await notification.sendFailure(e);
 		throw e;
 		
 	} finally {

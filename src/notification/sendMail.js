@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 
-function send(options, subject, htmlMessage){
+async function send(options, subject, htmlMessage){
 	
 	if(!options.email.enabled) return;
 	
@@ -13,7 +13,7 @@ function send(options, subject, htmlMessage){
 		html: htmlMessage
 	};
 	
-	transporter.sendMail(mailOptions);
+	return transporter.sendMail(mailOptions);
 	
 }
 
