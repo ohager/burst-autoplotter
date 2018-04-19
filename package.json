@@ -32,7 +32,6 @@
 		"axios": "^0.18.0",
 		"blessed": "^0.1.81",
 		"chalk": "^2.0.1",
-		"co": "^4.6.0",
 		"command-line-args": "^5.0.2",
 		"command-line-usage": "^5.0.4",
 		"date-fns": "^1.29.0",

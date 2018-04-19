@@ -8,7 +8,7 @@ const plotter = require('../../plotter');
 const createPlotPartition = require('../../plotPartition');
 const {PLOTS_DIR} = require('../../config');
 
-function startPlotter(answers) {
+async function startPlotter(answers) {
 	try {
 		const {
 			accountId,
@@ -47,7 +47,7 @@ function startPlotter(answers) {
 			done: false,
 		}));
 		
-		plotter.start({
+		await plotter.start({
 			totalNonces,
 			plots,
 			accountId,
@@ -64,15 +64,9 @@ function startPlotter(answers) {
 	}
 }
 
+function prepareDevelopmentAnswers() {
 
-function runPlotter(answers) {
-	
-	if (!isDevelopmentMode()) {
-		startPlotter(answers);
-		return
-	}
-	
-	const devAnswers = {
+	return {
 		accountId: '1234567890123456700',
 		targetDisk: 'C',
 		plotDisk: 'C',
@@ -83,25 +77,32 @@ function runPlotter(answers) {
 		memory: '8192',
 		instructionSet: 'AVX2'
 	};
-	fs.removeSync(`${devAnswers.targetDisk}:/${PLOTS_DIR}`);
-	if(devAnswers.plotDisk !== devAnswers.targetDisk){
-		fs.removeSync(`${devAnswers.plotDisk}:/${PLOTS_DIR}`);
-	}
-	startPlotter(devAnswers);
 }
 
-function run(options) {
+function clearOldDevelopmentPlots({targetDisk, plotDisk}) {
+	fs.removeSync(`${targetDisk}:/${PLOTS_DIR}`);
+	if(plotDisk !== targetDisk){
+		fs.removeSync(`${plotDisk}:/${PLOTS_DIR}`);
+	}
+}
+
+async function run(options) {
 	
 	if(options.version){
 		return;
 	}
 	
-	questions.ask(options)
-		.then(answers => {
-			cache.update(answers, options.cache);
-			return answers;
-		})
-		.then(runPlotter);
+	let answers;
+	
+	if (isDevelopmentMode()) {
+		answers = prepareDevelopmentAnswers();
+		clearOldDevelopmentPlots(answers);
+	} else {
+		answers = await questions.ask(options);
+		cache.update(answers, options.cache);
+	}
+	
+	await startPlotter(answers);
 }
 
 module.exports = run;

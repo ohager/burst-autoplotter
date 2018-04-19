@@ -5,7 +5,7 @@ const co = require('co');
 const cache = require('../cache');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
 const validator = require("../validator/validator");
-const {newestFileInDirectory}  = require("../utils");
+const {newestFileInDirectory} = require("../utils");
 
 const store = require("../store");
 const $ = require("../selectors");
@@ -32,7 +32,7 @@ const getPlotterPath = () => {
 	}
 };
 
-const plotter = function* (args) {
+const plotter = async (args) => {
 	
 	const {accountId, startNonce, nonces, threads, plotPath, memory} = args;
 	
@@ -50,11 +50,10 @@ const plotter = function* (args) {
 		plotterArgs.push('-mem', `${memory}M`)
 	}
 	
-	const xplotter = getPlotterPath();
 	
-	yield new Promise(function (resolve, reject) {
+	return new Promise((resolve, reject) => {
 		
-		const process = spawn(xplotter, plotterArgs);
+		const process = spawn(getPlotterPath(), plotterArgs);
 		
 		process.stdout.on('data', handleStdoutData);
 		
@@ -71,96 +70,98 @@ const plotter = function* (args) {
 	
 };
 
-function eventuallyMovePlot(plotPath, targetPath, {sync = false})
-{
+function eventuallyMovePlot(plotPath, targetPath, {sync = false}) {
 	if (targetPath === plotPath) return;
-
+	
 	const currentPlotFile = newestFileInDirectory(plotPath);
 	
-	if(currentPlotFile){
+	if (currentPlotFile) {
 		const moveFn = sync ? fs.moveSync : fs.move;
 		moveFn(currentPlotFile, path.join(targetPath, path.basename(currentPlotFile)), {overwrite: true});
 	}
 }
 
-function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
+async function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
 	
-	return co(function* () {
-		
-		view.start();
-		
-		const interval = setInterval(() => {
+	view.start();
+	
+	const interval = setInterval(() => {
+		store.update(() => ({
+			elapsedTime: Date.now()
+		}))
+	}, 1000);
+	
+	try {
+		for (let i = 0; i < plots.length; ++i) {
+			
+			const isLastPlot = i === plots.length - 1;
+			const plot = plots[i];
+			
+			// reset current plot state
 			store.update(() => ({
-				elapsedTime: Date.now()
-			}))
-		}, 1000);
-		
-		try {
-			for (let i = 0; i < plots.length; ++i) {
-				
-				const isLastPlot = i === plots.length - 1;
-				const plot = plots[i];
-				
-				// reset current plot state
-				store.update(() => ({
-						currentPlot: {
-							index: i + 1,
-							nonces: plot.nonces,
-							writtenNonces: 0,
-							avx: {
-								chunkPercentage: 0.0,
-								chunkStart: 0,
-								chunkEnd: 0
-							}
-						},
-					}
-				));
-				
-				// may reject
-				yield plotter.call(this,
-					{
-						accountId,
-						plotPath,
-						startNonce: plot.startNonce,
+					currentPlot: {
+						index: i + 1,
 						nonces: plot.nonces,
-						threads,
-						memory
-					});
-				
-				eventuallyMovePlot(plotPath, targetPath, { sync: isLastPlot });
-				
-				cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
-				
-				if (!isLastPlot) {
-					notification.sendSinglePlotCompleted();
+						writtenNonces: 0,
+						avx: {
+							chunkPercentage: 0.0,
+							chunkStart: 0,
+							chunkEnd: 0
+						}
+					},
 				}
-				
+			));
+			
+			// may reject
+			await plotter.call(this,
+				{
+					accountId,
+					plotPath,
+					startNonce: plot.startNonce,
+					nonces: plot.nonces,
+					threads,
+					memory
+				});
+			
+			// fixme is sync for last plot and async for others
+			eventuallyMovePlot(plotPath, targetPath, {sync: isLastPlot});
+			
+			cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
+			
+			if (!isLastPlot) {
+				notification.sendSinglePlotCompleted();
 			}
 			
-			yield validator.call(this, targetPath);
-			
-			store.update(() => ({
-					done: true
-				})
-			);
-			
-			notification.sendAllPlotsCompleted();
-			
-		} catch (e) {
-			store.update(() => ({
-					error: e,
-					done: true
-				})
-			);
-			
-			notification.sendFailure(e);
-			
-			throw e;
 		}
 		
+		await validator.call(this, targetPath);
+		
+		store.update(() => ({
+				done: true
+			})
+		);
+		
+		// FIXME is async
+		notification.sendAllPlotsCompleted();
+		
+	} catch (e) {
+		
+		// catching here to show messages in view
+		// TODO: introduce a message view in UI
+		store.update(() => ({
+				error: e,
+				done: true
+			})
+		);
+		
+		notification.sendFailure(e);
+		throw e;
+		
+	} finally {
 		clearInterval(interval);
 		view.stop();
-	});
+	}
+	
 }
 
 module.exports = {
