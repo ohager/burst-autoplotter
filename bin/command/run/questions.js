@@ -3,13 +3,11 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 const os = require('os');
 const { prompt } = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
-
 const { b2mib, b2gib } = require('../../utils');
 const { getSupportedInstructionSets } = require('../../instructionSet');
 const cache = require('../../cache');
 
 const availableDrives = Object.keys(diskInfo.disks);
-
 const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
@@ -28,7 +26,7 @@ const getInstructionSetInformation = () => {
 	};
 };
 
-function startQuestions(defaults, options) {
+function firstQuestions(defaults) {
 
 	const questions = [{
 		type: "input",
@@ -41,7 +39,7 @@ function startQuestions(defaults, options) {
 		default: defaults.accountId
 	}, {
 		type: "list",
-		name: "hardDisk",
+		name: "targetDisk",
 		message: "Select your disk to plot?",
 		choices: availableDrives
 	}];
@@ -51,8 +49,8 @@ function startQuestions(defaults, options) {
 
 function nextQuestions(defaults, options, previousAnswers) {
 
-	const { hardDisk } = previousAnswers;
-	const selectedDrive = diskInfo.disks[hardDisk];
+	const { targetDisk } = previousAnswers;
+	const selectedDrive = diskInfo.disks[targetDisk];
 	const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
 	const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
 
@@ -101,29 +99,28 @@ function nextQuestions(defaults, options, previousAnswers) {
 			);
 		},
 		default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
+	}, {
+		type: "list",
+		name: "threads",
+		message: "How many threads do you want to use? (the more the faster the plotting)",
+		default: defaultThreads,
+		when: () => options.extended,
+		choices: threadChoices
+	}, {
+		type: "list",
+		name: "memory",
+		message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
+		default: defaultMemory,
+		when: () => options.extended,
+		choices: ramChoices
+	}, {
+		type: "list",
+		name: "instructionSet",
+		message: "Select Instruction Set?",
+		default: defaultInstSet,
+		when: () => options.extended,
+		choices: instSetChoices
 	}];
-
-	if (options.extended) {
-		nextQuestions.push({
-			type: "list",
-			name: "threads",
-			message: "How many threads do you want to use? (the more the faster the plotting)",
-			default: defaultThreads,
-			choices: threadChoices
-		}, {
-			type: "list",
-			name: "memory",
-			message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
-			default: defaultMemory,
-			choices: ramChoices
-		}, {
-			type: "list",
-			name: "instructionSet",
-			message: "Select Instruction Set?",
-			default: defaultInstSet,
-			choices: instSetChoices
-		});
-	}
 
 	return prompt(nextQuestions).then(nextAnswers => {
 
@@ -137,6 +134,39 @@ function nextQuestions(defaults, options, previousAnswers) {
 	});
 }
 
+function movePlotQuestions(defaults, options, previousAnswers) {
+
+	const defaultAnswers = {
+		plotDisk: previousAnswers.targetDisk
+	};
+
+	if (availableDrives.length === 1) {
+		return _extends({}, previousAnswers, defaultAnswers);
+	}
+
+	const { targetDisk } = previousAnswers;
+
+	const choices = availableDrives.filter(d => d !== targetDisk);
+
+	const questions = [{
+		type: "confirm",
+		name: "isMovingPlot",
+		message: `Do you want to plot on another drive and then move to drive [${targetDisk}]`,
+		default: false
+	}, {
+		type: "list",
+		name: "plotDisk",
+		message: "Select the disk to use for creating the plot?",
+		when: answers => answers.isMovingPlot,
+		choices: choices,
+		default: choices[0]
+	}];
+
+	return prompt(questions).then(movePlotAnswers => {
+		return _extends({}, previousAnswers, movePlotAnswers);
+	});
+}
+
 function ask(options) {
 
 	const instructionSetInfo = getInstructionSetInformation();
@@ -144,7 +174,7 @@ function ask(options) {
 
 	options = _extends({}, options, { instructionSetInfo });
 
-	return startQuestions(defaults, options).then(nextQuestions.bind(null, defaults, options));
+	return firstQuestions(defaults, options).then(nextQuestions.bind(null, defaults, options)).then(movePlotQuestions.bind(null, defaults, options));
 }
 
 module.exports = {

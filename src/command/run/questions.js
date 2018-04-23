@@ -10,10 +10,6 @@ const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
 
-let availableNetworkDrives = []; // will be fetched on start of this module, is async
-
-const getLocalDrives = () => availableDrives.filter(d => availableNetworkDrives.indexOf(d) === -1);
-
 const getInstructionSetInformation = () => {
 	
 	const instSet = getSupportedInstructionSets();
@@ -28,7 +24,7 @@ const getInstructionSetInformation = () => {
 	}
 };
 
-function firstQuestions(defaults, options) {
+function firstQuestions(defaults) {
 	
 	const questions = [
 		{

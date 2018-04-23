@@ -1,5 +1,5 @@
 const chalk = require("chalk");
-const {writeLine,skipLine} = require("./viewUtils");
+const {writeLine} = require("./viewUtils");
 
 function renderSingleValidation({
 	                plot,

@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ohager/burst-autoplotter.svg?branch=master)](https://travis-ci.org/ohager/burst-autoplotter)
 [![codecov](https://codecov.io/gh/ohager/burst-autoplotter/branch/master/graph/badge.svg)](https://codecov.io/gh/ohager/burst-autoplotter)
-
+[![DeepScan grade](https://deepscan.io/api/projects/2279/branches/13096/badge/grade.svg)](https://deepscan.io/dashboard#view=project&pid=2279&bid=13096)
 > NEW VERSION 0.4: Email and Telegram Notifications
 
 Automates plotting for BURST coin

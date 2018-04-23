@@ -1,7 +1,6 @@
 const {spawn} = require('child_process');
 const path = require("path");
 const fs = require("fs-extra");
-const co = require('co');
 const cache = require('../cache');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
 const execValidator = require("../validator/validator");

@@ -1,5 +1,5 @@
 const chalk = require('chalk');
-const {version, author, repository} = require('../../package.json');
+const {version, repository} = require('../../package.json');
 const {hasAdminPrivileges} = require('../privilege');
 const {isDevelopmentMode} = require('../utils');
 

@@ -1,4 +1,6 @@
-const {format} = require("date-fns");
+const fs = require("fs-extra");
+const path = require("path");
+const { format } = require("date-fns");
 
 const isDevelopmentMode = () => process.env.NODE_ENV === 'development';
 
@@ -9,17 +11,16 @@ const gib2b = gib => gib * FACT_GIB;
 const b2mib = noBytes => noBytes / FACT_MIB;
 const b2gib = noBytes => noBytes / FACT_GIB;
 
-
 function formatTimeString(seconds) {
-	
+
 	if (seconds === null || seconds === undefined || typeof seconds !== 'number') return 'N/A';
-	
+
 	const p = n => n < 10 ? '0' + n : '' + n;
-	
+
 	const h = Math.floor(seconds / 3600);
 	const m = Math.floor(seconds % 3600 / 60);
 	const s = seconds % 60;
-	
+
 	return `${p(h)}:${p(m)}:${p(s)}`;
 }
 
@@ -35,6 +36,16 @@ function normalizeProgress(min, max, current, target) {
 
 function asMultipleOf(number, multiple) {
 	return Math.floor(number / multiple) * multiple;
+}
+
+function newestFileInDirectory(dirPath) {
+
+	const newestFile = fs.readdirSync(dirPath).map(f => path.join(dirPath, f)).map(f => ({
+		path: f,
+		ctime: fs.statSync(f).ctimeMs
+	})).sort((a, b) => a.ctime - b.ctime).pop();
+
+	return newestFile && newestFile.path || null;
 }
 
 module.exports = {

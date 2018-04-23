@@ -1,6 +1,5 @@
 const blessed = require("blessed");
 const $ = require("../../selectors");
-const chalk = require("chalk");
 const {version} = require("../../../package.json");
 
 class Scene {
