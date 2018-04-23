@@ -193,7 +193,7 @@ function ask(options) {
 	
 	options = {...options, instructionSetInfo};
 	
-	return firstQuestions(defaults, options)
+	return firstQuestions(defaults)
 		.then(nextQuestions.bind(null, defaults, options))
 		.then(movePlotQuestions.bind(null, defaults, options))
 }

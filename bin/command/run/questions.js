@@ -174,7 +174,7 @@ function ask(options) {
 
 	options = _extends({}, options, { instructionSetInfo });
 
-	return firstQuestions(defaults, options).then(nextQuestions.bind(null, defaults, options)).then(movePlotQuestions.bind(null, defaults, options));
+	return firstQuestions(defaults).then(nextQuestions.bind(null, defaults, options)).then(movePlotQuestions.bind(null, defaults, options));
 }
 
 module.exports = {
