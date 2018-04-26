@@ -1,9 +1,12 @@
 const os = require('os');
-const {prompt} = require('inquirer');
+const path = require('path');
+const chalk = require("chalk");
+const {prompt, ui} = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 const {b2mib, b2gib} = require('../../utils');
 const {getSupportedInstructionSets} = require('../../instructionSet');
 const cache = require('../../cache');
+const {PLOTS_DIR} = require('../../config');
 
 const availableDrives = Object.keys(diskInfo.disks);
 const availableCPUs = os.cpus().length;
@@ -44,7 +47,6 @@ function firstQuestions(defaults) {
 			choices: availableDrives,
 		}
 	];
-	
 	return prompt(questions)
 }
 
@@ -66,6 +68,9 @@ function nextQuestions(defaults, options, previousAnswers) {
 	
 	const instSetChoices = options.instructionSetInfo.supported;
 	const defaultInstSet = options.instructionSetInfo.recommended;
+	const defaultPath = path.join(targetDisk, PLOTS_DIR);
+	const whenExtended = () => options.extended;
+	
 	
 	const nextQuestions = [
 		{
@@ -103,13 +108,21 @@ function nextQuestions(defaults, options, previousAnswers) {
 			},
 			default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
 		},
-		
+		/* TODO
+		{
+			type: "input",
+			name: "targetPath",
+			message: "What's the path where the plot shall be written to?",
+			default: defaultPath,
+			when: whenExtended,
+		},
+		*/
 		{
 			type: "list",
 			name: "threads",
 			message: "How many threads do you want to use? (the more the faster the plotting)",
 			default: defaultThreads,
-			when: () => options.extended,
+			when: whenExtended,
 			choices: threadChoices
 		},
 		{
@@ -117,7 +130,7 @@ function nextQuestions(defaults, options, previousAnswers) {
 			name: "memory",
 			message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
 			default: defaultMemory,
-			when: () => options.extended,
+			when: whenExtended,
 			choices: ramChoices
 		},
 		{
@@ -125,7 +138,7 @@ function nextQuestions(defaults, options, previousAnswers) {
 			name: "instructionSet",
 			message: "Select Instruction Set?",
 			default: defaultInstSet,
-			when: () => options.extended,
+			when: whenExtended,
 			choices: instSetChoices
 		}
 	];
@@ -144,28 +157,49 @@ function nextQuestions(defaults, options, previousAnswers) {
 	})
 }
 
+function writeHint(text){
+	const bottomBar = new ui.BottomBar();
+	bottomBar.log.write("\n");
+	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
+}
+
 function movePlotQuestions(defaults, options, previousAnswers) {
 	
+	const getDiskSpaceGiB = driveName => b2gib(diskInfo.disks[driveName].free).toFixed(2);
+	
+	const {targetDisk, totalPlotSize, chunks} = previousAnswers;
+	const requiredPlotDiskCapacityGiB = ((totalPlotSize / chunks) * 1.01).toFixed(2); // 1% more space required
+	const choices = availableDrives.filter(d => d !== targetDisk && getDiskSpaceGiB(d) > requiredPlotDiskCapacityGiB);
 	const defaultAnswers = {
 		plotDisk: previousAnswers.targetDisk
 	};
 	
-	if (availableDrives.length === 1) {
+	if(availableDrives.length === 1 || choices.length === 0){
+		writeHint(`To leverage the 'Move Plot'-Feature you need one more additional disk with at least ${requiredPlotDiskCapacityGiB} GiB disk space`);
+	}
+	if (availableDrives.length > 1 && choices.length === 0) {
+		availableDrives
+			.filter(d => d !== targetDisk)
+			.forEach(d => {
+				const availableGiB = getDiskSpaceGiB(d);
+				const missingGiB = (requiredPlotDiskCapacityGiB - availableGiB).toFixed(2);
+				console.log(chalk`{yellow · Drive ${d}: ${availableGiB} GiB available - missing ${missingGiB} GiB}`)
+			})
+	}
+	
+	if (availableDrives.length === 1 || choices.length === 0) {
 		return {
 			...previousAnswers,
 			...defaultAnswers
 		};
 	}
 	
-	const {targetDisk} = previousAnswers;
-	
-	const choices = availableDrives.filter(d => d !== targetDisk);
-	
 	const questions = [
 		{
 			type: "confirm",
 			name: "isMovingPlot",
 			message: `Do you want to plot on another drive and then move to drive [${targetDisk}]`,
+			validate: v => "Test",
 			default: false
 		},
 		{
@@ -186,6 +220,37 @@ function movePlotQuestions(defaults, options, previousAnswers) {
 	})
 }
 
+function confirm(defaults, options, previousAnswers){
+	
+	// maybe do some further validations and give some recommendations
+	// - threads
+	// - mem
+	// - plot sizes
+	
+	const questions = [
+		{
+			type: "confirm",
+			name: "confirmed",
+			message: `Fine. Are your settings ok? Do you want to plot now?`,
+			default: true
+		},
+		{
+			type: "confirm",
+			name: "rerun",
+			message: `Gotcha. Do you want to rerun the setup?`,
+			when: answers => !answers.confirmed,
+			default: true
+		}
+	];
+	
+	return prompt(questions).then(confirmation => {
+		return {
+			...previousAnswers,
+			...confirmation,
+		}
+	})
+}
+
 function ask(options) {
 	
 	const instructionSetInfo = getInstructionSetInformation();
@@ -193,9 +258,12 @@ function ask(options) {
 	
 	options = {...options, instructionSetInfo};
 	
+	console.log("\n");
+	
 	return firstQuestions(defaults)
 		.then(nextQuestions.bind(null, defaults, options))
 		.then(movePlotQuestions.bind(null, defaults, options))
+		.then(confirm.bind(null, defaults, options))
 }
 
 module.exports = {

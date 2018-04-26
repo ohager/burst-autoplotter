@@ -99,6 +99,9 @@ async function run(options) {
 		clearOldDevelopmentPlots(answers);
 	} else {
 		answers = await questions.ask(options);
+		while(answers.rerun){
+			answers = await questions.ask(options);
+		}
 		cache.update(answers, options.cache);
 	}
 	
