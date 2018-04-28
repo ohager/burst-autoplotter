@@ -9,59 +9,54 @@ const createPlotPartition = require('../../plotPartition');
 const {PLOTS_DIR} = require('../../config');
 
 async function startPlotter(answers) {
-	try {
-		const {
-			accountId,
-			cacheFile,
-			targetDisk,
-			plotDisk,
-			startNonce,
-			totalPlotSize,
-			chunks,
-			threads,
-			memory,
-			instructionSet
-		} = answers;
-		
-		const targetPath = `${targetDisk}:/${PLOTS_DIR}`;
-		const plotPath = `${plotDisk}:/${PLOTS_DIR}`;
-		
-		fs.ensureDirSync(plotPath);
-		fs.ensureDirSync(targetPath);
-		
-		const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
-		
-		store.update(() => ({
-			totalPlotSize,
-			account: accountId,
-			cacheFile: cacheFile,
-			usedThreads: threads,
-			usedMemory: memory,
-			startTime: Date.now(),
-			totalNonces,
-			totalWrittenNonces: 0,
-			totalStartNonce: +startNonce,
-			instructionSet,
-			outputPath: targetPath,
-			plotCount: plots.length,
-			done: false,
-		}));
-		
-		await plotter.start({
-			totalNonces,
-			plots,
-			accountId,
-			plotPath,
-			targetPath,
-			threads,
-			memory,
-			instSet: instructionSet,
-		});
-		
-	} catch (e) {
-		console.error(`Woop: Something failed - reason: ${e}`);
-		process.exit(666);
-	}
+	const {
+		accountId,
+		cacheFile,
+		targetDisk,
+		plotDisk,
+		startNonce,
+		totalPlotSize,
+		chunks,
+		threads,
+		memory,
+		instructionSet
+	} = answers;
+	
+	const targetPath = `${targetDisk}:/${PLOTS_DIR}`;
+	const plotPath = `${plotDisk}:/${PLOTS_DIR}`;
+	
+	fs.ensureDirSync(plotPath);
+	fs.ensureDirSync(targetPath);
+	
+	const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
+	
+	store.update(() => ({
+		totalPlotSize,
+		account: accountId,
+		cacheFile: cacheFile,
+		usedThreads: threads,
+		usedMemory: memory,
+		startTime: Date.now(),
+		totalNonces,
+		totalWrittenNonces: 0,
+		totalStartNonce: +startNonce,
+		instructionSet,
+		outputPath: targetPath,
+		plotCount: plots.length,
+		done: false,
+	}));
+	
+	await plotter.start({
+		totalNonces,
+		plots,
+		accountId,
+		plotPath,
+		targetPath,
+		threads,
+		memory,
+		instSet: instructionSet,
+	});
+	
 }
 
 function prepareDevelopmentAnswers() {
@@ -75,7 +70,8 @@ function prepareDevelopmentAnswers() {
 		startNonce: '0',
 		threads: 7,
 		memory: '8192',
-		instructionSet: 'AVX2'
+		instructionSet: 'AVX2',
+		confirmed: true,
 	};
 }
 

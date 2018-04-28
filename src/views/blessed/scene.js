@@ -107,8 +107,6 @@ class Scene {
 		this.views = {};
 	}
 	
-	
-	
 	onExit( callback ){
 		this.onExitFn = callback;
 	}

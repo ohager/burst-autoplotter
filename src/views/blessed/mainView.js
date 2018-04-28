@@ -13,6 +13,7 @@ let scene = null;
 function handleExit({reason}) {
 	
 	scene.destroy();
+	
 	if(reason === 'abort'){
 		console.log('Plotting aborted by user!');
 		console.log(`Note, that the last written plot in ${$.selectOutputPath()} may not be valid`);
@@ -52,6 +53,7 @@ function start() {
 
 function stop() {
 	store.unlisten(listener);
+	scene.destroy();
 }
 
 module.exports = {

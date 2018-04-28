@@ -54,8 +54,6 @@ const execPlotter = async (args) => {
 		
 		const process = spawn(getPlotterPath(), plotterArgs);
 		
-		process.stdout.on('data', handleStdoutData);
-		
 		process.stderr.on('data', err => {
 			reject(err.toString());
 		});
@@ -89,7 +87,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 	const interval = setInterval(() => {
 		store.update(() => ({
 			elapsedTime: Date.now()
-		}))
+		}));
 	}, 1000);
 	
 	try {
@@ -97,6 +95,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			
 			const isLastPlot = i === plots.length - 1;
 			const plot = plots[i];
+			
 			
 			// reset current plot state
 			store.update(() => ({
@@ -113,16 +112,14 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 				}
 			));
 			
-			// may reject
-			await execPlotter(
-				{
-					accountId,
-					plotPath,
-					startNonce: plot.startNonce,
-					nonces: plot.nonces,
-					threads,
-					memory
-				});
+			await execPlotter({
+				accountId,
+				plotPath,
+				startNonce: plot.startNonce,
+				nonces: plot.nonces,
+				threads,
+				memory
+			});
 			
 			eventuallyMovePlot(plotPath, targetPath, {sync: isLastPlot});
 			
@@ -143,10 +140,14 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 		
 		await notification.sendAllPlotsCompleted();
 		
+		clearInterval(interval);
+		view.stop();
+		
 	} catch (e) {
 		
-		// catching here to show messages in view
-		// TODO: introduce a message view in UI
+		clearInterval(interval);
+		view.stop();
+		
 		store.update(() => ({
 				error: e,
 				done: true
@@ -154,13 +155,11 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 		);
 		
 		await notification.sendFailure(e);
-		throw e;
 		
-	} finally {
-		clearInterval(interval);
-		view.stop();
+		console.log(`Woop: Something failed - reason: ${e}`);
+		
+		throw e;
 	}
-	
 }
 
 module.exports = {
