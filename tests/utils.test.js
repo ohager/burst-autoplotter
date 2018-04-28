@@ -6,6 +6,7 @@ const {
 	b2gib,
 	b2mib,
 	formatTimeString,
+	formatDateTime,
 	normalizeProgress,
 	asMultipleOf,
 	getNewestFileInDirectory,
@@ -54,6 +55,10 @@ test("Seconds to timestring", () => {
 	
 });
 
+test("Format TimeDate", () => {
+	expect(formatDateTime(new Date('1995-12-17T03:24:12'))).toBe("17/12/1995 03:24:12");
+	expect(formatDateTime(new Date('1976-01-01T00:00:00'))).toBe("01/01/1976 00:00:00");
+});
 
 test("Calculate normalized progress", () => {
 	
