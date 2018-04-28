@@ -68,17 +68,26 @@ let run = (() => {
 			return;
 		}
 
-		let answers;
+		try {
+			let answers;
+			if (isDevelopmentMode()) {
+				answers = prepareDevelopmentAnswers();
+				clearOldDevelopmentPlots(answers);
+			} else {
 
-		if (isDevelopmentMode()) {
-			answers = prepareDevelopmentAnswers();
-			clearOldDevelopmentPlots(answers);
-		} else {
-			answers = yield questions.ask(options);
-			cache.update(answers, options.cache);
+				answers = yield questions.ask(options);
+				while (answers.rerun) {
+					answers = yield questions.ask(options);
+				}
+				cache.update(answers, options.cache);
+			}
+
+			if (answers.confirmed) {
+				yield startPlotter(answers);
+			}
+		} catch (e) {
+			console.log("handle", e);
 		}
-
-		yield startPlotter(answers);
 	});
 
 	return function run(_x2) {

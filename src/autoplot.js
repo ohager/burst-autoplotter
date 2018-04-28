@@ -1,3 +1,1 @@
-const command = require('./command/command');
-
-command.start();
+require('./command/command').start();

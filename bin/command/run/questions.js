@@ -1,11 +1,235 @@
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+let nextQuestions = (() => {
+	var _ref = _asyncToGenerator(function* (defaults, options, previousAnswers) {
+
+		const { targetDisk } = previousAnswers;
+		const selectedDrive = diskInfo.disks[targetDisk];
+		const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
+		const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
+
+		let threadChoices = [];
+		for (let i = 1; i <= availableCPUs; ++i) threadChoices.push(i + '');
+		const defaultThreads = availableCPUs - 1;
+
+		let ramChoices = [];
+		const ram = Math.floor(availableRAM_mib);
+		for (let i = 1; i * 1024 < ram; ++i) ramChoices.push(i * 1024 + '');
+		const defaultMemory = ramChoices[ramChoices.length - 1];
+
+		const instSetChoices = options.instructionSetInfo.supported;
+		const defaultInstSet = options.instructionSetInfo.recommended;
+		const defaultPath = path.join(targetDisk, PLOTS_DIR);
+		const whenExtended = function () {
+			return options.extended;
+		};
+
+		const nextQuestions = [{
+			type: "input",
+			name: "totalPlotSize",
+			message: `What's your total plot size [GiB] - Available: ${maxAvailableSpaceGiB} GiB?`,
+			default: maxAvailableSpaceGiB,
+			validate: function (v) {
+				let isValid = false;
+				try {
+					const s = parseFloat(v);
+					isValid = s >= 1 && s <= maxAvailableSpaceGiB;
+				} catch (e) {
+					// noop isValid remains false!
+				}
+				return isValid ? true : `Value must be numeric and must be between 10 and ${maxAvailableSpaceGiB} GiB`;
+			}
+		}, {
+			type: "input",
+			name: "chunks",
+			message: "In how many chunks do you want to split your plot?",
+			validate: function (v) {
+				const isValid = /^\d+$/.test(v) && v >= 1 && v <= 100;
+				return isValid ? true : "Must be between 1 and 100";
+			},
+			default: defaultChunkCount
+		}, {
+			type: "input",
+			name: "startNonce",
+			message: "What's your start nonce?",
+			validate: function (v) {
+				return (/^\d+$/.test(v) ? true : "Nonce is a numeric value, man!"
+				);
+			},
+			default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
+		},
+		/* TODO
+  {
+  	type: "input",
+  	name: "targetPath",
+  	message: "What's the path where the plot shall be written to?",
+  	default: defaultPath,
+  	when: whenExtended,
+  },
+  */
+		{
+			type: "list",
+			name: "threads",
+			message: "How many threads do you want to use? (the more the faster the plotting)",
+			default: defaultThreads,
+			when: whenExtended,
+			choices: threadChoices
+		}, {
+			type: "list",
+			name: "memory",
+			message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
+			default: defaultMemory,
+			when: whenExtended,
+			choices: ramChoices
+		}, {
+			type: "list",
+			name: "instructionSet",
+			message: "Select Instruction Set?",
+			default: defaultInstSet,
+			when: whenExtended,
+			choices: instSetChoices
+		}];
+
+		const nextAnswers = yield prompt(nextQuestions);
+
+		nextAnswers.threads = nextAnswers.threads || defaultThreads;
+		nextAnswers.memory = nextAnswers.memory || defaultMemory;
+		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
+
+		return _extends({
+			cacheFile: options.cache
+		}, previousAnswers, nextAnswers);
+	});
+
+	return function nextQuestions(_x, _x2, _x3) {
+		return _ref.apply(this, arguments);
+	};
+})();
+
+let movePlotQuestions = (() => {
+	var _ref2 = _asyncToGenerator(function* (defaults, options, previousAnswers) {
+
+		const getDiskSpaceGiB = function (driveName) {
+			return b2gib(diskInfo.disks[driveName].free).toFixed(2);
+		};
+
+		const { targetDisk, totalPlotSize, chunks } = previousAnswers;
+		const requiredPlotDiskCapacityGiB = (totalPlotSize / chunks * 1.01).toFixed(2); // 1% more space required
+		const choices = availableDrives.filter(function (d) {
+			return d !== targetDisk && getDiskSpaceGiB(d) > requiredPlotDiskCapacityGiB;
+		});
+		const defaultAnswers = {
+			plotDisk: previousAnswers.targetDisk
+		};
+
+		if (availableDrives.length === 1 || choices.length === 0) {
+			writeHint(`To leverage the 'Move Plot'-Feature you need one more additional disk with at least ${requiredPlotDiskCapacityGiB} GiB disk space`);
+		}
+		if (availableDrives.length > 1 && choices.length === 0) {
+			availableDrives.filter(function (d) {
+				return d !== targetDisk;
+			}).forEach(function (d) {
+				const availableGiB = getDiskSpaceGiB(d);
+				const missingGiB = (requiredPlotDiskCapacityGiB - availableGiB).toFixed(2);
+				console.log(chalk`{yellow · Drive ${d}: ${availableGiB} GiB available - missing ${missingGiB} GiB}`);
+			});
+		}
+
+		if (availableDrives.length === 1 || choices.length === 0) {
+			return _extends({}, previousAnswers, defaultAnswers);
+		}
+
+		const questions = [{
+			type: "confirm",
+			name: "isMovingPlot",
+			message: `Do you want to plot on another drive and then move to drive [${targetDisk}]`,
+			validate: function (v) {
+				return "Test";
+			},
+			default: false
+		}, {
+			type: "list",
+			name: "plotDisk",
+			message: "Select the disk to use for creating the plot?",
+			when: function (answers) {
+				return answers.isMovingPlot;
+			},
+			choices: choices,
+			default: choices[0]
+		}];
+
+		const movePlotAnswers = yield prompt(questions);
+		return _extends({}, previousAnswers, movePlotAnswers);
+	});
+
+	return function movePlotQuestions(_x4, _x5, _x6) {
+		return _ref2.apply(this, arguments);
+	};
+})();
+
+let confirm = (() => {
+	var _ref3 = _asyncToGenerator(function* (defaults, options, previousAnswers) {
+
+		// maybe do some further validations and give some recommendations
+		// - threads
+		// - mem
+		// - plot sizes
+
+		const questions = [{
+			type: "confirm",
+			name: "confirmed",
+			message: `Fine. Are your settings ok? Do you want to plot now?`,
+			default: true
+		}, {
+			type: "confirm",
+			name: "rerun",
+			message: `Gotcha. Do you want to rerun the setup?`,
+			when: function (answers) {
+				return !answers.confirmed;
+			},
+			default: true
+		}];
+
+		const confirmation = yield prompt(questions);
+		return _extends({}, previousAnswers, confirmation);
+	});
+
+	return function confirm(_x7, _x8, _x9) {
+		return _ref3.apply(this, arguments);
+	};
+})();
+
+let ask = (() => {
+	var _ref4 = _asyncToGenerator(function* (options) {
+
+		const instructionSetInfo = getInstructionSetInformation();
+		const defaults = cache.load(options.cache);
+
+		options = _extends({}, options, { instructionSetInfo });
+		let answers = yield firstQuestions(defaults);
+		answers = yield nextQuestions(defaults, options, answers);
+		answers = yield movePlotQuestions(defaults, options, answers);
+		answers = yield confirm(defaults, options, answers);
+
+		return answers;
+	});
+
+	return function ask(_x10) {
+		return _ref4.apply(this, arguments);
+	};
+})();
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 const os = require('os');
-const { prompt } = require('inquirer');
+const path = require('path');
+const chalk = require("chalk");
+const { prompt, ui } = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 const { b2mib, b2gib } = require('../../utils');
 const { getSupportedInstructionSets } = require('../../instructionSet');
 const cache = require('../../cache');
+const { PLOTS_DIR } = require('../../config');
 
 const availableDrives = Object.keys(diskInfo.disks);
 const availableCPUs = os.cpus().length;
@@ -43,138 +267,13 @@ function firstQuestions(defaults) {
 		message: "Select your disk to plot?",
 		choices: availableDrives
 	}];
-
 	return prompt(questions);
 }
 
-function nextQuestions(defaults, options, previousAnswers) {
-
-	const { targetDisk } = previousAnswers;
-	const selectedDrive = diskInfo.disks[targetDisk];
-	const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
-	const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
-
-	let threadChoices = [];
-	for (let i = 1; i <= availableCPUs; ++i) threadChoices.push(i + '');
-	const defaultThreads = availableCPUs - 1;
-
-	let ramChoices = [];
-	const ram = Math.floor(availableRAM_mib);
-	for (let i = 1; i * 1024 < ram; ++i) ramChoices.push(i * 1024 + '');
-	const defaultMemory = ramChoices[ramChoices.length - 1];
-
-	const instSetChoices = options.instructionSetInfo.supported;
-	const defaultInstSet = options.instructionSetInfo.recommended;
-
-	const nextQuestions = [{
-		type: "input",
-		name: "totalPlotSize",
-		message: `What's your total plot size [GiB] - Available: ${maxAvailableSpaceGiB} GiB?`,
-		default: maxAvailableSpaceGiB,
-		validate: v => {
-			let isValid = false;
-			try {
-				const s = parseFloat(v);
-				isValid = s >= 1 && s <= maxAvailableSpaceGiB;
-			} catch (e) {
-				// noop isValid remains false!
-			}
-			return isValid ? true : `Value must be numeric and must be between 10 and ${maxAvailableSpaceGiB} GiB`;
-		}
-	}, {
-		type: "input",
-		name: "chunks",
-		message: "In how many chunks do you want to split your plot?",
-		validate: v => {
-			const isValid = /^\d+$/.test(v) && v >= 1 && v <= 100;
-			return isValid ? true : "Must be between 1 and 100";
-		},
-		default: defaultChunkCount
-	}, {
-		type: "input",
-		name: "startNonce",
-		message: "What's your start nonce?",
-		validate: v => {
-			return (/^\d+$/.test(v) ? true : "Nonce is a numeric value, man!"
-			);
-		},
-		default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
-	}, {
-		type: "list",
-		name: "threads",
-		message: "How many threads do you want to use? (the more the faster the plotting)",
-		default: defaultThreads,
-		when: () => options.extended,
-		choices: threadChoices
-	}, {
-		type: "list",
-		name: "memory",
-		message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
-		default: defaultMemory,
-		when: () => options.extended,
-		choices: ramChoices
-	}, {
-		type: "list",
-		name: "instructionSet",
-		message: "Select Instruction Set?",
-		default: defaultInstSet,
-		when: () => options.extended,
-		choices: instSetChoices
-	}];
-
-	return prompt(nextQuestions).then(nextAnswers => {
-
-		nextAnswers.threads = nextAnswers.threads || defaultThreads;
-		nextAnswers.memory = nextAnswers.memory || defaultMemory;
-		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
-
-		return _extends({
-			cacheFile: options.cache
-		}, previousAnswers, nextAnswers);
-	});
-}
-
-function movePlotQuestions(defaults, options, previousAnswers) {
-
-	const defaultAnswers = {
-		plotDisk: previousAnswers.targetDisk
-	};
-
-	if (availableDrives.length === 1) {
-		return _extends({}, previousAnswers, defaultAnswers);
-	}
-
-	const { targetDisk } = previousAnswers;
-
-	const choices = availableDrives.filter(d => d !== targetDisk);
-
-	const questions = [{
-		type: "confirm",
-		name: "isMovingPlot",
-		message: `Do you want to plot on another drive and then move to drive [${targetDisk}]`,
-		default: false
-	}, {
-		type: "list",
-		name: "plotDisk",
-		message: "Select the disk to use for creating the plot?",
-		when: answers => answers.isMovingPlot,
-		choices: choices,
-		default: choices[0]
-	}];
-
-	return prompt(questions).then(movePlotAnswers => {
-		return _extends({}, previousAnswers, movePlotAnswers);
-	});
-}
-
-function ask(options) {
-
-	const instructionSetInfo = getInstructionSetInformation();
-	const defaults = cache.load(options.cache);
-
-	options = _extends({}, options, { instructionSetInfo });
-
-	return firstQuestions(defaults).then(nextQuestions.bind(null, defaults, options)).then(movePlotQuestions.bind(null, defaults, options));
+function writeHint(text) {
+	const bottomBar = new ui.BottomBar();
+	bottomBar.log.write("\n");
+	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
 }
 
 module.exports = {

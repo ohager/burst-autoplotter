@@ -8,7 +8,7 @@ const {
 	formatTimeString,
 	normalizeProgress,
 	asMultipleOf,
-	newestFileInDirectory,
+	getNewestFileInDirectory,
 } = require('../src/utils');
 
 const ONEGIB = 1073741824;
@@ -93,7 +93,7 @@ test("asMultipleOf Test", () => {
 });
 
 
-test("newestFileInDirectory", (done) => {
+test("getNewestFileInDirectory", (done) => {
 
 	const TEST_DIR = path.join(__dirname, "/testfiles");
 	
@@ -107,7 +107,7 @@ test("newestFileInDirectory", (done) => {
 			}
 		}, 250);
 	}).then( () =>{
-		expect(newestFileInDirectory(TEST_DIR) ).toBe(path.join(TEST_DIR,`test_3.txt`));
+		expect(getNewestFileInDirectory(TEST_DIR) ).toBe(path.join(TEST_DIR,`test_3.txt`));
 		fs.remove(TEST_DIR).then(done);
 	} );
 	

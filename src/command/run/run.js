@@ -65,7 +65,7 @@ async function startPlotter(answers) {
 }
 
 function prepareDevelopmentAnswers() {
-
+	
 	return {
 		accountId: '1234567890123456700',
 		targetDisk: 'C',
@@ -81,31 +81,38 @@ function prepareDevelopmentAnswers() {
 
 function clearOldDevelopmentPlots({targetDisk, plotDisk}) {
 	fs.removeSync(`${targetDisk}:/${PLOTS_DIR}`);
-	if(plotDisk !== targetDisk){
+	if (plotDisk !== targetDisk) {
 		fs.removeSync(`${plotDisk}:/${PLOTS_DIR}`);
 	}
 }
 
 async function run(options) {
 	
-	if(options.version){
+	if (options.version) {
 		return;
 	}
 	
-	let answers;
-	
-	if (isDevelopmentMode()) {
-		answers = prepareDevelopmentAnswers();
-		clearOldDevelopmentPlots(answers);
-	} else {
-		answers = await questions.ask(options);
-		while(answers.rerun){
+	try {
+		let answers;
+		if (isDevelopmentMode()) {
+			answers = prepareDevelopmentAnswers();
+			clearOldDevelopmentPlots(answers);
+		} else {
+			
 			answers = await questions.ask(options);
+			while (answers.rerun) {
+				answers = await questions.ask(options);
+			}
+			cache.update(answers, options.cache);
 		}
-		cache.update(answers, options.cache);
+		
+		if (answers.confirmed) {
+			await startPlotter(answers);
+		}
+		
+	} catch (e) {
+		console.log("handle", e);
 	}
-	
-	await startPlotter(answers);
 }
 
 module.exports = run;

@@ -15,7 +15,7 @@ function startQuestions(defaults, options) {
 	return prompt(questions)
 }
 
-function configQuestions(defaults, options, previousAnswers) {
+async function configQuestions(defaults, options, previousAnswers) {
 	
 	if (!previousAnswers.mailEnabled) {
 		return prompt([]); // no more questions
@@ -81,7 +81,8 @@ function configQuestions(defaults, options, previousAnswers) {
 		}
 	];
 	
-	return prompt(questions).then(answers => ({...previousAnswers, ...answers}));
+	const answers = await prompt(questions);
+	return {...previousAnswers, ...answers};
 }
 
 
@@ -97,7 +98,7 @@ function mapAnswers(defaults, options, answers) {
 		smtp: {
 			host: answers.host || _default(defaults.smtp, 'host'),
 			port: answers.port || _default(defaults.smtp, 'port'),
-			secure: answers.secure === undefined  ?  _default(defaults.smtp, 'secure') : answers.secure,
+			secure: answers.secure === undefined ? _default(defaults.smtp, 'secure') : answers.secure,
 			auth: {
 				user: answers.user || _default(defaults.smtp.auth, 'user'),
 				pass: answers.pass || _default(defaults.smtp.auth, 'pass'),
@@ -107,21 +108,25 @@ function mapAnswers(defaults, options, answers) {
 }
 
 
-function ask(options) {
+async function ask(options) {
 	
 	const defaults = cache.load(options.cache);
 	
-	return startQuestions(defaults, options)
-		.then(configQuestions.bind(null, defaults, options))
-		.then(mapAnswers.bind(null, defaults, options))
-		.then(answers => {
-			cache.update(answers, options.cache);
-			
-			notification.sendMailSetupSuccessMessage();
-			console.log("\nIf setup worked fine, you will receive an email in a few moments.\n");
-			
-			return answers;
-		})
+	let answers = await startQuestions(defaults, options);
+	answers = await configQuestions(defaults, options, answers);
+	answers = await mapAnswers(defaults, options, answers);
+	
+	cache.update(answers, options.cache);
+	
+	await notification.sendMailSetupSuccessMessage();
+	
+	if (answers.email.enabled) {
+		console.log("\nIf setup worked fine, you will receive an Email notification in a few seconds.\n");
+	}
+	else {
+		console.log("\nEmail notifications disabled.\n");
+	}
+	return answers;
 }
 
 

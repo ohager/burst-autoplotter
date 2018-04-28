@@ -63,7 +63,6 @@ function onRunCommand(argv) {
 	const optionList = DefaultOptionList.concat([{ name: 'extended', alias: 'e', type: Boolean, description: "Runs in extended mode with additional settings" }]);
 
 	const options = readOptions(optionList, argv);
-
 	ifHelp('run', options, optionList).otherwise(options => commandRun(options));
 }
 
@@ -72,7 +71,7 @@ function onSetupCommand(argv) {
 
 	const options = readOptions(DefaultOptionList, args);
 
-	ifHelp('setup', options, DefaultOptionList, [{ name: 'mail', summary: 'Sets up mail for notification' }, { name: 'telegram', summary: 'Sets up push notification for Telegram' }]).otherwise(options => callCommand(name || 'mail', setupHandler)(args));
+	ifHelp('setup', options, DefaultOptionList, [{ name: 'mail', summary: 'Sets up mail for notification' }, { name: 'telegram', summary: 'Sets up push notification for Telegram' }]).otherwise(() => callCommand(name || 'mail', setupHandler)(args));
 }
 
 function start() {

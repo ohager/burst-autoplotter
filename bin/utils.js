@@ -38,7 +38,7 @@ function asMultipleOf(number, multiple) {
 	return Math.floor(number / multiple) * multiple;
 }
 
-function newestFileInDirectory(dirPath) {
+function getNewestFileInDirectory(dirPath) {
 
 	const newestFile = fs.readdirSync(dirPath).map(f => path.join(dirPath, f)).map(f => ({
 		path: f,
@@ -57,5 +57,5 @@ module.exports = {
 	normalizeProgress,
 	asMultipleOf,
 	isDevelopmentMode,
-	newestFileInDirectory
+	getNewestFileInDirectory
 };

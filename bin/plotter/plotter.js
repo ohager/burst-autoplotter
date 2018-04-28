@@ -93,7 +93,7 @@ const fs = require("fs-extra");
 const cache = require('../cache');
 const { XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE } = require('../config');
 const execValidator = require("../validator/validator");
-const { newestFileInDirectory } = require("../utils");
+const { getNewestFileInDirectory } = require("../utils");
 
 const store = require("../store");
 const $ = require("../selectors");
@@ -158,9 +158,11 @@ const execPlotter = (() => {
 function eventuallyMovePlot(plotPath, targetPath, { sync = false }) {
 	if (targetPath === plotPath) return;
 
-	const currentPlotFile = newestFileInDirectory(plotPath);
+	const currentPlotFile = getNewestFileInDirectory(plotPath);
 
 	if (currentPlotFile) {
+		// move file asynchronously, if it's not the last plotfile...
+		// ...just to not make the plotter wait for moving plot
 		const moveFn = sync ? fs.moveSync : fs.move;
 		moveFn(currentPlotFile, path.join(targetPath, path.basename(currentPlotFile)), { overwrite: true });
 	}

@@ -4,7 +4,8 @@ const commandSetup = require("./setup");
 const printHeader = require("./header");
 const {printUsage, printUnknownCommand, printUnknownOption} = require("./usage");
 
-const VoidFunc = () => { };
+const VoidFunc = () => {
+};
 
 function ifHelp(currentCommand, options, optionList, commandList) {
 	
@@ -24,7 +25,7 @@ const DefaultOptionList = [
 	{name: 'version', alias: 'v', type: Boolean, description: "Prints out version without plotter",},
 ];
 
-function readOptions(optionList, argv){
+function readOptions(optionList, argv) {
 	let options;
 	try {
 		options = commandLineArgs(optionList, {argv});
@@ -70,7 +71,6 @@ function onRunCommand(argv) {
 	]);
 	
 	const options = readOptions(optionList, argv);
-	
 	ifHelp('run', options, optionList).otherwise(options => commandRun(options));
 }
 
@@ -80,10 +80,10 @@ function onSetupCommand(argv) {
 	const options = readOptions(DefaultOptionList, args);
 	
 	ifHelp('setup', options, DefaultOptionList, [
-			{ name: 'mail', summary: 'Sets up mail for notification' },
-			{ name: 'telegram', summary: 'Sets up push notification for Telegram' },
-		]).otherwise(options => callCommand(name || 'mail', setupHandler)(args));
-
+		{name: 'mail', summary: 'Sets up mail for notification'},
+		{name: 'telegram', summary: 'Sets up push notification for Telegram'},
+	]).otherwise(() => callCommand(name || 'mail', setupHandler)(args));
+	
 }
 
 function start() {

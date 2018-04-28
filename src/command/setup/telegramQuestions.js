@@ -2,7 +2,7 @@ const {prompt} = require('inquirer');
 const cache = require("../../cache");
 const notification = require("../../notification");
 
-function startQuestions(defaults, options) {
+async function startQuestions(defaults, options) {
 	const questions = [{
 		type: "confirm",
 		name: "telegramEnabled",
@@ -13,7 +13,7 @@ function startQuestions(defaults, options) {
 	return prompt(questions)
 }
 
-function configQuestions(defaults, options, previousAnswers) {
+async function configQuestions(defaults, options, previousAnswers) {
 	
 	const uuidV4Regex = /^[A-F\d]{8}-[A-F\d]{4}-4[A-F\d]{3}-[89AB][A-F\d]{3}-[A-F\d]{12}$/i;
 	
@@ -38,7 +38,8 @@ function configQuestions(defaults, options, previousAnswers) {
 		}
 	];
 	
-	return prompt(questions).then(answers => ({...previousAnswers, ...answers}));
+	const answers = await prompt(questions);
+	return {...previousAnswers, ...answers};
 }
 
 function mapAnswers(defaults, options, answers) {
@@ -53,21 +54,25 @@ function mapAnswers(defaults, options, answers) {
 	};
 }
 
-function ask(options) {
+async function ask(options) {
 	
 	const defaults = cache.load(options.cache);
 	
-	return startQuestions(defaults, options)
-		.then(configQuestions.bind(null, defaults, options))
-		.then(mapAnswers.bind(null, defaults, options))
-		.then(answers => {
-			cache.update(answers, options.cache);
-			
-			notification.sendTelegramSetupSuccessMessage();
-			console.log("\nIf setup worked fine, you will receive a Telegram notification in a few seconds.\n");
-			
-			return answers;
-		})
+	let answers = await startQuestions(defaults, options);
+	answers = await configQuestions(defaults, options, answers);
+	answers = await mapAnswers(defaults, options, answers);
+	
+	cache.update(answers, options.cache);
+	
+	await notification.sendTelegramSetupSuccessMessage();
+	
+	if (answers.telegram.enabled) {
+		console.log("\nIf setup worked fine, you will receive a Telegram notification in a few seconds.\n");
+	}
+	else {
+		console.log("\nTelegram notifications disabled.\n");
+	}
+	return answers;
 }
 
 

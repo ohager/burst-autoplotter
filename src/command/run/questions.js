@@ -50,7 +50,7 @@ function firstQuestions(defaults) {
 	return prompt(questions)
 }
 
-function nextQuestions(defaults, options, previousAnswers) {
+async function nextQuestions(defaults, options, previousAnswers) {
 	
 	const {targetDisk} = previousAnswers;
 	const selectedDrive = diskInfo.disks[targetDisk];
@@ -143,27 +143,26 @@ function nextQuestions(defaults, options, previousAnswers) {
 		}
 	];
 	
-	return prompt(nextQuestions).then(nextAnswers => {
-		
-		nextAnswers.threads = nextAnswers.threads || defaultThreads;
-		nextAnswers.memory = nextAnswers.memory || defaultMemory;
-		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
-		
-		return {
-			cacheFile: options.cache,
-			...previousAnswers,
-			...nextAnswers,
-		}
-	})
+	const nextAnswers = await prompt(nextQuestions);
+	
+	nextAnswers.threads = nextAnswers.threads || defaultThreads;
+	nextAnswers.memory = nextAnswers.memory || defaultMemory;
+	nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
+	
+	return {
+		cacheFile: options.cache,
+		...previousAnswers,
+		...nextAnswers,
+	}
 }
 
-function writeHint(text){
+function writeHint(text) {
 	const bottomBar = new ui.BottomBar();
 	bottomBar.log.write("\n");
 	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
 }
 
-function movePlotQuestions(defaults, options, previousAnswers) {
+async function movePlotQuestions(defaults, options, previousAnswers) {
 	
 	const getDiskSpaceGiB = driveName => b2gib(diskInfo.disks[driveName].free).toFixed(2);
 	
@@ -174,7 +173,7 @@ function movePlotQuestions(defaults, options, previousAnswers) {
 		plotDisk: previousAnswers.targetDisk
 	};
 	
-	if(availableDrives.length === 1 || choices.length === 0){
+	if (availableDrives.length === 1 || choices.length === 0) {
 		writeHint(`To leverage the 'Move Plot'-Feature you need one more additional disk with at least ${requiredPlotDiskCapacityGiB} GiB disk space`);
 	}
 	if (availableDrives.length > 1 && choices.length === 0) {
@@ -212,15 +211,14 @@ function movePlotQuestions(defaults, options, previousAnswers) {
 		}
 	];
 	
-	return prompt(questions).then(movePlotAnswers => {
-		return {
-			...previousAnswers,
-			...movePlotAnswers,
-		}
-	})
+	const movePlotAnswers = await prompt(questions);
+	return {
+		...previousAnswers,
+		...movePlotAnswers,
+	}
 }
 
-function confirm(defaults, options, previousAnswers){
+async function confirm(defaults, options, previousAnswers) {
 	
 	// maybe do some further validations and give some recommendations
 	// - threads
@@ -243,27 +241,25 @@ function confirm(defaults, options, previousAnswers){
 		}
 	];
 	
-	return prompt(questions).then(confirmation => {
-		return {
-			...previousAnswers,
-			...confirmation,
-		}
-	})
+	const confirmation = await prompt(questions);
+	return {
+		...previousAnswers,
+		...confirmation,
+	}
 }
 
-function ask(options) {
+async function ask(options) {
 	
 	const instructionSetInfo = getInstructionSetInformation();
 	const defaults = cache.load(options.cache);
 	
 	options = {...options, instructionSetInfo};
+	let answers = await firstQuestions(defaults);
+	answers = await nextQuestions(defaults, options, answers);
+	answers = await movePlotQuestions(defaults, options, answers);
+	answers = await confirm(defaults, options, answers);
 	
-	console.log("\n");
-	
-	return firstQuestions(defaults)
-		.then(nextQuestions.bind(null, defaults, options))
-		.then(movePlotQuestions.bind(null, defaults, options))
-		.then(confirm.bind(null, defaults, options))
+	return answers;
 }
 
 module.exports = {
