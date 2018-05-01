@@ -85,12 +85,7 @@ function clearOldDevelopmentPlots({targetDisk, plotDisk}) {
 
 async function run(options) {
 	
-	const object = {
-		level: "info",
-		text: "Called Run",
-		...options
-	};
-	logger.log(object);
+	logger.info("Execute Autoplotter", options);
 	
 	if (options.version) {
 		return;
@@ -110,7 +105,9 @@ async function run(options) {
 	}
 	
 	if (answers.confirmed) {
+		logger.info("Start plotting", answers);
 		await startPlotter(answers);
+		logger.info("Finished plotting");
 	}
 	
 }

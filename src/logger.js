@@ -14,7 +14,7 @@ function createLogMessage(type, message, payload) {
 
 class Logger {
 	constructor() {
-		//	winston.clear();
+		winston.clear();
 		winston.add(winston.transports.Loggly, {
 			inputToken: LOGGLY_TOKEN,
 			subdomain: LOGGLY_SUBDOMAIN,
@@ -23,7 +23,7 @@ class Logger {
 		});
 	}
 	
-	log(type, message, obj) {
+	log(type, message, obj = {}) {
 		winston.log(createLogMessage(type, message, obj))
 	}
 	
@@ -37,6 +37,14 @@ class Logger {
 	
 	debug(message, obj) {
 		this.log("debug", message, obj);
+	}
+	
+	async flush(){
+		return new Promise( resolve => {
+			if(!this.flushing){
+				this.flushing = setTimeout(resolve, 3000);
+			}
+		})
 	}
 }
 

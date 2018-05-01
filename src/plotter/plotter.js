@@ -86,21 +86,31 @@ function eventuallyMovePlot(plotPath, targetPath, {sync = false}) {
 	}
 }
 
-function exitHandler(reason) {
+async function cleanExit(exitCode){
+	console.log("Flushing logs...please wait");
+	await logger.flush();
+	process.exit(exitCode)
+}
+
+async function exitHandler(reason) {
 	
 	if (reason === 'abort') {
+		logger.info("Plotting aborted by user!");
 		console.log('Plotting aborted by user!');
 		console.log(`Note, that the last written plot in ${$.selectOutputPath()} may not be valid`);
-		process.exit(0);
+		await cleanExit(0);
 		return;
 	}
 	
 	if ($.selectHasError()) {
+		logger.error($.selectError());
 		console.log(`Error: ` + $.selectError());
-		process.exit(-1);
+		await cleanExit(-1);
 		return;
 	}
 	
+	logger.info("Finished Successfully");
+
 	let message;
 	message = "Validated Plots: \n";
 	message += `Path: ${$.selectOutputPath()}\n`;
@@ -108,7 +118,8 @@ function exitHandler(reason) {
 	message += "\n\nHappy Mining!";
 	
 	console.log(message);
-	process.exit(0);
+
+	await cleanExit(0);
 }
 
 
