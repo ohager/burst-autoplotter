@@ -123,6 +123,7 @@ const selectHasFinished = select(
 	state => selectHasError() || state.done
 );
 
+
 const selectTotalNonceRange = select(
 	state => ({
 		startNonce: state.totalStartNonce,

@@ -9,7 +9,7 @@ const {getNewestFileInDirectory} = require("../utils");
 const store = require("../store");
 const $ = require("../selectors");
 const view = require("../views/blessed");
-
+const logger = require("../logger");
 const handleStdoutData = require("./stdoutHandler");
 const handleClose = require("./closeHandler");
 const notification = require("../notification");
@@ -54,12 +54,18 @@ const execPlotter = async (args) => {
 		
 		const process = spawn(getPlotterPath(), plotterArgs);
 		
+		logger.info("Plot started", store.get());
+		
+		process.stdout.on('data', handleStdoutData);
+		
 		process.stderr.on('data', err => {
+			//logger.error("Plot error", store.get(), err.toString());
 			reject(err.toString());
 		});
 		
 		process.on('close', code => {
 			handleClose(code);
+			//log.info("Plot finished", store.get());
 			resolve();
 		});
 		
@@ -80,9 +86,35 @@ function eventuallyMovePlot(plotPath, targetPath, {sync = false}) {
 	}
 }
 
+function exitHandler(reason) {
+	
+	if (reason === 'abort') {
+		console.log('Plotting aborted by user!');
+		console.log(`Note, that the last written plot in ${$.selectOutputPath()} may not be valid`);
+		process.exit(0);
+		return;
+	}
+	
+	if ($.selectHasError()) {
+		console.log(`Error: ` + $.selectError());
+		process.exit(-1);
+		return;
+	}
+	
+	let message;
+	message = "Validated Plots: \n";
+	message += `Path: ${$.selectOutputPath()}\n`;
+	message += $.selectValidatedPlots().map(v => `${v.plot} is ${v.isValid ? "VALID" : "NOT VALID"}`).join("\n");
+	message += "\n\nHappy Mining!";
+	
+	console.log(message);
+	process.exit(0);
+}
+
+
 async function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
 	
-	view.start();
+	view.run(exitHandler);
 	
 	const interval = setInterval(() => {
 		store.update(() => ({
@@ -95,7 +127,6 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			
 			const isLastPlot = i === plots.length - 1;
 			const plot = plots[i];
-			
 			
 			// reset current plot state
 			store.update(() => ({
@@ -131,22 +162,16 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			
 		}
 		
-		await execValidator(targetPath);
+		await notification.sendAllPlotsCompleted();
 		
 		store.update(() => ({
 				done: true
 			})
 		);
 		
-		await notification.sendAllPlotsCompleted();
-		
-		clearInterval(interval);
-		view.stop();
+		await execValidator(targetPath);
 		
 	} catch (e) {
-		
-		clearInterval(interval);
-		view.stop();
 		
 		store.update(() => ({
 				error: e,
@@ -156,10 +181,10 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 		
 		await notification.sendFailure(e);
 		
-		console.log(`Woop: Something failed - reason: ${e}`);
-		
-		throw e;
+	} finally {
+		clearInterval(interval);
 	}
+	
 }
 
 module.exports = {

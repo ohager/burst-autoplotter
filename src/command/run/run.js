@@ -7,6 +7,7 @@ const cache = require('../../cache');
 const plotter = require('../../plotter');
 const createPlotPartition = require('../../plotPartition');
 const {PLOTS_DIR} = require('../../config');
+const logger = require("../../logger");
 
 async function startPlotter(answers) {
 	const {
@@ -84,31 +85,34 @@ function clearOldDevelopmentPlots({targetDisk, plotDisk}) {
 
 async function run(options) {
 	
+	const object = {
+		level: "info",
+		text: "Called Run",
+		...options
+	};
+	logger.log(object);
+	
 	if (options.version) {
 		return;
 	}
 	
-	try {
-		let answers;
-		if (isDevelopmentMode()) {
-			answers = prepareDevelopmentAnswers();
-			clearOldDevelopmentPlots(answers);
-		} else {
-			
+	let answers;
+	if (isDevelopmentMode()) {
+		answers = prepareDevelopmentAnswers();
+		clearOldDevelopmentPlots(answers);
+	} else {
+		
+		answers = await questions.ask(options);
+		while (answers.rerun) {
 			answers = await questions.ask(options);
-			while (answers.rerun) {
-				answers = await questions.ask(options);
-			}
-			cache.update(answers, options.cache);
 		}
-		
-		if (answers.confirmed) {
-			await startPlotter(answers);
-		}
-		
-	} catch (e) {
-		console.log("handle", e);
+		cache.update(answers, options.cache);
 	}
+	
+	if (answers.confirmed) {
+		await startPlotter(answers);
+	}
+	
 }
 
 module.exports = run;
