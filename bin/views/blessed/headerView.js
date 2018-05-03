@@ -66,6 +66,7 @@ class HeaderView {
 		const totalNonces = $.selectTotalNonces();
 		const elapsed = $.selectElapsedTimeInSecs();
 		const { startNonce, endNonce } = $.selectTotalNonceRange();
+		const message = $.selectMessage();
 
 		let line = 0;
 		let target = this.leftText;
@@ -79,6 +80,7 @@ class HeaderView {
 		target.setLine(line, `Used Memory: {white-fg}${memoryInMiB} MiB{/}`);
 		target.setLine(++line, `Used Threads: {white-fg}${threads}{/}`);
 		target.setLine(++line, `Instruction Set: {white-fg}${instructionSet}{/}`);
+		target.setLine(++line, `{green-fg}${message}{/}`);
 	}
 }
 
