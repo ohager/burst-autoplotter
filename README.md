@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/ohager/burst-autoplotter.svg?branch=master)](https://travis-ci.org/ohager/burst-autoplotter)
 [![codecov](https://codecov.io/gh/ohager/burst-autoplotter/branch/master/graph/badge.svg)](https://codecov.io/gh/ohager/burst-autoplotter)
 [![DeepScan grade](https://deepscan.io/api/projects/2279/branches/13096/badge/grade.svg)](https://deepscan.io/dashboard#view=project&pid=2279&bid=13096)
-> NEW VERSION 0.4: Email and Telegram Notifications
+> NEW VERSION 0.5: Move Plots, Configurable Plot Directory, Logging (Loggly)
 
 Automates plotting for BURST coin
 
@@ -15,11 +15,14 @@ Features:
 - CLI-based UI with progress indicators, ETA, etc
 - Creates optimized plots (XPlotter)
 - Support for SSE, AVX, and AVX2
+- Move single plots to target drive
+    - Allows plotting on fast drives (SSD), and/or computer
 - Caches relevant information, like last written nonces, and Account ID
 - Allows CPU and RAM selection (in enhanced mode)
 - Notification while plotting
     - Email notification
     - [Telegram](https://telegram.org/) Push Notification
+- Logging into Loggly (Feature for me!)
 
 > Currently, the plotter works only! on Windows (as XPlotter is used internally)
 
