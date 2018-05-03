@@ -6,7 +6,6 @@ const store = require('../../store');
 const cache = require('../../cache');
 const plotter = require('../../plotter');
 const createPlotPartition = require('../../plotPartition');
-const {PLOTS_DIR} = require('../../config');
 const logger = require("../../logger");
 
 async function startPlotter(answers) {
@@ -20,11 +19,13 @@ async function startPlotter(answers) {
 		chunks,
 		threads,
 		memory,
-		instructionSet
+		instructionSet,
+		logEnabled,
+		plotDirectory,
 	} = answers;
 	
-	const targetPath = `${targetDisk}:/${PLOTS_DIR}`;
-	const plotPath = `${plotDisk}:/${PLOTS_DIR}`;
+	const targetPath = `${targetDisk}:${plotDirectory}`;
+	const plotPath = `${plotDisk}:${plotDirectory}`;
 	
 	fs.ensureDirSync(plotPath);
 	fs.ensureDirSync(targetPath);
@@ -32,6 +33,7 @@ async function startPlotter(answers) {
 	const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
 	
 	store.update(() => ({
+		logEnabled,
 		totalPlotSize,
 		account: accountId,
 		cacheFile: cacheFile,
@@ -44,8 +46,11 @@ async function startPlotter(answers) {
 		instructionSet,
 		outputPath: targetPath,
 		plotCount: plots.length,
+		plotDirectory,
 		done: false,
 	}));
+	
+	logger.info("Start plotting", answers);
 	
 	await plotter.start({
 		totalNonces,
@@ -58,6 +63,8 @@ async function startPlotter(answers) {
 		instSet: instructionSet,
 	});
 	
+	logger.info("Finished plotting", answers);
+	
 }
 
 function prepareDevelopmentAnswers() {
@@ -66,6 +73,7 @@ function prepareDevelopmentAnswers() {
 		accountId: '1234567890123456700',
 		targetDisk: 'C',
 		plotDisk: 'C',
+		plotDirectory: '/Burst/plots',
 		totalPlotSize: '1',
 		chunks: '2',
 		startNonce: '0',
@@ -73,13 +81,14 @@ function prepareDevelopmentAnswers() {
 		memory: '8192',
 		instructionSet: 'AVX2',
 		confirmed: true,
+		logEnabled: true,
 	};
 }
 
-function clearOldDevelopmentPlots({targetDisk, plotDisk}) {
-	fs.removeSync(`${targetDisk}:/${PLOTS_DIR}`);
+function clearOldDevelopmentPlots({targetDisk, plotDisk, plotDirectory}) {
+	fs.removeSync(`${targetDisk}:/${plotDirectory}`);
 	if (plotDisk !== targetDisk) {
-		fs.removeSync(`${plotDisk}:/${PLOTS_DIR}`);
+		fs.removeSync(`${plotDisk}:/${plotDirectory}`);
 	}
 }
 
@@ -105,9 +114,7 @@ async function run(options) {
 	}
 	
 	if (answers.confirmed) {
-		logger.info("Start plotting", answers);
 		await startPlotter(answers);
-		logger.info("Finished plotting");
 	}
 	
 }

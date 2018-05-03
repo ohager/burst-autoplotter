@@ -1,12 +1,11 @@
 const os = require('os');
-const path = require('path');
+const fs = require("fs-extra");
 const chalk = require("chalk");
 const {prompt, ui} = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 const {b2mib, b2gib} = require('../../utils');
 const {getSupportedInstructionSets} = require('../../instructionSet');
 const cache = require('../../cache');
-const {PLOTS_DIR} = require('../../config');
 
 const availableDrives = Object.keys(diskInfo.disks);
 const availableCPUs = os.cpus().length;
@@ -28,6 +27,10 @@ const getInstructionSetInformation = () => {
 };
 
 function firstQuestions(defaults) {
+	
+	if(!defaults.logEnabled){
+		writeHint("Currently logging is disabled. The log helps me to improve the user experience.\nI appreciate if you enable logging using the enhanced settings. Thank you.");
+	}
 	
 	const questions = [
 		{
@@ -68,9 +71,9 @@ async function nextQuestions(defaults, options, previousAnswers) {
 	
 	const instSetChoices = options.instructionSetInfo.supported;
 	const defaultInstSet = options.instructionSetInfo.recommended;
-	const defaultPath = path.join(targetDisk, PLOTS_DIR);
-	const whenExtended = () => options.extended;
+	const defaultPlotDirectory = defaults.plotDirectory;
 	
+	const whenExtended = () => options.extended;
 	
 	const nextQuestions = [
 		{
@@ -108,15 +111,25 @@ async function nextQuestions(defaults, options, previousAnswers) {
 			},
 			default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
 		},
-		/* TODO
 		{
 			type: "input",
-			name: "targetPath",
-			message: "What's the path where the plot shall be written to?",
-			default: defaultPath,
+			name: "plotDirectory",
+			message: "In which folder do you want the plot to be written? (absolute path without drive letter)",
+			default: defaultPlotDirectory,
 			when: whenExtended,
+			validate: dir => {
+				try{
+					if(dir[0] !== '/'){
+						return "Please specify the absolute path without drive letter and with trailing '/', e.g. /burst/plots"
+					}
+					fs.ensureDirSync(dir);
+					return true;
+				}catch(error){
+					return error;
+				}
+			},
+			choices: threadChoices
 		},
-		*/
 		{
 			type: "list",
 			name: "threads",
@@ -140,6 +153,13 @@ async function nextQuestions(defaults, options, previousAnswers) {
 			default: defaultInstSet,
 			when: whenExtended,
 			choices: instSetChoices
+		},
+		{
+			type: "confirm",
+			name: "logEnabled",
+			message: "Do you want to enable logging?",
+			default: defaults.logEnabled,
+			when: whenExtended,
 		}
 	];
 	
@@ -148,6 +168,8 @@ async function nextQuestions(defaults, options, previousAnswers) {
 	nextAnswers.threads = nextAnswers.threads || defaultThreads;
 	nextAnswers.memory = nextAnswers.memory || defaultMemory;
 	nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
+	nextAnswers.logEnabled = nextAnswers.logEnabled || defaults.logEnabled;
+	nextAnswers.plotDirectory = nextAnswers.plotDirectory || defaults.plotDirectory;
 	
 	return {
 		cacheFile: options.cache,
@@ -160,6 +182,7 @@ function writeHint(text) {
 	const bottomBar = new ui.BottomBar();
 	bottomBar.log.write("\n");
 	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
+	bottomBar.log.write("\n");
 }
 
 async function movePlotQuestions(defaults, options, previousAnswers) {
@@ -198,7 +221,6 @@ async function movePlotQuestions(defaults, options, previousAnswers) {
 			type: "confirm",
 			name: "isMovingPlot",
 			message: `Do you want to plot on another drive and then move to drive [${targetDisk}]`,
-			validate: v => "Test",
 			default: false
 		},
 		{

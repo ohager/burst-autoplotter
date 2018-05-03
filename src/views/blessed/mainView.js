@@ -10,33 +10,6 @@ const ScoopsView = require("./scoopsView");
 let listener = null;
 let scene = null;
 
-function handleExit({reason}) {
-	
-	stop();
-	
-	if(reason === 'abort'){
-		console.log('Plotting aborted by user!');
-		console.log(`Note, that the last written plot in ${$.selectOutputPath()} may not be valid`);
-		process.exit(0);
-		return;
-	}
-	
-	let message;
-	if ($.selectHasError()) {
-		message = `Error: ` + $.selectError();
-	}
-	else {
-		message = "Validated Plots: \n";
-		message += `Path: ${$.selectOutputPath()}\n`;
-		message += $.selectValidatedPlots().map(v => `${v.plot} is ${v.isValid ? "VALID" : "NOT VALID"}`).join("\n");
-		message += "\n\nHappy Mining!";
-		
-	}
-
-	console.log(message);
-	process.exit(0);
-}
-
 function start(onExit) {
 	
 	scene = new Scene();

@@ -135,6 +135,9 @@ const selectIsWritingScoops = select(
 	state => selectScoopPercentage() > 0
 );
 
+const selectIsLogEnabled = select(
+	state => state.logEnabled
+);
 
 module.exports = {
 	select,
@@ -166,4 +169,5 @@ module.exports = {
 	selectError,
 	selectHasFinished,
 	selectTotalNonceRange,
+	selectIsLogEnabled
 };

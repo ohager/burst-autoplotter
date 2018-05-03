@@ -6,6 +6,8 @@ const initialCacheData = {
 	accountId: "1234567890123456789",
 	lastNonce: 0,
 	instructionSet: 'SSE',
+	plotDirectory: '/burst/plots',
+	logEnabled: true,
 	telegram: {
 		enabled: false,
 		uuid: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',

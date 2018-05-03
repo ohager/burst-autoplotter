@@ -8,7 +8,7 @@ const validator = path.join(__dirname, "../../exe", PLOT_VALIDATOR);
 async function execValidator(plot) {
 	
 	// PlotsChecker.exe c:\burst\plot
-	const validatorArgs = [plot];
+	const validatorArgs = [plot.replace('/','\\')];
 	
 	return new Promise(resolve => {
 		

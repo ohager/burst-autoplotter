@@ -54,18 +54,19 @@ const execPlotter = async (args) => {
 		
 		const process = spawn(getPlotterPath(), plotterArgs);
 		
-		logger.info("Plot started", store.get());
+		logger.info("Spawned plotter process", {
+			plotter: getPlotterPath(),
+			args: plotterArgs
+		});
 		
 		process.stdout.on('data', handleStdoutData);
 		
 		process.stderr.on('data', err => {
-			//logger.error("Plot error", store.get(), err.toString());
 			reject(err.toString());
 		});
 		
 		process.on('close', code => {
 			handleClose(code);
-			//log.info("Plot finished", store.get());
 			resolve();
 		});
 		
@@ -82,13 +83,22 @@ function eventuallyMovePlot(plotPath, targetPath, {sync = false}) {
 		// move file asynchronously, if it's not the last plotfile...
 		// ...just to not make the plotter wait for moving plot
 		const moveFn = sync ? fs.moveSync : fs.move;
-		moveFn(currentPlotFile, path.join(targetPath, path.basename(currentPlotFile)), {overwrite: true});
+		const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
+		moveFn(currentPlotFile, targetPathAbsolute, {overwrite: true});
+		
+		logger.info("Moved plot file", {
+			from: currentPlotFile,
+			to: targetPathAbsolute
+		})
 	}
 }
 
 async function cleanExit(exitCode){
-	console.log("Flushing logs...please wait");
-	await logger.flush();
+	
+	if($.selectIsLogEnabled()){
+		console.log("Flushing logs...please wait");
+		await logger.flush();
+	}
 	process.exit(exitCode)
 }
 
@@ -103,7 +113,7 @@ async function exitHandler(reason) {
 	}
 	
 	if ($.selectHasError()) {
-		logger.error($.selectError());
+		logger.error("Error while plotting:", store.get());
 		console.log(`Error: ` + $.selectError());
 		await cleanExit(-1);
 		return;
@@ -127,6 +137,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 	
 	view.run(exitHandler);
 	
+	// view listens to store, hence updates itself on state changes
 	const interval = setInterval(() => {
 		store.update(() => ({
 			elapsedTime: Date.now()
@@ -154,6 +165,8 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 				}
 			));
 			
+			logger.info("Starts new plot file", store.get());
+			
 			await execPlotter({
 				accountId,
 				plotPath,
@@ -171,6 +184,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 				await notification.sendSinglePlotCompleted();
 			}
 			
+			logger.info("Successfully wrote new plot file", store.get());
 		}
 		
 		await notification.sendAllPlotsCompleted();
