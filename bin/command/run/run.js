@@ -1,59 +1,62 @@
 let startPlotter = (() => {
 	var _ref = _asyncToGenerator(function* (answers) {
-		try {
-			const {
-				accountId,
-				cacheFile,
-				targetDisk,
-				plotDisk,
-				startNonce,
+		const {
+			accountId,
+			cacheFile,
+			targetDisk,
+			plotDisk,
+			startNonce,
+			totalPlotSize,
+			chunks,
+			threads,
+			memory,
+			instructionSet,
+			logEnabled,
+			plotDirectory
+		} = answers;
+
+		const targetPath = `${targetDisk}:${plotDirectory}`;
+		const plotPath = `${plotDisk}:${plotDirectory}`;
+
+		fs.ensureDirSync(plotPath);
+		fs.ensureDirSync(targetPath);
+
+		const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
+
+		store.update(function () {
+			return {
+				logEnabled,
 				totalPlotSize,
-				chunks,
-				threads,
-				memory,
-				instructionSet
-			} = answers;
-
-			const targetPath = `${targetDisk}:/${PLOTS_DIR}`;
-			const plotPath = `${plotDisk}:/${PLOTS_DIR}`;
-
-			fs.ensureDirSync(plotPath);
-			fs.ensureDirSync(targetPath);
-
-			const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
-
-			store.update(function () {
-				return {
-					totalPlotSize,
-					account: accountId,
-					cacheFile: cacheFile,
-					usedThreads: threads,
-					usedMemory: memory,
-					startTime: Date.now(),
-					totalNonces,
-					totalWrittenNonces: 0,
-					totalStartNonce: +startNonce,
-					instructionSet,
-					outputPath: targetPath,
-					plotCount: plots.length,
-					done: false
-				};
-			});
-
-			yield plotter.start({
+				account: accountId,
+				cacheFile: cacheFile,
+				usedThreads: threads,
+				usedMemory: memory,
+				startTime: Date.now(),
 				totalNonces,
-				plots,
-				accountId,
-				plotPath,
-				targetPath,
-				threads,
-				memory,
-				instSet: instructionSet
-			});
-		} catch (e) {
-			console.error(`Woop: Something failed - reason: ${e}`);
-			process.exit(666);
-		}
+				totalWrittenNonces: 0,
+				totalStartNonce: +startNonce,
+				instructionSet,
+				outputPath: targetPath,
+				plotCount: plots.length,
+				plotDirectory,
+				done: false
+			};
+		});
+
+		logger.info("Start plotting", answers);
+
+		yield plotter.start({
+			totalNonces,
+			plots,
+			accountId,
+			plotPath,
+			targetPath,
+			threads,
+			memory,
+			instSet: instructionSet
+		});
+
+		logger.info("Finished plotting", answers);
 	});
 
 	return function startPlotter(_x) {
@@ -64,29 +67,27 @@ let startPlotter = (() => {
 let run = (() => {
 	var _ref2 = _asyncToGenerator(function* (options) {
 
+		logger.info("Execute Autoplotter", options);
+
 		if (options.version) {
 			return;
 		}
 
-		try {
-			let answers;
-			if (isDevelopmentMode()) {
-				answers = prepareDevelopmentAnswers();
-				clearOldDevelopmentPlots(answers);
-			} else {
+		let answers;
+		if (isDevelopmentMode()) {
+			answers = prepareDevelopmentAnswers();
+			clearOldDevelopmentPlots(answers);
+		} else {
 
+			answers = yield questions.ask(options);
+			while (answers.rerun) {
 				answers = yield questions.ask(options);
-				while (answers.rerun) {
-					answers = yield questions.ask(options);
-				}
-				cache.update(answers, options.cache);
 			}
+			cache.update(answers, options.cache);
+		}
 
-			if (answers.confirmed) {
-				yield startPlotter(answers);
-			}
-		} catch (e) {
-			console.log("handle", e);
+		if (answers.confirmed) {
+			yield startPlotter(answers);
 		}
 	});
 
@@ -105,7 +106,7 @@ const store = require('../../store');
 const cache = require('../../cache');
 const plotter = require('../../plotter');
 const createPlotPartition = require('../../plotPartition');
-const { PLOTS_DIR } = require('../../config');
+const logger = require("../../logger");
 
 function prepareDevelopmentAnswers() {
 
@@ -113,19 +114,22 @@ function prepareDevelopmentAnswers() {
 		accountId: '1234567890123456700',
 		targetDisk: 'C',
 		plotDisk: 'C',
+		plotDirectory: '/Burst/plots',
 		totalPlotSize: '1',
 		chunks: '2',
 		startNonce: '0',
 		threads: 7,
 		memory: '8192',
-		instructionSet: 'AVX2'
+		instructionSet: 'AVX2',
+		confirmed: true,
+		logEnabled: true
 	};
 }
 
-function clearOldDevelopmentPlots({ targetDisk, plotDisk }) {
-	fs.removeSync(`${targetDisk}:/${PLOTS_DIR}`);
+function clearOldDevelopmentPlots({ targetDisk, plotDisk, plotDirectory }) {
+	fs.removeSync(`${targetDisk}:/${plotDirectory}`);
 	if (plotDisk !== targetDisk) {
-		fs.removeSync(`${plotDisk}:/${PLOTS_DIR}`);
+		fs.removeSync(`${plotDisk}:/${plotDirectory}`);
 	}
 }
 

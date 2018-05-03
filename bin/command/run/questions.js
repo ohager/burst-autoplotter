@@ -19,7 +19,8 @@ let nextQuestions = (() => {
 
 		const instSetChoices = options.instructionSetInfo.supported;
 		const defaultInstSet = options.instructionSetInfo.recommended;
-		const defaultPath = path.join(targetDisk, PLOTS_DIR);
+		const defaultPlotDirectory = defaults.plotDirectory;
+
 		const whenExtended = function () {
 			return options.extended;
 		};
@@ -57,17 +58,25 @@ let nextQuestions = (() => {
 				);
 			},
 			default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
-		},
-		/* TODO
-  {
-  	type: "input",
-  	name: "targetPath",
-  	message: "What's the path where the plot shall be written to?",
-  	default: defaultPath,
-  	when: whenExtended,
-  },
-  */
-		{
+		}, {
+			type: "input",
+			name: "plotDirectory",
+			message: "In which folder do you want the plot to be written? (absolute path without drive letter)",
+			default: defaultPlotDirectory,
+			when: whenExtended,
+			validate: function (dir) {
+				try {
+					if (dir[0] !== '/') {
+						return "Please specify the absolute path without drive letter and with trailing '/', e.g. /burst/plots";
+					}
+					fs.ensureDirSync(dir);
+					return true;
+				} catch (error) {
+					return error;
+				}
+			},
+			choices: threadChoices
+		}, {
 			type: "list",
 			name: "threads",
 			message: "How many threads do you want to use? (the more the faster the plotting)",
@@ -88,6 +97,12 @@ let nextQuestions = (() => {
 			default: defaultInstSet,
 			when: whenExtended,
 			choices: instSetChoices
+		}, {
+			type: "confirm",
+			name: "logEnabled",
+			message: "Do you want to enable logging?",
+			default: defaults.logEnabled,
+			when: whenExtended
 		}];
 
 		const nextAnswers = yield prompt(nextQuestions);
@@ -95,6 +110,8 @@ let nextQuestions = (() => {
 		nextAnswers.threads = nextAnswers.threads || defaultThreads;
 		nextAnswers.memory = nextAnswers.memory || defaultMemory;
 		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
+		nextAnswers.logEnabled = nextAnswers.logEnabled || defaults.logEnabled;
+		nextAnswers.plotDirectory = nextAnswers.plotDirectory || defaults.plotDirectory;
 
 		return _extends({
 			cacheFile: options.cache
@@ -143,9 +160,6 @@ let movePlotQuestions = (() => {
 			type: "confirm",
 			name: "isMovingPlot",
 			message: `Do you want to plot on another drive and then move to drive [${targetDisk}]`,
-			validate: function (v) {
-				return "Test";
-			},
 			default: false
 		}, {
 			type: "list",
@@ -222,14 +236,13 @@ let ask = (() => {
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 const os = require('os');
-const path = require('path');
+const fs = require("fs-extra");
 const chalk = require("chalk");
 const { prompt, ui } = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
 const { b2mib, b2gib } = require('../../utils');
 const { getSupportedInstructionSets } = require('../../instructionSet');
 const cache = require('../../cache');
-const { PLOTS_DIR } = require('../../config');
 
 const availableDrives = Object.keys(diskInfo.disks);
 const availableCPUs = os.cpus().length;
@@ -251,6 +264,10 @@ const getInstructionSetInformation = () => {
 };
 
 function firstQuestions(defaults) {
+
+	if (!defaults.logEnabled) {
+		writeHint("Currently logging is disabled. The log helps me to improve the user experience.\nI appreciate if you enable logging using the enhanced settings. Thank you.");
+	}
 
 	const questions = [{
 		type: "input",
@@ -274,6 +291,7 @@ function writeHint(text) {
 	const bottomBar = new ui.BottomBar();
 	bottomBar.log.write("\n");
 	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
+	bottomBar.log.write("\n");
 }
 
 module.exports = {

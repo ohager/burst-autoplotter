@@ -76,6 +76,8 @@ const selectTotalNonceRange = select(state => ({
 
 const selectIsWritingScoops = select(state => selectScoopPercentage() > 0);
 
+const selectIsLogEnabled = select(state => state.logEnabled);
+
 module.exports = {
 	select,
 	selectInstructionSet,
@@ -105,5 +107,6 @@ module.exports = {
 	selectHasError,
 	selectError,
 	selectHasFinished,
-	selectTotalNonceRange
+	selectTotalNonceRange,
+	selectIsLogEnabled
 };

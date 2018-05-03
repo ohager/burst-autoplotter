@@ -2,7 +2,7 @@ let execValidator = (() => {
 	var _ref = _asyncToGenerator(function* (plot) {
 
 		// PlotsChecker.exe c:\burst\plot
-		const validatorArgs = [plot];
+		const validatorArgs = [plot.replace('/', '\\')];
 
 		return new Promise(function (resolve) {
 
