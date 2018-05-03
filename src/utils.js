@@ -64,5 +64,5 @@ module.exports = {
 	normalizeProgress,
 	asMultipleOf,
 	isDevelopmentMode,
-	getNewestFileInDirectory
+	getNewestFileInDirectory,
 };

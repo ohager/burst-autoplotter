@@ -74,28 +74,27 @@ const execPlotter = async (args) => {
 	
 };
 
-function eventuallyMovePlot(plotPath, targetPath, {sync = false}) {
+async function eventuallyMovePlot(plotPath, targetPath) {
 	if (targetPath === plotPath) return;
 	
 	const currentPlotFile = getNewestFileInDirectory(plotPath);
 	
-	if (currentPlotFile) {
-		// move file asynchronously, if it's not the last plotfile...
-		// ...just to not make the plotter wait for moving plot
-		const moveFn = sync ? fs.moveSync : fs.move;
-		const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
-		moveFn(currentPlotFile, targetPathAbsolute, {overwrite: true});
-		
-		logger.info("Moved plot file", {
-			from: currentPlotFile,
-			to: targetPathAbsolute
-		})
+	if (!currentPlotFile) return;
+	
+	const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
+	try {
+		logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
+		await fs.move(currentPlotFile, targetPathAbsolute, {overwrite: true});
+		logger.info("Moved plot file successfully", {from: currentPlotFile, to: targetPathAbsolute});
+	} catch (e) {
+		logger.info("Error - Moved plot file failed", {from: currentPlotFile, to: targetPathAbsolute, error: e});
+		throw e;
 	}
 }
 
-async function cleanExit(exitCode){
+async function cleanExit(exitCode) {
 	
-	if($.selectIsLogEnabled()){
+	if ($.selectIsLogEnabled()) {
 		console.log("Flushing logs...please wait");
 		await logger.flush();
 	}
@@ -113,14 +112,14 @@ async function exitHandler(reason) {
 	}
 	
 	if ($.selectHasError()) {
-		logger.error("Error while plotting:", store.get());
+		logger.error("Error:", store.get());
 		console.log(`Error: ` + $.selectError());
 		await cleanExit(-1);
 		return;
 	}
 	
 	logger.info("Finished Successfully");
-
+	
 	let message;
 	message = "Validated Plots: \n";
 	message += `Path: ${$.selectOutputPath()}\n`;
@@ -128,7 +127,7 @@ async function exitHandler(reason) {
 	message += "\n\nHappy Mining!";
 	
 	console.log(message);
-
+	
 	await cleanExit(0);
 }
 
@@ -136,6 +135,7 @@ async function exitHandler(reason) {
 async function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
 	
 	view.run(exitHandler);
+	
 	
 	// view listens to store, hence updates itself on state changes
 	const interval = setInterval(() => {
@@ -176,7 +176,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 				memory
 			});
 			
-			eventuallyMovePlot(plotPath, targetPath, {sync: isLastPlot});
+			await eventuallyMovePlot(plotPath, targetPath);
 			
 			cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 			

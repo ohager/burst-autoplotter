@@ -1,5 +1,29 @@
+let eventuallyMovePlot = (() => {
+	var _ref2 = _asyncToGenerator(function* (plotPath, targetPath) {
+		if (targetPath === plotPath) return;
+
+		const currentPlotFile = getNewestFileInDirectory(plotPath);
+
+		if (!currentPlotFile) return;
+
+		const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
+		try {
+			logger.info("Moving plot file...", { from: currentPlotFile, to: targetPathAbsolute });
+			yield fs.move(currentPlotFile, targetPathAbsolute, { overwrite: true });
+			logger.info("Moved plot file successfully", { from: currentPlotFile, to: targetPathAbsolute });
+		} catch (e) {
+			logger.info("Error - Moved plot file failed", { from: currentPlotFile, to: targetPathAbsolute, error: e });
+			throw e;
+		}
+	});
+
+	return function eventuallyMovePlot(_x2, _x3) {
+		return _ref2.apply(this, arguments);
+	};
+})();
+
 let cleanExit = (() => {
-	var _ref2 = _asyncToGenerator(function* (exitCode) {
+	var _ref3 = _asyncToGenerator(function* (exitCode) {
 
 		if ($.selectIsLogEnabled()) {
 			console.log("Flushing logs...please wait");
@@ -8,13 +32,13 @@ let cleanExit = (() => {
 		process.exit(exitCode);
 	});
 
-	return function cleanExit(_x2) {
-		return _ref2.apply(this, arguments);
+	return function cleanExit(_x4) {
+		return _ref3.apply(this, arguments);
 	};
 })();
 
 let exitHandler = (() => {
-	var _ref3 = _asyncToGenerator(function* (reason) {
+	var _ref4 = _asyncToGenerator(function* (reason) {
 
 		if (reason === 'abort') {
 			logger.info("Plotting aborted by user!");
@@ -25,7 +49,7 @@ let exitHandler = (() => {
 		}
 
 		if ($.selectHasError()) {
-			logger.error("Error while plotting:", store.get());
+			logger.error("Error:", store.get());
 			console.log(`Error: ` + $.selectError());
 			yield cleanExit(-1);
 			return;
@@ -46,13 +70,13 @@ let exitHandler = (() => {
 		yield cleanExit(0);
 	});
 
-	return function exitHandler(_x3) {
-		return _ref3.apply(this, arguments);
+	return function exitHandler(_x5) {
+		return _ref4.apply(this, arguments);
 	};
 })();
 
 let start = (() => {
-	var _ref4 = _asyncToGenerator(function* ({ totalNonces, plots, accountId, plotPath, targetPath, threads, memory }) {
+	var _ref5 = _asyncToGenerator(function* ({ totalNonces, plots, accountId, plotPath, targetPath, threads, memory }) {
 
 		view.run(exitHandler);
 
@@ -98,7 +122,7 @@ let start = (() => {
 					memory
 				});
 
-				eventuallyMovePlot(plotPath, targetPath, { sync: isLastPlot });
+				yield eventuallyMovePlot(plotPath, targetPath);
 
 				cache.update({ lastNonce: plot.startNonce + plot.nonces }, $.selectCacheFile());
 
@@ -133,8 +157,8 @@ let start = (() => {
 		}
 	});
 
-	return function start(_x4) {
-		return _ref4.apply(this, arguments);
+	return function start(_x6) {
+		return _ref5.apply(this, arguments);
 	};
 })();
 
@@ -212,25 +236,6 @@ const execPlotter = (() => {
 		return _ref.apply(this, arguments);
 	};
 })();
-
-function eventuallyMovePlot(plotPath, targetPath, { sync = false }) {
-	if (targetPath === plotPath) return;
-
-	const currentPlotFile = getNewestFileInDirectory(plotPath);
-
-	if (currentPlotFile) {
-		// move file asynchronously, if it's not the last plotfile...
-		// ...just to not make the plotter wait for moving plot
-		const moveFn = sync ? fs.moveSync : fs.move;
-		const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
-		moveFn(currentPlotFile, targetPathAbsolute, { overwrite: true });
-
-		logger.info("Moved plot file", {
-			from: currentPlotFile,
-			to: targetPathAbsolute
-		});
-	}
-}
 
 module.exports = {
 	start

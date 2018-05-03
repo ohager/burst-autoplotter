@@ -1,4 +1,5 @@
 const loggly = require("node-loggly-bulk");
+const {format} = require("date-fns");
 const {version} = require("../package");
 const {LOGGLY_TOKEN, LOGGLY_SUBDOMAIN} = require('./config');
 const {isDevelopmentMode} = require("./utils");
@@ -8,6 +9,7 @@ let client = null;
 
 function createLogMessage(type, message, payload) {
 	return {
+		created: format(new Date()),
 		type,
 		version,
 		message,

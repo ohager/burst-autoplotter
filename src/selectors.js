@@ -139,6 +139,10 @@ const selectIsLogEnabled = select(
 	state => state.logEnabled
 );
 
+const selectMessage = select(
+	state => state.message || ""
+);
+
 module.exports = {
 	select,
 	selectInstructionSet,
@@ -169,5 +173,6 @@ module.exports = {
 	selectError,
 	selectHasFinished,
 	selectTotalNonceRange,
-	selectIsLogEnabled
+	selectIsLogEnabled,
+	selectMessage,
 };
