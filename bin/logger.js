@@ -47,7 +47,13 @@ function log(type, message, obj = {}) {
 		json: true
 	});
 
-	client.log(createLogMessage(type, message, obj));
+	try {
+		client.log(createLogMessage(type, message, obj));
+	} catch (e) {
+		console.log("LOGGING ERROR:", e);
+		console.log("If it persists you should disable logging (using -e option on setup)");
+		// ignore silently...just not to bother the plotting...
+	}
 }
 
 function error(message, obj) {

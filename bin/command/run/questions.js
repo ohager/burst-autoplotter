@@ -135,6 +135,7 @@ let movePlotQuestions = (() => {
 		const choices = availableDrives.filter(function (d) {
 			return d !== targetDisk && getDiskSpaceGiB(d) > requiredPlotDiskCapacityGiB;
 		});
+
 		const defaultAnswers = {
 			plotDisk: previousAnswers.targetDisk
 		};
@@ -145,6 +146,8 @@ let movePlotQuestions = (() => {
 		if (availableDrives.length > 1 && choices.length === 0) {
 			availableDrives.filter(function (d) {
 				return d !== targetDisk;
+			}).filter(function (d) {
+				return getDiskSpaceGiB(d) < requiredPlotDiskCapacityGiB;
 			}).forEach(function (d) {
 				const availableGiB = getDiskSpaceGiB(d);
 				const missingGiB = (requiredPlotDiskCapacityGiB - availableGiB).toFixed(2);
@@ -173,7 +176,8 @@ let movePlotQuestions = (() => {
 		}];
 
 		const movePlotAnswers = yield prompt(questions);
-		return _extends({}, previousAnswers, movePlotAnswers);
+
+		return _extends({}, previousAnswers, defaultAnswers, movePlotAnswers);
 	});
 
 	return function movePlotQuestions(_x4, _x5, _x6) {

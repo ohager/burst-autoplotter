@@ -28,7 +28,7 @@ const getInstructionSetInformation = () => {
 
 function firstQuestions(defaults) {
 	
-	if(!defaults.logEnabled){
+	if (!defaults.logEnabled) {
 		writeHint("Currently logging is disabled. The log helps me to improve the user experience.\nI appreciate if you enable logging using the enhanced settings. Thank you.");
 	}
 	
@@ -118,13 +118,13 @@ async function nextQuestions(defaults, options, previousAnswers) {
 			default: defaultPlotDirectory,
 			when: whenExtended,
 			validate: dir => {
-				try{
-					if(dir[0] !== '/'){
+				try {
+					if (dir[0] !== '/') {
 						return "Please specify the absolute path without drive letter and with trailing '/', e.g. /burst/plots"
 					}
 					fs.ensureDirSync(dir);
 					return true;
-				}catch(error){
+				} catch (error) {
 					return error;
 				}
 			},
@@ -192,6 +192,7 @@ async function movePlotQuestions(defaults, options, previousAnswers) {
 	const {targetDisk, totalPlotSize, chunks} = previousAnswers;
 	const requiredPlotDiskCapacityGiB = ((totalPlotSize / chunks) * 1.01).toFixed(2); // 1% more space required
 	const choices = availableDrives.filter(d => d !== targetDisk && getDiskSpaceGiB(d) > requiredPlotDiskCapacityGiB);
+	
 	const defaultAnswers = {
 		plotDisk: previousAnswers.targetDisk
 	};
@@ -202,6 +203,7 @@ async function movePlotQuestions(defaults, options, previousAnswers) {
 	if (availableDrives.length > 1 && choices.length === 0) {
 		availableDrives
 			.filter(d => d !== targetDisk)
+			.filter( d => getDiskSpaceGiB(d) < requiredPlotDiskCapacityGiB)
 			.forEach(d => {
 				const availableGiB = getDiskSpaceGiB(d);
 				const missingGiB = (requiredPlotDiskCapacityGiB - availableGiB).toFixed(2);
@@ -234,8 +236,10 @@ async function movePlotQuestions(defaults, options, previousAnswers) {
 	];
 	
 	const movePlotAnswers = await prompt(questions);
+	
 	return {
 		...previousAnswers,
+		...defaultAnswers,
 		...movePlotAnswers,
 	}
 }
