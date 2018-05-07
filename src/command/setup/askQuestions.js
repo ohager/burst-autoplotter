@@ -8,6 +8,7 @@ async function askQuestions(questions, options){
 	}
 	
 	const answers = await questions.ask(options);
+	
 	cache.update(answers, options.cache);
 	
 	if(isDevelopmentMode()){

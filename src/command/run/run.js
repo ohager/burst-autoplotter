@@ -110,7 +110,9 @@ async function run(options) {
 		while (answers.rerun) {
 			answers = await questions.ask(options);
 		}
+		
 		cache.update(answers, options.cache);
+		
 	}
 	
 	if (answers.confirmed) {

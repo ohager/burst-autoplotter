@@ -91,6 +91,7 @@ function mapAnswers(defaults, options, answers) {
 	const _default = (section, field) => section && section[field];
 	
 	return {
+		...defaults,
 		email: {
 			enabled: !!answers.mailEnabled,
 			address: answers.email || _default(defaults.email, 'address')

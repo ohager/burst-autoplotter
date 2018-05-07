@@ -43,11 +43,19 @@ const guaranteeExistance = (file) => {
 	return file;
 };
 
-const load = (file = defaultCacheFile) => fs.readJsonSync(guaranteeExistance(file));
+const load = (file = defaultCacheFile) => (
+	{
+		...initialCacheData,
+		...fs.readJsonSync(guaranteeExistance(file)),
+	}
+);
 
 function update(obj, file = defaultCacheFile) {
 	
-	const cache = load(file);
+	const cache = {
+		...initialCacheData,
+		...load(file)
+	};
 	let isDirty = false;
 	
 	let updatedCache;

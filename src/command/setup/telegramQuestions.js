@@ -47,6 +47,7 @@ function mapAnswers(defaults, options, answers) {
 	const _default = (section, field) => section && section[field];
 	
 	return {
+		...defaults,
 		telegram: {
 			enabled: !!answers.telegramEnabled,
 			token: answers.token || _default(defaults.telegram, 'token')
