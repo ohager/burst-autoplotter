@@ -1,6 +1,8 @@
 const {spawn} = require('child_process');
 const path = require("path");
 const fs = require("fs-extra");
+const throttle = require("lodash.throttle");
+const moveFile = require("../moveFile");
 const cache = require('../cache');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
 const execValidator = require("../validator/validator");
@@ -49,7 +51,6 @@ const execPlotter = async (args) => {
 		plotterArgs.push('-mem', `${memory}M`)
 	}
 	
-	
 	return new Promise((resolve, reject) => {
 		
 		const process = spawn(getPlotterPath(), plotterArgs);
@@ -74,7 +75,44 @@ const execPlotter = async (args) => {
 	
 };
 
-async function eventuallyMovePlot(plotPath, targetPath) {
+async function waitForMovingPlotFinished() {
+	return new Promise(resolve => {
+		const interval = setInterval(() => {
+			if (!$.selectIsMovingPlot()) {
+				clearInterval(interval);
+				resolve()
+			}
+		}, 500)
+	});
+}
+
+function updateMovePlotProgress(progress) {
+	store.update(state => ({
+		message: `Copying ${progress.copiedBytes}/${progress.totalSizeBytes}`,
+		movePlot: progress
+	}));
+}
+
+const throttledUpdateMovePlotProgress = throttle(updateMovePlotProgress, 500);
+
+async function movePlot(plotPath, targetPath) {
+	
+	await waitForMovingPlotFinished();
+	//console.log("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
+	//logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
+	
+	return moveFile(plotPath, targetPath, throttledUpdateMovePlotProgress)
+		.then(status => {
+			updateMovePlotProgress(status);
+			if (!status.error) {
+				logger.info("Moved plot file successfully", {from: plotPath, to: targetPath});
+			}
+			return status;
+		});
+}
+
+
+function eventuallyMovePlot(plotPath, targetPath) {
 	if (targetPath === plotPath) return;
 	
 	const currentPlotFile = getNewestFileInDirectory(plotPath);
@@ -82,14 +120,8 @@ async function eventuallyMovePlot(plotPath, targetPath) {
 	if (!currentPlotFile) return;
 	
 	const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
-	try {
-		logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
-		await fs.move(currentPlotFile, targetPathAbsolute, {overwrite: true});
-		logger.info("Moved plot file successfully", {from: currentPlotFile, to: targetPathAbsolute});
-	} catch (e) {
-		logger.info("Error - Moved plot file failed", {from: currentPlotFile, to: targetPathAbsolute, error: e});
-		throw e;
-	}
+	
+	movePlot(currentPlotFile, targetPathAbsolute);
 }
 
 async function cleanExit(exitCode) {
@@ -136,7 +168,6 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 	
 	view.run(exitHandler);
 	
-	
 	// view listens to store, hence updates itself on state changes
 	const interval = setInterval(() => {
 		store.update(() => ({
@@ -152,6 +183,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			
 			// reset current plot state
 			store.update(() => ({
+					message: "Starting...",
 					currentPlot: {
 						index: i + 1,
 						nonces: plot.nonces,
@@ -176,17 +208,19 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 				memory
 			});
 			
-			await eventuallyMovePlot(plotPath, targetPath);
-			
-			cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 			
 			if (!isLastPlot) {
+				// run non-blocking plot movement
+				// noinspection JSIgnoredPromiseFromCall
+				eventuallyMovePlot(plotPath, targetPath);
 				await notification.sendSinglePlotCompleted();
 			}
 			
+			cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 			logger.info("Successfully wrote new plot file", store.get());
 		}
 		
+		await eventuallyMovePlot(plotPath, targetPath);
 		await notification.sendAllPlotsCompleted();
 		
 		store.update(() => ({

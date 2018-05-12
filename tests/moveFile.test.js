@@ -6,14 +6,10 @@ const store = require("../src/store");
 const SourceFile = path.join(__dirname, "testfile.dat");
 const TargetFile = path.join(__dirname, "testfile.moved.dat");
 
-beforeAll(() => {
+beforeEach(() => {
 	// create File
 	const data = new Array(10 * 1024 * 1024); // 10 MiB
 	fs.writeFileSync(SourceFile, Buffer.from(data));
-});
-
-afterAll(() => {
-	fs.unlinkSync(SourceFile);
 });
 
 afterEach( () => {
@@ -32,6 +28,8 @@ test("moveFile", (done) => {
 		expect(fs.existsSync(TargetFile)).toBeTruthy();
 		expect(fs.statSync(TargetFile).size).toBe(stat.totalSizeBytes);
 		
+	}).then(() => {
+		expect(fs.existsSync(SourceFile)).toBeFalsy();
 		done();
 	})
 

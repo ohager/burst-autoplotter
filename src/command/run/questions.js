@@ -187,11 +187,11 @@ function writeHint(text) {
 
 async function movePlotQuestions(defaults, options, previousAnswers) {
 	
-	const getDiskSpaceGiB = driveName => b2gib(diskInfo.disks[driveName].free).toFixed(2);
+	const getDiskSpaceGiB = driveName => +b2gib(diskInfo.disks[driveName].free).toFixed(2);
 	
 	const {targetDisk, totalPlotSize, chunks} = previousAnswers;
-	const requiredPlotDiskCapacityGiB = ((totalPlotSize / chunks) * 1.01).toFixed(2); // 1% more space required
-	const choices = availableDrives.filter(d => d !== targetDisk && getDiskSpaceGiB(d) > requiredPlotDiskCapacityGiB);
+	const requiredPlotDiskCapacityGiB = +((totalPlotSize / chunks) * 1.01).toFixed(2); // 1% more space required
+	const choices = availableDrives.filter(d => d !== targetDisk).filter( d => getDiskSpaceGiB(d) >= requiredPlotDiskCapacityGiB);
 	
 	const defaultAnswers = {
 		plotDisk: previousAnswers.targetDisk

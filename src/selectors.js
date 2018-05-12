@@ -143,6 +143,10 @@ const selectMessage = select(
 	state => state.message || ""
 );
 
+const selectIsMovingPlot = select( state =>
+	state.movePlot ? state.movePlot.isMoving : false
+);
+
 module.exports = {
 	select,
 	selectInstructionSet,
@@ -175,4 +179,5 @@ module.exports = {
 	selectTotalNonceRange,
 	selectIsLogEnabled,
 	selectMessage,
+	selectIsMovingPlot,
 };

@@ -19,6 +19,7 @@ function createLogMessage(type, message, payload) {
 
 function log(type, message, obj = {}) {
 
+	/*
 	if(!$.selectIsLogEnabled()) return;
 
 	client = client || loggly.createClient({
@@ -36,6 +37,8 @@ function log(type, message, obj = {}) {
 		console.log("If it persists you should disable logging (using -e option on setup)");
 		// ignore silently...just not to bother the plotting...
 	}
+	*/
+	// FIXME: Loggly is buggy and make the computer crash WTF!?
 }
 
 function error(message, obj) {
