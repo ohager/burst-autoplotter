@@ -160,11 +160,11 @@ test("Test selectMovePlotTransferSpeed selector", () => {
 			copiedBytes: 1024 * 1024
 		}
 	}));
-	expect($.selectMovePlotTransferSpeed()).toBe("N/A");
+	expect($.selectMovePlotTransferSpeed()).toBe(null);
 	
 	store.update(() => ({
 		movePlot:{
-			startTime: Date.now() - 1,
+			startTime: Date.now() - 1000,
 			copiedBytes: 1024 * 1024
 		}
 	}));
@@ -172,7 +172,7 @@ test("Test selectMovePlotTransferSpeed selector", () => {
 	
 	store.update(() => ({
 		movePlot:{
-			startTime: Date.now() - 2,
+			startTime: Date.now() - 2000,
 			copiedBytes: 10 * 1024 * 1024
 		}
 	}));

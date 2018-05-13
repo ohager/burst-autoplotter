@@ -79,12 +79,13 @@ class TotalView {
 	}
 	
 	update() {
-		if(!$.selectIsMovePlotEnabled()) return;
+		if (!$.selectIsMovePlotEnabled()) return;
 		
 		this.updateBox();
 		this.updateProgressBar();
 		this.updateRemaining();
 	}
+	
 	
 	updateProgressBar() {
 		
@@ -92,17 +93,16 @@ class TotalView {
 		const totalCopiedMiB = $.selectMovePlotCopiedMegabytes();
 		const progress = Math.min(normalizeProgress(0, totalMiB, totalCopiedMiB, 100), 100);
 		
-		// TODO: change color if remaining time is greater than currentPlotTime
 		this.progressElement.style.bar = {
-			bg: 'green',
-			bold: true
+			bg: $.selectIsMovingSlowerThanPlotting() ? 'red' : 'green',
+			bold: false
 		};
 		this.progressElement.setProgress(progress);
 	}
 	
 	updateBox() {
 		
-		const isMovingPlot =  $.selectIsMovingPlot();
+		const isMovingPlot = $.selectIsMovingPlot();
 		this.element.style.border.bold = isMovingPlot;
 		this.progressElement.style.bar.bold = isMovingPlot;
 		this.progressElement.style.border.bold = isMovingPlot;

@@ -85,8 +85,9 @@ async function waitForMovingPlotFinished() {
 }
 
 function updateMovePlotProgress(progress) {
+	
 	store.update(state => ({
-		message: `Copying ${progress.copiedBytes}/${progress.totalSizeBytes}`,
+		message: $.selectIsMovingSlowerThanPlotting() ? "Copying needs more time than plotting!" : "",
 		movePlot: {
 			...state.movePlot,
 			...progress
@@ -101,7 +102,6 @@ async function movePlot(plotPath, targetPath) {
 	//console.log("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
 	//logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
 	store.update(state => ({
-		message: `Copying ${plotPath}`,
 		movePlot: {
 			...state.movePlot,
 			startTime: Date.now(),
@@ -189,8 +189,9 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			
 			// reset current plot state
 			store.update(() => ({
-					message: "Starting...",
+					message: "",
 					currentPlot: {
+						isLastPlot: isLastPlot,
 						index: i + 1,
 						nonces: plot.nonces,
 						writtenNonces: 0,
