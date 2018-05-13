@@ -87,7 +87,10 @@ async function waitForMovingPlotFinished() {
 function updateMovePlotProgress(progress) {
 	store.update(state => ({
 		message: `Copying ${progress.copiedBytes}/${progress.totalSizeBytes}`,
-		movePlot: progress
+		movePlot: {
+			...state.movePlot,
+			...progress
+		}
 	}));
 }
 
@@ -97,6 +100,13 @@ async function movePlot(plotPath, targetPath) {
 	
 	//console.log("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
 	//logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
+	store.update(state => ({
+		message: `Copying ${plotPath}`,
+		movePlot: {
+			...state.movePlot,
+			startTime: Date.now(),
+		}
+	}));
 	
 	return moveFile(plotPath, targetPath, updateMovePlotProgress)
 		.then(status => {
@@ -107,7 +117,6 @@ async function movePlot(plotPath, targetPath) {
 			return status;
 		});
 }
-
 
 async function eventuallyMovePlot(plotPath, targetPath) {
 	if (targetPath === plotPath) return Promise.resolve();
@@ -168,7 +177,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 	// view listens to store, hence updates itself on state changes
 	const interval = setInterval(() => {
 		store.update(() => ({
-			elapsedTime: Date.now()
+			currentTime: Date.now()
 		}));
 	}, 1000);
 	

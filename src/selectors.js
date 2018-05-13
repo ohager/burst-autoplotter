@@ -1,5 +1,5 @@
 const store = require("./store");
-
+const {b2mib} = require("./utils");
 /**
  * Generic selector function to access the stores state.
  * It allows to transform a state in arbitrary return values
@@ -143,9 +143,33 @@ const selectMessage = select(
 	state => state.message || ""
 );
 
-const selectIsMovingPlot = select( state =>
-	state.movePlot ? state.movePlot.isMoving : false
+const selectIsMovePlotEnabled = select(state =>
+	state.movePlot.isEnabled
 );
+
+const selectIsMovingPlot = select(state =>
+	state.movePlot.isMoving
+);
+
+const selectMovePlotTotalMegabytes = select(state =>
+	+b2mib(state.movePlot.totalSizeBytes || 0.00).toFixed(2)
+);
+
+const selectMovePlotCopiedMegabytes = select(state =>
+	+b2mib(state.movePlot.copiedBytes || 0.00).toFixed(2)
+);
+
+const selectMovePlotTransferSpeed = select(state => {
+		const elapsedSecs = (Date.now() - state.movePlot.startTime) / 1000;
+		return elapsedSecs !== 0 ? (selectMovePlotCopiedMegabytes() / elapsedSecs).toFixed(2) : null;
+	}
+);
+
+const selectMovePlotEstimatedDurationInSecs = select(state => {
+	const mbps = selectMovePlotTransferSpeed();
+	const remainingMiBs = selectMovePlotTotalMegabytes() - selectMovePlotCopiedMegabytes();
+	return mbps ? Math.floor(remainingMiBs / mbps) : null;
+});
 
 module.exports = {
 	select,
@@ -179,5 +203,10 @@ module.exports = {
 	selectTotalNonceRange,
 	selectIsLogEnabled,
 	selectMessage,
+	selectIsMovePlotEnabled,
 	selectIsMovingPlot,
+	selectMovePlotTotalMegabytes,
+	selectMovePlotCopiedMegabytes,
+	selectMovePlotTransferSpeed,
+	selectMovePlotEstimatedDurationInSecs
 };

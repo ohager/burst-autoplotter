@@ -152,4 +152,31 @@ test("Test selectHasError selector", () => {
 	expect($.selectHasError()).toBeTruthy();
 });
 
+test("Test selectMovePlotTransferSpeed selector", () => {
+	
+	store.update(() => ({
+		movePlot:{
+			startTime: Date.now(),
+			copiedBytes: 1024 * 1024
+		}
+	}));
+	expect($.selectMovePlotTransferSpeed()).toBe("N/A");
+	
+	store.update(() => ({
+		movePlot:{
+			startTime: Date.now() - 1,
+			copiedBytes: 1024 * 1024
+		}
+	}));
+	expect($.selectMovePlotTransferSpeed()).toBe("1.00");
+	
+	store.update(() => ({
+		movePlot:{
+			startTime: Date.now() - 2,
+			copiedBytes: 10 * 1024 * 1024
+		}
+	}));
+	expect($.selectMovePlotTransferSpeed()).toBe("5.00");
+	
+});
 

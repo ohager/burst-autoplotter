@@ -47,7 +47,11 @@ async function startPlotter(answers) {
 		outputPath: targetPath,
 		plotCount: plots.length,
 		plotDirectory,
-		done: false,
+		movePlot : {
+			isEnabled: targetPath !== plotPath,
+			isMoving: false,
+		},
+		done : false,
 	}));
 	
 	logger.info("Start plotting", answers);

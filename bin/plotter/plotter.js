@@ -84,7 +84,7 @@ let start = (() => {
 		const interval = setInterval(function () {
 			store.update(function () {
 				return {
-					elapsedTime: Date.now()
+					currentTime: Date.now()
 				};
 			});
 		}, 1000);
