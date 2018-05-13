@@ -16,7 +16,7 @@ afterEach( () => {
 	fs.unlinkSync(TargetFile);
 });
 
-test("moveFile", (done) => {
+test("moveFile as callbacks", (done) => {
 	
 	moveFile(SourceFile, TargetFile, (stat) => {
 		expect(stat.isMoving).toBeTruthy();
@@ -27,10 +27,25 @@ test("moveFile", (done) => {
 		expect(stat.isMoving).toBeFalsy();
 		expect(fs.existsSync(TargetFile)).toBeTruthy();
 		expect(fs.statSync(TargetFile).size).toBe(stat.totalSizeBytes);
-		
-	}).then(() => {
 		expect(fs.existsSync(SourceFile)).toBeFalsy();
 		done();
+		
 	})
+});
 
+test("moveFile as promise", (done) => {
+	
+	moveFile(SourceFile, TargetFile, (stat) => {
+		expect(stat.isMoving).toBeTruthy();
+		expect(stat.copiedBytes).toBeLessThanOrEqual(stat.totalSizeBytes);
+	}).then( (stat) => {
+		
+		expect(stat.copiedBytes).toBe(stat.totalSizeBytes);
+		expect(stat.isMoving).toBeFalsy();
+		expect(fs.existsSync(TargetFile)).toBeTruthy();
+		expect(fs.statSync(TargetFile).size).toBe(stat.totalSizeBytes);
+		expect(fs.existsSync(SourceFile)).toBeFalsy();
+		done();
+		
+	})
 });

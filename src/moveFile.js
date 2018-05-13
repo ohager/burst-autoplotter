@@ -1,9 +1,12 @@
 const fs = require("fs");
+const throttle = require("lodash.throttle");
 
-const NoOp = () => {
-};
+const NoOp = () => {};
 
 function move(sourceFile, destFile, onProgress = NoOp, onEnd = NoOp) {
+	
+	const throttledOnProgress = throttle(onProgress, 500);
+	
 	return new Promise((resolve, reject) => {
 		const stat = fs.statSync(sourceFile);
 		const totalSizeBytes = stat.size;
@@ -15,7 +18,7 @@ function move(sourceFile, destFile, onProgress = NoOp, onEnd = NoOp) {
 			
 			copiedBytes += buffer.length;
 			
-			onProgress({
+			throttledOnProgress({
 				isMoving: true,
 				totalSizeBytes,
 				copiedBytes
@@ -24,6 +27,8 @@ function move(sourceFile, destFile, onProgress = NoOp, onEnd = NoOp) {
 		});
 		
 		readStream.on('error', function (err) {
+			
+			throttledOnProgress.cancel();
 			
 			onEnd({
 				error: err,
@@ -36,6 +41,8 @@ function move(sourceFile, destFile, onProgress = NoOp, onEnd = NoOp) {
 		});
 		
 		readStream.on('end', function () {
+			
+			throttledOnProgress.cancel();
 			
 			const result = {
 				error: null,

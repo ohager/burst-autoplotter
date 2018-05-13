@@ -1,7 +1,5 @@
 const {spawn} = require('child_process');
 const path = require("path");
-const fs = require("fs-extra");
-const throttle = require("lodash.throttle");
 const moveFile = require("../moveFile");
 const cache = require('../cache');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
@@ -93,15 +91,14 @@ function updateMovePlotProgress(progress) {
 	}));
 }
 
-const throttledUpdateMovePlotProgress = throttle(updateMovePlotProgress, 500);
-
 async function movePlot(plotPath, targetPath) {
 	
 	await waitForMovingPlotFinished();
+	
 	//console.log("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
 	//logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
 	
-	return moveFile(plotPath, targetPath, throttledUpdateMovePlotProgress)
+	return moveFile(plotPath, targetPath, updateMovePlotProgress)
 		.then(status => {
 			updateMovePlotProgress(status);
 			if (!status.error) {
@@ -112,16 +109,16 @@ async function movePlot(plotPath, targetPath) {
 }
 
 
-function eventuallyMovePlot(plotPath, targetPath) {
-	if (targetPath === plotPath) return;
+async function eventuallyMovePlot(plotPath, targetPath) {
+	if (targetPath === plotPath) return Promise.resolve();
 	
 	const currentPlotFile = getNewestFileInDirectory(plotPath);
 	
-	if (!currentPlotFile) return;
+	if (!currentPlotFile) return Promise.resolve();
 	
 	const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
 	
-	movePlot(currentPlotFile, targetPathAbsolute);
+	return movePlot(currentPlotFile, targetPathAbsolute);
 }
 
 async function cleanExit(exitCode) {
