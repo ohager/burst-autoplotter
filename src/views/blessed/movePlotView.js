@@ -79,16 +79,13 @@ class TotalView {
 	}
 	
 	update() {
-		if (!$.selectIsMovePlotEnabled()) return;
-		
 		this.updateBox();
 		this.updateProgressBar();
 		this.updateRemaining();
 	}
 	
-	isNotLastPlotAndSlowMoving(){
-		const isCurrentlyPlottingLast = $.selectPlotCount() - $.selectCurrentPlotIndex() > 1;
-		return !isCurrentlyPlottingLast && $.selectIsMovingSlowerThanPlotting()
+	isPlottingAndSlowMoving(){
+		return $.selectIsPlotting() && $.selectIsMovingSlowerThanPlotting()
 	}
 	
 	updateProgressBar() {
@@ -98,7 +95,7 @@ class TotalView {
 		const progress = Math.min(normalizeProgress(0, totalMiB, totalCopiedMiB, 100), 100);
 		
 		this.progressElement.style.bar = {
-			bg: this.isNotLastPlotAndSlowMoving() ? 'red' : 'green',
+			bg: this.isPlottingAndSlowMoving() ? 'red' : 'green',
 			bold: false
 		};
 		this.progressElement.setProgress(progress);
@@ -111,11 +108,13 @@ class TotalView {
 		this.progressElement.style.bar.bold = isMovingPlot;
 		this.progressElement.style.border.bold = isMovingPlot;
 		
+		if(!isMovingPlot) return;
+		
 		const transferSpeed = $.selectMovePlotTransferSpeed() || "N/A";
 		const totalMiB = $.selectMovePlotTotalMegabytes();
 		const totalCopiedMiB = $.selectMovePlotCopiedMegabytes();
 		let labelText = `Copying [${totalCopiedMiB}/${totalMiB}] - {yellow-fg}${transferSpeed} MiB/sec{/}`;
-		if(this.isNotLastPlotAndSlowMoving()){
+		if(this.isPlottingAndSlowMoving()){
 			labelText += ` - {red-fg}ATTENTION: Slower than plotting!{/}`
 		}
 		this.element.setLabel({text: labelText, side: "left"});
@@ -123,6 +122,9 @@ class TotalView {
 	
 	
 	updateRemaining() {
+		
+		if(!$.selectIsMovingPlot()) return;
+		
 		const estimatedDurationInSecs = $.selectMovePlotEstimatedDurationInSecs();
 		const eta = estimatedDurationInSecs ? addSeconds(Date.now(), estimatedDurationInSecs) : null;
 		const text = `Remaining Time: {white-fg}${formatTimeString(estimatedDurationInSecs)}{/}\tETA {white-fg}${eta ? format(eta, "DD/MM/YYYY HH:mm:ss") : "N/A"}{/}`;

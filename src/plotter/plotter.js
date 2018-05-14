@@ -87,7 +87,6 @@ async function waitForMovingPlotFinished() {
 function updateMovePlotProgress(progress) {
 	
 	store.update(state => ({
-		message: $.selectIsMovingSlowerThanPlotting() ? "Copying needs more time than plotting!" : "",
 		movePlot: {
 			...state.movePlot,
 			...progress

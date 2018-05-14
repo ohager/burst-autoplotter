@@ -135,6 +135,10 @@ const selectIsWritingScoops = select(
 	state => selectScoopPercentage() > 0
 );
 
+const selectIsPlotting = select(
+	state => state.totalWrittenNonces < state.totalNonces
+);
+
 const selectIsLogEnabled = select(
 	state => state.logEnabled
 );
@@ -194,6 +198,7 @@ module.exports = {
 	selectTotalEstimatedDurationInSecs,
 	selectCurrentPlotRemainingNonces,
 	selectScoopPercentage,
+	selectIsPlotting,
 	selectIsWritingScoops,
 	selectStartTime,
 	selectValidatedPlots,
