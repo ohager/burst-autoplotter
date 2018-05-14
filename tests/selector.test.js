@@ -180,3 +180,49 @@ test("Test selectMovePlotTransferSpeed selector", () => {
 	
 });
 
+test("Test selectIsMovingSlowerThanPlotting selector - move is faster", () => {
+	
+	store.update(() => ({
+		startTime: Date.now() - 60 * 1000,
+		totalWrittenNonces : 60, // 60 npm
+		currentPlot: {
+			writtenNonces: 0, // 60 npm -> remaining time: 10 secs
+			nonces: 10
+		},
+		movePlot:{
+			startTime: Date.now() - 1000,
+			totalSizeBytes : 10 * 1024 * 1024,
+			copiedBytes: 2 * 1024 * 1024, // 2 MiB/s -> remaining time: 4 secs
+		}
+	}));
+	
+//	console.log("plotDuration", $.selectCurrentPlotEstimatedDurationInSecs());
+//	console.log("moveDuration", $.selectMovePlotEstimatedDurationInSecs());
+	
+	expect($.selectIsMovingSlowerThanPlotting()).toBe(false);
+	
+});
+
+test("Test selectIsMovingSlowerThanPlotting selector - move is slower", () => {
+	
+	store.update(() => ({
+		startTime: Date.now() - 60 * 1000,
+		totalWrittenNonces : 60, // 60 npm
+		currentPlot: {
+			writtenNonces: 8, // 60 npm -> remaining time: 2 secs
+			nonces: 10
+		},
+		movePlot:{
+			startTime: Date.now() - 1000,
+			totalSizeBytes : 10 * 1024 * 1024,
+			copiedBytes: 2 * 1024 * 1024, // 2 MiB/s -> remaining time: 4 secs
+		}
+	}));
+	
+//	console.log("plotDuration", $.selectCurrentPlotEstimatedDurationInSecs());
+//	console.log("moveDuration", $.selectMovePlotEstimatedDurationInSecs());
+	
+	expect($.selectIsMovingSlowerThanPlotting()).toBe(true);
+	
+});
+

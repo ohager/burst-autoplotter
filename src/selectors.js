@@ -54,10 +54,6 @@ const selectCurrentPlotIndex = select(
 	state => state.currentPlot.index
 );
 
-const selectIsLastPlot = select(
-	state => state.currentPlot.isLastPlot
-);
-
 const selectTotalRemainingNonces = select(
 	state => state.totalNonces - state.totalWrittenNonces
 );
@@ -177,7 +173,7 @@ const selectMovePlotEstimatedDurationInSecs = select(state => {
 
 
 const selectIsMovingSlowerThanPlotting = select( state => {
-	return !selectIsLastPlot() && (selectCurrentPlotEstimatedDurationInSecs() < selectMovePlotEstimatedDurationInSecs())
+	return selectCurrentPlotEstimatedDurationInSecs() < selectMovePlotEstimatedDurationInSecs()
 });
 
 module.exports = {
@@ -191,7 +187,6 @@ module.exports = {
 	selectTotalNonces,
 	selectPlotCount,
 	selectCurrentPlotIndex,
-	selectIsLastPlot,
 	selectCurrentPlotWrittenNonces,
 	selectCurrentPlotNonces,
 	selectEffectiveNoncesPerSeconds,

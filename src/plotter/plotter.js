@@ -191,7 +191,6 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			store.update(() => ({
 					message: "",
 					currentPlot: {
-						isLastPlot: isLastPlot,
 						index: i + 1,
 						nonces: plot.nonces,
 						writtenNonces: 0,

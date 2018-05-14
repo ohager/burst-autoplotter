@@ -86,6 +86,10 @@ class TotalView {
 		this.updateRemaining();
 	}
 	
+	isNotLastPlotAndSlowMoving(){
+		const isCurrentlyPlottingLast = $.selectPlotCount() - $.selectCurrentPlotIndex() > 1;
+		return !isCurrentlyPlottingLast && $.selectIsMovingSlowerThanPlotting()
+	}
 	
 	updateProgressBar() {
 		
@@ -94,7 +98,7 @@ class TotalView {
 		const progress = Math.min(normalizeProgress(0, totalMiB, totalCopiedMiB, 100), 100);
 		
 		this.progressElement.style.bar = {
-			bg: $.selectIsMovingSlowerThanPlotting() ? 'red' : 'green',
+			bg: this.isNotLastPlotAndSlowMoving() ? 'red' : 'green',
 			bold: false
 		};
 		this.progressElement.setProgress(progress);
@@ -110,7 +114,10 @@ class TotalView {
 		const transferSpeed = $.selectMovePlotTransferSpeed() || "N/A";
 		const totalMiB = $.selectMovePlotTotalMegabytes();
 		const totalCopiedMiB = $.selectMovePlotCopiedMegabytes();
-		const labelText = `Copying [${totalCopiedMiB}/${totalMiB}] - {yellow-fg}${transferSpeed} MiB/sec{/}`;
+		let labelText = `Copying [${totalCopiedMiB}/${totalMiB}] - {yellow-fg}${transferSpeed} MiB/sec{/}`;
+		if(this.isNotLastPlotAndSlowMoving()){
+			labelText += ` - {red-fg}ATTENTION: Slower than plotting!{/}`
+		}
 		this.element.setLabel({text: labelText, side: "left"});
 	}
 	

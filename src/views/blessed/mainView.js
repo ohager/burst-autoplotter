@@ -18,7 +18,11 @@ function start(onExit) {
 	scene.addView("total", TotalView);
 	scene.addView("perPlot", PerPlotView);
 	scene.addView("scoopsView", ScoopsView);
-	scene.addView("movePlot", MovePlotView);
+	
+	if($.selectIsMovePlotEnabled()){
+		scene.addView("movePlot", MovePlotView);
+	}
+	
 	scene.addView("final", FinalView);
 	scene.onExit(({reason}) => {
 		stop();
