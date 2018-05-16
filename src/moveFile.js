@@ -57,6 +57,8 @@ function move(sourceFile, destFile, onProgress = NoOp, onEnd = NoOp) {
 			resolve(result);
 			
 		});
+		
+		
 		readStream.pipe(fs.createWriteStream(destFile));
 	});
 }

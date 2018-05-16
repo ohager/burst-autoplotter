@@ -1,10 +1,11 @@
 const {spawn} = require('child_process');
+const fs = require("fs-extra");
 const path = require("path");
 const moveFile = require("../moveFile");
 const cache = require('../cache');
 const {XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE} = require('../config');
 const execValidator = require("../validator/validator");
-const {getNewestFileInDirectory} = require("../utils");
+const {getNewestFileInDirectory, isDevelopmentMode} = require("../utils");
 
 const store = require("../store");
 const $ = require("../selectors");
@@ -13,6 +14,14 @@ const logger = require("../logger");
 const handleStdoutData = require("./stdoutHandler");
 const handleClose = require("./closeHandler");
 const notification = require("../notification");
+
+function setDone(e) {
+	store.update(() => ({
+			error: e || null,
+			done: true
+		})
+	);
+}
 
 const getPlotterPath = () => {
 	
@@ -114,7 +123,7 @@ async function movePlot(plotPath, targetPath) {
 				logger.info("Moved plot file successfully", {from: plotPath, to: targetPath});
 			}
 			return status;
-		});
+		}).catch(setDone);
 }
 
 async function eventuallyMovePlot(plotPath, targetPath) {
@@ -126,7 +135,7 @@ async function eventuallyMovePlot(plotPath, targetPath) {
 	
 	const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
 	
-	return movePlot(currentPlotFile, targetPathAbsolute);
+	return movePlot(currentPlotFile, targetPathAbsolute)
 }
 
 async function cleanExit(exitCode) {
@@ -148,7 +157,7 @@ async function exitHandler(reason) {
 		return;
 	}
 	
-	if ($.selectHasError()) {
+	if (reason === 'error') {
 		logger.error("Error:", store.get());
 		console.log(`Error: ` + $.selectError());
 		await cleanExit(-1);
@@ -168,19 +177,33 @@ async function exitHandler(reason) {
 	await cleanExit(0);
 }
 
+function assertTargetPathPermitted(targetPath) {
+	const testFile = path.join(targetPath, 'test.txt');
+	fs.ensureDirSync(targetPath);
+	fs.outputFileSync(testFile, "test");
+	fs.removeSync(testFile);
+}
 
 async function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
-	
-	view.run(exitHandler);
-	
-	// view listens to store, hence updates itself on state changes
-	const interval = setInterval(() => {
-		store.update(() => ({
-			currentTime: Date.now()
-		}));
-	}, 1000);
-	
+
+	let interval = null;
 	try {
+		assertTargetPathPermitted(targetPath);
+		
+		if (!isDevelopmentMode()) {
+			view.run(exitHandler);
+		}
+		else {
+			store.listen(state => console.log(state));
+		}
+		
+		// view listens to store, hence updates itself on state changes
+		interval = setInterval(() => {
+			store.update(() => ({
+				currentTime: Date.now()
+			}));
+		}, 1000);
+		
 		for (let i = 0; i < plots.length; ++i) {
 			
 			const isLastPlot = i === plots.length - 1;
@@ -228,21 +251,14 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 		await eventuallyMovePlot(plotPath, targetPath);
 		await notification.sendAllPlotsCompleted();
 		
-		store.update(() => ({
-				done: true
-			})
-		);
+		setDone();
 		
 		await execValidator(targetPath);
 		
 	} catch (e) {
 		
-		store.update(() => ({
-				error: e,
-				done: true
-			})
-		);
-		
+		console.log("Shakky. Something failed", e);
+		setDone(e);
 		await notification.sendFailure(e);
 		
 	} finally {

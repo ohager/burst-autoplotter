@@ -39,6 +39,6 @@ function stop() {
 }
 
 module.exports = {
-	run: start
+	run: start,
 };
 

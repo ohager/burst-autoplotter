@@ -7,7 +7,8 @@ class Scene {
 	constructor() {
 		
 		this.views = {};
-		this.onExitFn = () => {};
+		this.onExitFn = () => {
+		};
 		
 		this.screen = blessed.screen({
 				smartCSR: true,
@@ -92,14 +93,18 @@ class Scene {
 	
 	render() {
 		
-		Object.getOwnPropertyNames(this.views).forEach(p => {
-			this.views[p].update();
-		});
-		
-		if (this.quitDialog) {
-			this.quitDialog.setFront();
+		try {
+			Object.getOwnPropertyNames(this.views).forEach(p => {
+				this.views[p].update();
+			});
+			
+			if (this.quitDialog) {
+				this.quitDialog.setFront();
+			}
+			this.screen.render();
+		} catch (e) {
+			this.onExitFn({reason: 'error'})
 		}
-		this.screen.render();
 	}
 	
 	destroy() {
@@ -107,7 +112,7 @@ class Scene {
 		this.views = {};
 	}
 	
-	onExit( callback ){
+	onExit(callback) {
 		this.onExitFn = callback;
 	}
 	

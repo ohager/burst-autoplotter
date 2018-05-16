@@ -75,7 +75,7 @@ function prepareDevelopmentAnswers() {
 	
 	return {
 		accountId: '1234567890123456700',
-		targetDisk: 'C',
+		targetDisk: 'E',
 		plotDisk: 'C',
 		plotDirectory: '/Burst/plots',
 		totalPlotSize: '1',
@@ -106,8 +106,9 @@ async function run(options) {
 	
 	let answers;
 	if (isDevelopmentMode()) {
+		console.debug("Development Mode");
 		answers = prepareDevelopmentAnswers();
-		clearOldDevelopmentPlots(answers);
+		//clearOldDevelopmentPlots(answers);
 	} else {
 		
 		answers = await questions.ask(options);

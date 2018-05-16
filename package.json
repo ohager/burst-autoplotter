@@ -40,7 +40,7 @@
 		"date-fns": "^1.29.0",
 		"email-validator": "^1.1.1",
 		"fd-diskspace": "^1.0.0",
-		"fs-extra": "^4.0.0",
+		"fs-extra": "^6.0.1",
 		"inquirer": "^3.2.0",
 		"lodash.throttle": "^4.1.1",
 		"mustache": "^2.3.0",
