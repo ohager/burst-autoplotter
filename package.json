@@ -15,9 +15,6 @@
 		"plotter",
 		"automation"
 	],
-	"os": [
-		"win32"
-	],
 	"private": false,
 	"repository": {
 		"type": "git",
