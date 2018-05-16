@@ -1,6 +1,15 @@
 const store = require("../src/store");
 const $ = require('../src/selectors');
 
+let DateNow = Date.now;
+beforeAll(  () => {
+	Date.now = () => 1000 * 1000;
+});
+
+afterAll( () => {
+	Date.now = DateNow;
+});
+
 test("Test generic selector", () => {
 	
 	store.update(() => ({test: 'test'}));
@@ -181,6 +190,7 @@ test("Test selectMovePlotTransferSpeed selector", () => {
 });
 
 test("Test selectIsMovingSlowerThanPlotting selector - move is faster", () => {
+	
 	
 	store.update(() => ({
 		startTime: Date.now() - 60 * 1000,

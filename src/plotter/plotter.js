@@ -1,5 +1,4 @@
 const {spawn} = require('child_process');
-const fs = require("fs-extra");
 const path = require("path");
 const moveFile = require("../moveFile");
 const cache = require('../cache');
@@ -177,19 +176,12 @@ async function exitHandler(reason) {
 	await cleanExit(0);
 }
 
-function assertTargetPathPermitted(targetPath) {
-	const testFile = path.join(targetPath, 'test.txt');
-	fs.ensureDirSync(targetPath);
-	fs.outputFileSync(testFile, "test");
-	fs.removeSync(testFile);
-}
 
 async function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
 
 	let interval = null;
 	try {
-		assertTargetPathPermitted(targetPath);
-		
+
 		if (!isDevelopmentMode()) {
 			view.run(exitHandler);
 		}
@@ -257,7 +249,7 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 		
 	} catch (e) {
 		
-		console.log("Shakky. Something failed", e);
+		console.log("Wacky. Something failed", e);
 		setDone(e);
 		await notification.sendFailure(e);
 		

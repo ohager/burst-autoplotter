@@ -1,4 +1,5 @@
 const fs = require('fs-extra');
+const path = require('path');
 
 const questions = require("./questions");
 const {isDevelopmentMode} = require('../../utils');
@@ -7,6 +8,14 @@ const cache = require('../../cache');
 const plotter = require('../../plotter');
 const createPlotPartition = require('../../plotPartition');
 const logger = require("../../logger");
+
+function assertPathPermission(targetPath) {
+	const testFile = path.join(targetPath, 'touch.tmp');
+	fs.ensureDirSync(targetPath);
+	fs.outputFileSync(testFile, "test");
+	fs.removeSync(testFile);
+}
+
 
 async function startPlotter(answers) {
 	const {
@@ -27,8 +36,8 @@ async function startPlotter(answers) {
 	const targetPath = `${targetDisk}:${plotDirectory}`;
 	const plotPath = `${plotDisk}:${plotDirectory}`;
 	
-	fs.ensureDirSync(plotPath);
-	fs.ensureDirSync(targetPath);
+	assertPathPermission(plotPath);
+	assertPathPermission(targetPath);
 	
 	const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
 	
@@ -121,7 +130,12 @@ async function run(options) {
 	}
 	
 	if (answers.confirmed) {
-		await startPlotter(answers);
+		try{
+			await startPlotter(answers);
+		}catch(e){
+			// TODO: log error
+			console.error(e);
+		}
 	}
 	
 }
