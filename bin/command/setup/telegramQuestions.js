@@ -86,12 +86,12 @@ function mapAnswers(defaults, options, answers) {
 
 	const _default = (section, field) => section && section[field];
 
-	return {
+	return _extends({}, defaults, {
 		telegram: {
 			enabled: !!answers.telegramEnabled,
 			token: answers.token || _default(defaults.telegram, 'token')
 		}
-	};
+	});
 }
 
 module.exports = {

@@ -1,29 +1,71 @@
-let eventuallyMovePlot = (() => {
-	var _ref2 = _asyncToGenerator(function* (plotPath, targetPath) {
-		if (targetPath === plotPath) return;
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-		const currentPlotFile = getNewestFileInDirectory(plotPath);
-
-		if (!currentPlotFile) return;
-
-		const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
-		try {
-			logger.info("Moving plot file...", { from: currentPlotFile, to: targetPathAbsolute });
-			yield fs.move(currentPlotFile, targetPathAbsolute, { overwrite: true });
-			logger.info("Moved plot file successfully", { from: currentPlotFile, to: targetPathAbsolute });
-		} catch (e) {
-			logger.info("Error - Moved plot file failed", { from: currentPlotFile, to: targetPathAbsolute, error: e });
-			throw e;
-		}
+let waitForMovingPlotFinished = (() => {
+	var _ref2 = _asyncToGenerator(function* () {
+		return new Promise(function (resolve) {
+			const interval = setInterval(function () {
+				if (!$.selectIsMovingPlot()) {
+					clearInterval(interval);
+					resolve();
+				}
+			}, 500);
+		});
 	});
 
-	return function eventuallyMovePlot(_x2, _x3) {
+	return function waitForMovingPlotFinished() {
 		return _ref2.apply(this, arguments);
 	};
 })();
 
+let movePlot = (() => {
+	var _ref3 = _asyncToGenerator(function* (plotPath, targetPath) {
+
+		yield waitForMovingPlotFinished();
+
+		//console.log("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
+		//logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
+		store.update(function (state) {
+			return {
+				movePlot: _extends({}, state.movePlot, {
+					startTime: Date.now()
+				})
+			};
+		});
+
+		return moveFile(plotPath, targetPath, updateMovePlotProgress).then(function (status) {
+			updateMovePlotProgress(status);
+			if (!status.error) {
+				logger.info("Moved plot file successfully", { from: plotPath, to: targetPath });
+			}
+			return status;
+		}).catch(setDone);
+	});
+
+	return function movePlot(_x2, _x3) {
+		return _ref3.apply(this, arguments);
+	};
+})();
+
+let eventuallyMovePlot = (() => {
+	var _ref4 = _asyncToGenerator(function* (plotPath, targetPath) {
+		if (targetPath === plotPath) return Promise.resolve();
+
+		const currentPlotFile = getNewestFileInDirectory(plotPath);
+
+		if (!currentPlotFile) return Promise.resolve();
+
+		const targetPathAbsolute = path.join(targetPath, path.basename(currentPlotFile));
+
+		return movePlot(currentPlotFile, targetPathAbsolute);
+	});
+
+	return function eventuallyMovePlot(_x4, _x5) {
+		return _ref4.apply(this, arguments);
+	};
+})();
+
 let cleanExit = (() => {
-	var _ref3 = _asyncToGenerator(function* (exitCode) {
+	var _ref5 = _asyncToGenerator(function* (exitCode) {
 
 		if ($.selectIsLogEnabled()) {
 			console.log("Flushing logs...please wait");
@@ -32,13 +74,13 @@ let cleanExit = (() => {
 		process.exit(exitCode);
 	});
 
-	return function cleanExit(_x4) {
-		return _ref3.apply(this, arguments);
+	return function cleanExit(_x6) {
+		return _ref5.apply(this, arguments);
 	};
 })();
 
 let exitHandler = (() => {
-	var _ref4 = _asyncToGenerator(function* (reason) {
+	var _ref6 = _asyncToGenerator(function* (reason) {
 
 		if (reason === 'abort') {
 			logger.info("Plotting aborted by user!");
@@ -48,7 +90,7 @@ let exitHandler = (() => {
 			return;
 		}
 
-		if ($.selectHasError()) {
+		if (reason === 'error') {
 			logger.error("Error:", store.get());
 			console.log(`Error: ` + $.selectError());
 			yield cleanExit(-1);
@@ -70,26 +112,34 @@ let exitHandler = (() => {
 		yield cleanExit(0);
 	});
 
-	return function exitHandler(_x5) {
-		return _ref4.apply(this, arguments);
+	return function exitHandler(_x7) {
+		return _ref6.apply(this, arguments);
 	};
 })();
 
 let start = (() => {
-	var _ref5 = _asyncToGenerator(function* ({ totalNonces, plots, accountId, plotPath, targetPath, threads, memory }) {
+	var _ref7 = _asyncToGenerator(function* ({ totalNonces, plots, accountId, plotPath, targetPath, threads, memory }) {
 
-		view.run(exitHandler);
-
-		// view listens to store, hence updates itself on state changes
-		const interval = setInterval(function () {
-			store.update(function () {
-				return {
-					currentTime: Date.now()
-				};
-			});
-		}, 1000);
-
+		let interval = null;
 		try {
+
+			if (!isDevelopmentMode()) {
+				view.run(exitHandler);
+			} else {
+				store.listen(function (state) {
+					return console.log(state);
+				});
+			}
+
+			// view listens to store, hence updates itself on state changes
+			interval = setInterval(function () {
+				store.update(function () {
+					return {
+						currentTime: Date.now()
+					};
+				});
+			}, 1000);
+
 			for (let i = 0; i < plots.length; ++i) {
 
 				const isLastPlot = i === plots.length - 1;
@@ -98,6 +148,7 @@ let start = (() => {
 				// reset current plot state
 				store.update(function () {
 					return {
+						message: "",
 						currentPlot: {
 							index: i + 1,
 							nonces: plot.nonces,
@@ -122,43 +173,35 @@ let start = (() => {
 					memory
 				});
 
-				yield eventuallyMovePlot(plotPath, targetPath);
-
-				cache.update({ lastNonce: plot.startNonce + plot.nonces }, $.selectCacheFile());
-
 				if (!isLastPlot) {
+					// run non-blocking plot movement
+					// noinspection JSIgnoredPromiseFromCall
+					eventuallyMovePlot(plotPath, targetPath);
 					yield notification.sendSinglePlotCompleted();
 				}
 
+				cache.update({ lastNonce: plot.startNonce + plot.nonces }, $.selectCacheFile());
 				logger.info("Successfully wrote new plot file", store.get());
 			}
 
+			yield eventuallyMovePlot(plotPath, targetPath);
 			yield notification.sendAllPlotsCompleted();
 
-			store.update(function () {
-				return {
-					done: true
-				};
-			});
+			setDone();
 
 			yield execValidator(targetPath);
 		} catch (e) {
 
-			store.update(function () {
-				return {
-					error: e,
-					done: true
-				};
-			});
-
+			console.log("Wacky. Something failed", e);
+			setDone(e);
 			yield notification.sendFailure(e);
 		} finally {
 			clearInterval(interval);
 		}
 	});
 
-	return function start(_x6) {
-		return _ref5.apply(this, arguments);
+	return function start(_x8) {
+		return _ref7.apply(this, arguments);
 	};
 })();
 
@@ -166,11 +209,11 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 const { spawn } = require('child_process');
 const path = require("path");
-const fs = require("fs-extra");
+const moveFile = require("../moveFile");
 const cache = require('../cache');
 const { XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE } = require('../config');
 const execValidator = require("../validator/validator");
-const { getNewestFileInDirectory } = require("../utils");
+const { getNewestFileInDirectory, isDevelopmentMode } = require("../utils");
 
 const store = require("../store");
 const $ = require("../selectors");
@@ -179,6 +222,13 @@ const logger = require("../logger");
 const handleStdoutData = require("./stdoutHandler");
 const handleClose = require("./closeHandler");
 const notification = require("../notification");
+
+function setDone(e) {
+	store.update(() => ({
+		error: e || null,
+		done: true
+	}));
+}
 
 const getPlotterPath = () => {
 
@@ -236,6 +286,13 @@ const execPlotter = (() => {
 		return _ref.apply(this, arguments);
 	};
 })();
+
+function updateMovePlotProgress(progress) {
+
+	store.update(state => ({
+		movePlot: _extends({}, state.movePlot, progress)
+	}));
+}
 
 module.exports = {
 	start

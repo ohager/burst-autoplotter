@@ -38,22 +38,26 @@ function createLogMessage(type, message, payload) {
 
 function log(type, message, obj = {}) {
 
-	if (!$.selectIsLogEnabled()) return;
-
-	client = client || loggly.createClient({
-		token: LOGGLY_TOKEN,
-		subdomain: LOGGLY_SUBDOMAIN,
-		tags: isDevelopmentMode() ? ["autoplotter-dev"] : ["autoplotter"],
-		json: true
-	});
-
-	try {
-		client.log(createLogMessage(type, message, obj));
-	} catch (e) {
-		console.log("LOGGING ERROR:", e);
-		console.log("If it persists you should disable logging (using -e option on setup)");
-		// ignore silently...just not to bother the plotting...
-	}
+	/*
+ if(!$.selectIsLogEnabled()) return;
+ 
+ client = client || loggly.createClient({
+ 	token: LOGGLY_TOKEN,
+ 	subdomain: LOGGLY_SUBDOMAIN,
+ 	tags: isDevelopmentMode() ? ["autoplotter-dev"] : ["autoplotter"],
+ 	json: true
+ });
+ 
+ try {
+ 	client.log(createLogMessage(type, message, obj));
+ }
+ catch(e){
+ 	console.log("LOGGING ERROR:", e);
+ 	console.log("If it persists you should disable logging (using -e option on setup)");
+ 	// ignore silently...just not to bother the plotting...
+ }
+ */
+	// FIXME: Loggly is buggy and make the computer crash WTF!?
 }
 
 function error(message, obj) {

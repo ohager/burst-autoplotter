@@ -6,6 +6,7 @@ let askQuestions = (() => {
 		}
 
 		const answers = yield questions.ask(options);
+
 		cache.update(answers, options.cache);
 
 		if (isDevelopmentMode()) {

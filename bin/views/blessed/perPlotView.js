@@ -83,7 +83,6 @@ class TotalView {
 	}
 
 	updateProgressBar() {
-
 		const nonces = $.selectCurrentPlotNonces();
 		const writtenNonces = $.selectCurrentPlotWrittenNonces();
 		const progress = Math.min(normalizeProgress(0, nonces, writtenNonces, 100), 100);

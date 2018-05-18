@@ -1,5 +1,5 @@
 const store = require("./store");
-
+const { b2mib } = require("./utils");
 /**
  * Generic selector function to access the stores state.
  * It allows to transform a state in arbitrary return values
@@ -76,9 +76,34 @@ const selectTotalNonceRange = select(state => ({
 
 const selectIsWritingScoops = select(state => selectScoopPercentage() > 0);
 
+const selectIsPlotting = select(state => state.totalWrittenNonces < state.totalNonces);
+
 const selectIsLogEnabled = select(state => state.logEnabled);
 
 const selectMessage = select(state => state.message || "");
+
+const selectIsMovePlotEnabled = select(state => state.movePlot.isEnabled);
+
+const selectIsMovingPlot = select(state => state.movePlot.isMoving);
+
+const selectMovePlotTotalMegabytes = select(state => +b2mib(state.movePlot.totalSizeBytes || 0.00).toFixed(2));
+
+const selectMovePlotCopiedMegabytes = select(state => +b2mib(state.movePlot.copiedBytes || 0.00).toFixed(2));
+
+const selectMovePlotTransferSpeed = select(state => {
+	const elapsedSecs = (Date.now() - state.movePlot.startTime) / 1000;
+	return elapsedSecs !== 0 ? (selectMovePlotCopiedMegabytes() / elapsedSecs).toFixed(2) : null;
+});
+
+const selectMovePlotEstimatedDurationInSecs = select(state => {
+	const mbps = selectMovePlotTransferSpeed();
+	const remainingMiBs = selectMovePlotTotalMegabytes() - selectMovePlotCopiedMegabytes();
+	return mbps ? Math.floor(remainingMiBs / mbps) : null;
+});
+
+const selectIsMovingSlowerThanPlotting = select(state => {
+	return selectCurrentPlotEstimatedDurationInSecs() < selectMovePlotEstimatedDurationInSecs();
+});
 
 module.exports = {
 	select,
@@ -98,6 +123,7 @@ module.exports = {
 	selectTotalEstimatedDurationInSecs,
 	selectCurrentPlotRemainingNonces,
 	selectScoopPercentage,
+	selectIsPlotting,
 	selectIsWritingScoops,
 	selectStartTime,
 	selectValidatedPlots,
@@ -111,5 +137,12 @@ module.exports = {
 	selectHasFinished,
 	selectTotalNonceRange,
 	selectIsLogEnabled,
-	selectMessage
+	selectMessage,
+	selectIsMovePlotEnabled,
+	selectIsMovingPlot,
+	selectMovePlotTotalMegabytes,
+	selectMovePlotCopiedMegabytes,
+	selectMovePlotTransferSpeed,
+	selectMovePlotEstimatedDurationInSecs,
+	selectIsMovingSlowerThanPlotting
 };

@@ -48,6 +48,19 @@ function getNewestFileInDirectory(dirPath) {
 	return newestFile && newestFile.path || null;
 }
 
+function hasAccessToPath(targetPath) {
+
+	try {
+		const testFile = path.join(targetPath, 'touch.tmp');
+		fs.ensureDirSync(targetPath);
+		fs.outputFileSync(testFile, "test");
+		fs.removeSync(testFile);
+		return true;
+	} catch (e) {
+		return false;
+	}
+}
+
 module.exports = {
 	gib2b,
 	b2gib,
@@ -57,5 +70,6 @@ module.exports = {
 	normalizeProgress,
 	asMultipleOf,
 	isDevelopmentMode,
-	getNewestFileInDirectory
+	getNewestFileInDirectory,
+	hasAccessToPath
 };

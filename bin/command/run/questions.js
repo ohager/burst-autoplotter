@@ -1,29 +1,47 @@
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+let firstQuestions = (() => {
+	var _ref = _asyncToGenerator(function* (defaults, options) {
+
+		/*
+  if (!defaults.logEnabled) {
+  	writeHint("Currently logging is disabled. The log helps me to improve the user experience.\nI appreciate if you enable logging using the enhanced settings. Thank you.");
+  }*/
+
+		const questions = [{
+			type: "input",
+			name: "accountId",
+			message: "What's your numeric BURST Account ID?",
+			validate: function (v) {
+				const isValid = /^\d{18,}$/.test(v);
+				return isValid ? true : "Use your *numeric* account ID (minimum 18 digits), dude!";
+			},
+			default: defaults.accountId
+		}, {
+			type: "list",
+			name: "targetDisk",
+			message: "Select your disk to plot?",
+			choices: availableDrives
+		}];
+		const answers = yield prompt(questions);
+
+		return _extends({
+			cacheFile: options.cache
+		}, answers);
+	});
+
+	return function firstQuestions(_x, _x2) {
+		return _ref.apply(this, arguments);
+	};
+})();
+
 let nextQuestions = (() => {
-	var _ref = _asyncToGenerator(function* (defaults, options, previousAnswers) {
+	var _ref2 = _asyncToGenerator(function* (defaults, previousAnswers, options) {
 
 		const { targetDisk } = previousAnswers;
 		const selectedDrive = diskInfo.disks[targetDisk];
 		const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
 		const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
-
-		let threadChoices = [];
-		for (let i = 1; i <= availableCPUs; ++i) threadChoices.push(i + '');
-		const defaultThreads = availableCPUs - 1;
-
-		let ramChoices = [];
-		const ram = Math.floor(availableRAM_mib);
-		for (let i = 1; i * 1024 < ram; ++i) ramChoices.push(i * 1024 + '');
-		const defaultMemory = ramChoices[ramChoices.length - 1];
-
-		const instSetChoices = options.instructionSetInfo.supported;
-		const defaultInstSet = options.instructionSetInfo.recommended;
-		const defaultPlotDirectory = defaults.plotDirectory;
-
-		const whenExtended = function () {
-			return options.extended;
-		};
 
 		const nextQuestions = [{
 			type: "input",
@@ -58,82 +76,115 @@ let nextQuestions = (() => {
 				);
 			},
 			default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
-		}, {
+		}];
+
+		const nextAnswers = yield prompt(nextQuestions);
+
+		return _extends({}, previousAnswers, nextAnswers);
+	});
+
+	return function nextQuestions(_x3, _x4, _x5) {
+		return _ref2.apply(this, arguments);
+	};
+})();
+
+let extendedModeQuestions = (() => {
+	var _ref3 = _asyncToGenerator(function* (defaults, previousAnswers, options) {
+
+		let threadChoices = [];
+		for (let i = 1; i <= availableCPUs; ++i) threadChoices.push(i + '');
+
+		let ramChoices = [];
+		const ram = Math.floor(availableRAM_mib);
+		for (let i = 1; i * 1024 < ram; ++i) ramChoices.push(i * 1024 + '');
+
+		const instSetChoices = options.instructionSetInfo.supported;
+
+		const defaultAnswers = {
+			threads: availableCPUs - 1,
+			memory: ramChoices[ramChoices.length - 1],
+			instructionSet: options.instructionSetInfo.recommended,
+			logEnabled: defaults.logEnabled,
+			plotDirectory: defaults.plotDirectory
+		};
+
+		if (!options.extended) {
+			return _extends({}, previousAnswers, defaultAnswers);
+		}
+
+		const extendedQuestions = [{
 			type: "input",
 			name: "plotDirectory",
 			message: "In which folder do you want the plot to be written? (absolute path without drive letter)",
-			default: defaultPlotDirectory,
-			when: whenExtended,
+			default: defaultAnswers.plotDirectory,
 			validate: function (dir) {
-				try {
-					if (dir[0] !== '/') {
-						return "Please specify the absolute path without drive letter and with trailing '/', e.g. /burst/plots";
-					}
-					fs.ensureDirSync(dir);
-					return true;
-				} catch (error) {
-					return error;
+
+				if (dir[0] !== '/') {
+					return "Please specify the absolute path without drive letter and with trailing '/', e.g. /burst/plots";
 				}
-			},
-			choices: threadChoices
+				const { targetDisk, plotDisk } = previousAnswers;
+				const targetPath = path.join(targetDisk + ":", dir);
+				const plotPath = path.join(plotDisk + ":", dir);
+				let notPermittedPaths = [];
+
+				if (!hasAccessToPath(targetPath)) {
+					notPermittedPaths.push(targetPath);
+				}
+
+				if (targetPath !== plotPath && !hasAccessToPath(plotPath)) {
+					notPermittedPaths.push(plotPath);
+				}
+
+				return notPermittedPaths.length === 0 ? true : "Humm, cannot write to:\n" + notPermittedPaths.join('\n') + "\nChoose another path, or check permissions";
+			}
 		}, {
 			type: "list",
 			name: "threads",
 			message: "How many threads do you want to use? (the more the faster the plotting)",
-			default: defaultThreads,
-			when: whenExtended,
+			default: defaultAnswers.threads,
 			choices: threadChoices
 		}, {
 			type: "list",
 			name: "memory",
 			message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
-			default: defaultMemory,
-			when: whenExtended,
+			default: defaultAnswers.memory,
 			choices: ramChoices
 		}, {
 			type: "list",
 			name: "instructionSet",
 			message: "Select Instruction Set?",
-			default: defaultInstSet,
-			when: whenExtended,
+			default: defaultAnswers.instructionSet,
 			choices: instSetChoices
 		}, {
 			type: "confirm",
 			name: "logEnabled",
 			message: "Do you want to enable logging?",
-			default: defaults.logEnabled,
-			when: whenExtended
+			default: defaultAnswers.logEnabled
 		}];
 
-		const nextAnswers = yield prompt(nextQuestions);
+		const extendedAnswers = yield prompt(extendedQuestions);
 
-		nextAnswers.threads = nextAnswers.threads || defaultThreads;
-		nextAnswers.memory = nextAnswers.memory || defaultMemory;
-		nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
-		nextAnswers.logEnabled = nextAnswers.logEnabled || defaults.logEnabled;
-		nextAnswers.plotDirectory = nextAnswers.plotDirectory || defaults.plotDirectory;
-
-		return _extends({
-			cacheFile: options.cache
-		}, previousAnswers, nextAnswers);
+		return _extends({}, previousAnswers, extendedAnswers);
 	});
 
-	return function nextQuestions(_x, _x2, _x3) {
-		return _ref.apply(this, arguments);
+	return function extendedModeQuestions(_x6, _x7, _x8) {
+		return _ref3.apply(this, arguments);
 	};
 })();
 
 let movePlotQuestions = (() => {
-	var _ref2 = _asyncToGenerator(function* (defaults, options, previousAnswers) {
+	var _ref4 = _asyncToGenerator(function* (defaults, previousAnswers, options) {
 
 		const getDiskSpaceGiB = function (driveName) {
-			return b2gib(diskInfo.disks[driveName].free).toFixed(2);
+			return +b2gib(diskInfo.disks[driveName].free).toFixed(2);
 		};
 
 		const { targetDisk, totalPlotSize, chunks } = previousAnswers;
-		const requiredPlotDiskCapacityGiB = (totalPlotSize / chunks * 1.01).toFixed(2); // 1% more space required
+		const requiredPlotDiskCapacityGiB = +(totalPlotSize / chunks * 1.01).toFixed(2); // 1% more space required - just to be sure
 		const choices = availableDrives.filter(function (d) {
-			return d !== targetDisk && getDiskSpaceGiB(d) > requiredPlotDiskCapacityGiB;
+			return d !== targetDisk;
+		}).filter(function (d) {
+			return getDiskSpaceGiB(d) >= requiredPlotDiskCapacityGiB;
 		});
 
 		const defaultAnswers = {
@@ -180,13 +231,13 @@ let movePlotQuestions = (() => {
 		return _extends({}, previousAnswers, defaultAnswers, movePlotAnswers);
 	});
 
-	return function movePlotQuestions(_x4, _x5, _x6) {
-		return _ref2.apply(this, arguments);
+	return function movePlotQuestions(_x9, _x10, _x11) {
+		return _ref4.apply(this, arguments);
 	};
 })();
 
 let confirm = (() => {
-	var _ref3 = _asyncToGenerator(function* (defaults, options, previousAnswers) {
+	var _ref5 = _asyncToGenerator(function* (defaults, previousAnswers, options) {
 
 		// maybe do some further validations and give some recommendations
 		// - threads
@@ -212,28 +263,30 @@ let confirm = (() => {
 		return _extends({}, previousAnswers, confirmation);
 	});
 
-	return function confirm(_x7, _x8, _x9) {
-		return _ref3.apply(this, arguments);
+	return function confirm(_x12, _x13, _x14) {
+		return _ref5.apply(this, arguments);
 	};
 })();
 
 let ask = (() => {
-	var _ref4 = _asyncToGenerator(function* (options) {
+	var _ref6 = _asyncToGenerator(function* (options) {
 
 		const instructionSetInfo = getInstructionSetInformation();
 		const defaults = cache.load(options.cache);
 
 		options = _extends({}, options, { instructionSetInfo });
-		let answers = yield firstQuestions(defaults);
-		answers = yield nextQuestions(defaults, options, answers);
-		answers = yield movePlotQuestions(defaults, options, answers);
-		answers = yield confirm(defaults, options, answers);
+
+		let answers = yield firstQuestions(defaults, options);
+		answers = yield nextQuestions(defaults, answers, options);
+		answers = yield movePlotQuestions(defaults, answers, options);
+		answers = yield extendedModeQuestions(defaults, answers, options);
+		answers = yield confirm(defaults, answers);
 
 		return answers;
 	});
 
-	return function ask(_x10) {
-		return _ref4.apply(this, arguments);
+	return function ask(_x15) {
+		return _ref6.apply(this, arguments);
 	};
 })();
 
@@ -241,10 +294,11 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 const os = require('os');
 const fs = require("fs-extra");
+const path = require("path");
 const chalk = require("chalk");
 const { prompt, ui } = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
-const { b2mib, b2gib } = require('../../utils');
+const { b2mib, b2gib, hasAccessToPath } = require('../../utils');
 const { getSupportedInstructionSets } = require('../../instructionSet');
 const cache = require('../../cache');
 
@@ -252,6 +306,13 @@ const availableDrives = Object.keys(diskInfo.disks);
 const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
+
+function writeHint(text) {
+	const bottomBar = new ui.BottomBar();
+	bottomBar.log.write("\n");
+	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
+	bottomBar.log.write("\n");
+}
 
 const getInstructionSetInformation = () => {
 
@@ -266,37 +327,6 @@ const getInstructionSetInformation = () => {
 		recommended: recommended
 	};
 };
-
-function firstQuestions(defaults) {
-
-	if (!defaults.logEnabled) {
-		writeHint("Currently logging is disabled. The log helps me to improve the user experience.\nI appreciate if you enable logging using the enhanced settings. Thank you.");
-	}
-
-	const questions = [{
-		type: "input",
-		name: "accountId",
-		message: "What's your numeric BURST Account ID?",
-		validate: v => {
-			const isValid = /^\d{18,}$/.test(v);
-			return isValid ? true : "Use your *numeric* account ID (minimum 18 digits), dude!";
-		},
-		default: defaults.accountId
-	}, {
-		type: "list",
-		name: "targetDisk",
-		message: "Select your disk to plot?",
-		choices: availableDrives
-	}];
-	return prompt(questions);
-}
-
-function writeHint(text) {
-	const bottomBar = new ui.BottomBar();
-	bottomBar.log.write("\n");
-	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
-	bottomBar.log.write("\n");
-}
 
 module.exports = {
 	ask

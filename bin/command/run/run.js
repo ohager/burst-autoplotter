@@ -18,8 +18,12 @@ let startPlotter = (() => {
 		const targetPath = `${targetDisk}:${plotDirectory}`;
 		const plotPath = `${plotDisk}:${plotDirectory}`;
 
-		fs.ensureDirSync(plotPath);
-		fs.ensureDirSync(targetPath);
+		const canWriteToPaths = validatePathAccess(plotPath) && validatePathAccess(targetPath);
+
+		if (!canWriteToPaths) {
+			console.error("Check, if paths are accessible, e.g. has sufficient permissions, or has connectivity issues");
+			return;
+		}
 
 		const { totalNonces, plots } = createPlotPartition(totalPlotSize, startNonce, chunks);
 
@@ -39,6 +43,10 @@ let startPlotter = (() => {
 				outputPath: targetPath,
 				plotCount: plots.length,
 				plotDirectory,
+				movePlot: {
+					isEnabled: targetPath !== plotPath,
+					isMoving: false
+				},
 				done: false
 			};
 		});
@@ -75,19 +83,30 @@ let run = (() => {
 
 		let answers;
 		if (isDevelopmentMode()) {
+			console.debug("Development Mode");
 			answers = prepareDevelopmentAnswers();
-			clearOldDevelopmentPlots(answers);
+			//clearOldDevelopmentPlots(answers);
 		} else {
 
 			answers = yield questions.ask(options);
 			while (answers.rerun) {
 				answers = yield questions.ask(options);
 			}
+
 			cache.update(answers, options.cache);
 		}
 
+		console.log(answers);
+
+		//	return;
+
 		if (answers.confirmed) {
-			yield startPlotter(answers);
+			try {
+				yield startPlotter(answers);
+			} catch (e) {
+				// TODO: log error
+				console.error(e);
+			}
 		}
 	});
 
@@ -99,20 +118,27 @@ let run = (() => {
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 const fs = require('fs-extra');
-
 const questions = require("./questions");
-const { isDevelopmentMode } = require('../../utils');
+const { isDevelopmentMode, hasAccessToPath } = require('../../utils');
 const store = require('../../store');
 const cache = require('../../cache');
 const plotter = require('../../plotter');
 const createPlotPartition = require('../../plotPartition');
 const logger = require("../../logger");
 
+function validatePathAccess(path) {
+	if (!hasAccessToPath(path)) {
+		console.error("Cannot write to ", path);
+		return false;
+	}
+	return true;
+}
+
 function prepareDevelopmentAnswers() {
 
 	return {
 		accountId: '1234567890123456700',
-		targetDisk: 'C',
+		targetDisk: 'E',
 		plotDisk: 'C',
 		plotDirectory: '/Burst/plots',
 		totalPlotSize: '1',

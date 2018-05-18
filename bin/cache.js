@@ -1,3 +1,5 @@
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 const { CACHE_FILE } = require('./config');
 const fs = require('fs-extra');
 const path = require('path');
@@ -43,11 +45,11 @@ const guaranteeExistance = file => {
 	return file;
 };
 
-const load = (file = defaultCacheFile) => fs.readJsonSync(guaranteeExistance(file));
+const load = (file = defaultCacheFile) => _extends({}, initialCacheData, fs.readJsonSync(guaranteeExistance(file)));
 
 function update(obj, file = defaultCacheFile) {
 
-	const cache = load(file);
+	const cache = _extends({}, initialCacheData, load(file));
 	let isDirty = false;
 
 	let updatedCache;

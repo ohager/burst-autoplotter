@@ -118,7 +118,7 @@ function mapAnswers(defaults, options, answers) {
 
 	const _default = (section, field) => section && section[field];
 
-	return {
+	return _extends({}, defaults, {
 		email: {
 			enabled: !!answers.mailEnabled,
 			address: answers.email || _default(defaults.email, 'address')
@@ -132,7 +132,7 @@ function mapAnswers(defaults, options, answers) {
 				pass: answers.pass || _default(defaults.smtp.auth, 'pass')
 			}
 		}
-	};
+	});
 }
 
 module.exports = {

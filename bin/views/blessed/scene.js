@@ -93,14 +93,18 @@ class Scene {
 
 	render() {
 
-		Object.getOwnPropertyNames(this.views).forEach(p => {
-			this.views[p].update();
-		});
+		try {
+			Object.getOwnPropertyNames(this.views).forEach(p => {
+				this.views[p].update();
+			});
 
-		if (this.quitDialog) {
-			this.quitDialog.setFront();
+			if (this.quitDialog) {
+				this.quitDialog.setFront();
+			}
+			this.screen.render();
+		} catch (e) {
+			this.onExitFn({ reason: 'error' });
 		}
-		this.screen.render();
 	}
 
 	destroy() {
