@@ -1,9 +1,10 @@
 const os = require('os');
 const fs = require("fs-extra");
+const path = require("path");
 const chalk = require("chalk");
 const {prompt, ui} = require('inquirer');
 const diskInfo = require('fd-diskspace').diskSpaceSync();
-const {b2mib, b2gib} = require('../../utils');
+const {b2mib, b2gib, hasAccessToPath} = require('../../utils');
 const {getSupportedInstructionSets} = require('../../instructionSet');
 const cache = require('../../cache');
 
@@ -11,6 +12,14 @@ const availableDrives = Object.keys(diskInfo.disks);
 const availableCPUs = os.cpus().length;
 const availableRAM_bytes = os.freemem();
 const availableRAM_mib = Math.floor(b2mib(availableRAM_bytes));
+
+
+function writeHint(text) {
+	const bottomBar = new ui.BottomBar();
+	bottomBar.log.write("\n");
+	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
+	bottomBar.log.write("\n");
+}
 
 const getInstructionSetInformation = () => {
 	
@@ -26,11 +35,12 @@ const getInstructionSetInformation = () => {
 	}
 };
 
-function firstQuestions(defaults) {
+async function firstQuestions(defaults, options) {
 	
+	/*
 	if (!defaults.logEnabled) {
 		writeHint("Currently logging is disabled. The log helps me to improve the user experience.\nI appreciate if you enable logging using the enhanced settings. Thank you.");
-	}
+	}*/
 	
 	const questions = [
 		{
@@ -50,30 +60,20 @@ function firstQuestions(defaults) {
 			choices: availableDrives,
 		}
 	];
-	return prompt(questions)
+	const answers = await prompt(questions);
+	
+	return {
+		cacheFile: options.cache,
+		...answers
+	}
 }
 
-async function nextQuestions(defaults, options, previousAnswers) {
+async function nextQuestions(defaults, previousAnswers, options) {
 	
 	const {targetDisk} = previousAnswers;
 	const selectedDrive = diskInfo.disks[targetDisk];
 	const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
 	const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
-	
-	let threadChoices = [];
-	for (let i = 1; i <= availableCPUs; ++i) threadChoices.push(i + '');
-	const defaultThreads = availableCPUs - 1;
-	
-	let ramChoices = [];
-	const ram = Math.floor(availableRAM_mib);
-	for (let i = 1; (i * 1024) < ram; ++i) ramChoices.push(i * 1024 + '');
-	const defaultMemory = ramChoices[ramChoices.length - 1];
-	
-	const instSetChoices = options.instructionSetInfo.supported;
-	const defaultInstSet = options.instructionSetInfo.recommended;
-	const defaultPlotDirectory = defaults.plotDirectory;
-	
-	const whenExtended = () => options.extended;
 	
 	const nextQuestions = [
 		{
@@ -110,88 +110,115 @@ async function nextQuestions(defaults, options, previousAnswers) {
 				return /^\d+$/.test(v) ? true : "Nonce is a numeric value, man!";
 			},
 			default: defaults.lastNonce ? defaults.lastNonce + 1 : 0
-		},
+		}
+	];
+	
+	const nextAnswers = await prompt(nextQuestions);
+	
+	return {
+		...previousAnswers,
+		...nextAnswers,
+	}
+}
+
+async function extendedModeQuestions(defaults, previousAnswers, options) {
+	
+	let threadChoices = [];
+	for (let i = 1; i <= availableCPUs; ++i) threadChoices.push(i + '');
+	
+	let ramChoices = [];
+	const ram = Math.floor(availableRAM_mib);
+	for (let i = 1; (i * 1024) < ram; ++i) ramChoices.push(i * 1024 + '');
+	
+	const instSetChoices = options.instructionSetInfo.supported;
+	
+	const defaultAnswers = {
+		threads: availableCPUs - 1,
+		memory: ramChoices[ramChoices.length - 1],
+		instructionSet: options.instructionSetInfo.recommended,
+		logEnabled: defaults.logEnabled,
+		plotDirectory: defaults.plotDirectory
+	};
+	
+	if (!options.extended) {
+		return {
+			...previousAnswers,
+			...defaultAnswers
+		}
+	}
+	
+	const extendedQuestions = [
 		{
 			type: "input",
 			name: "plotDirectory",
 			message: "In which folder do you want the plot to be written? (absolute path without drive letter)",
-			default: defaultPlotDirectory,
-			when: whenExtended,
+			default: defaultAnswers.plotDirectory,
 			validate: dir => {
-				try {
-					if (dir[0] !== '/') {
-						return "Please specify the absolute path without drive letter and with trailing '/', e.g. /burst/plots"
-					}
-					fs.ensureDirSync(dir);
-					return true;
-				} catch (error) {
-					return error;
+				
+				if (dir[0] !== '/') {
+					return "Please specify the absolute path without drive letter and with trailing '/', e.g. /burst/plots"
 				}
+				const {targetDisk, plotDisk} = previousAnswers;
+				const targetPath = path.join(targetDisk + ":", dir);
+				const plotPath = path.join(plotDisk + ":", dir);
+				let notPermittedPaths = [];
+				
+				if (!hasAccessToPath(targetPath)) {
+					notPermittedPaths.push(targetPath);
+				}
+				
+				if (targetPath !== plotPath && !hasAccessToPath(plotPath)) {
+					notPermittedPaths.push(plotPath);
+				}
+
+				return notPermittedPaths.length === 0 ? true :
+					"Humm, cannot write to:\n" + notPermittedPaths.join('\n') + "\nChoose another path, or check permissions";
 			},
-			choices: threadChoices
 		},
 		{
 			type: "list",
 			name: "threads",
 			message: "How many threads do you want to use? (the more the faster the plotting)",
-			default: defaultThreads,
-			when: whenExtended,
+			default: defaultAnswers.threads,
 			choices: threadChoices
 		},
 		{
 			type: "list",
 			name: "memory",
 			message: `How much RAM do you want to use? (Free: ${availableRAM_mib} MiB)`,
-			default: defaultMemory,
-			when: whenExtended,
+			default: defaultAnswers.memory,
 			choices: ramChoices
 		},
 		{
 			type: "list",
 			name: "instructionSet",
 			message: "Select Instruction Set?",
-			default: defaultInstSet,
-			when: whenExtended,
+			default: defaultAnswers.instructionSet,
 			choices: instSetChoices
 		},
 		{
 			type: "confirm",
 			name: "logEnabled",
 			message: "Do you want to enable logging?",
-			default: defaults.logEnabled,
-			when: whenExtended,
+			default: defaultAnswers.logEnabled,
 		}
 	];
 	
-	const nextAnswers = await prompt(nextQuestions);
-	
-	nextAnswers.threads = nextAnswers.threads || defaultThreads;
-	nextAnswers.memory = nextAnswers.memory || defaultMemory;
-	nextAnswers.instructionSet = nextAnswers.instructionSet || defaultInstSet;
-	nextAnswers.logEnabled = nextAnswers.logEnabled || defaults.logEnabled;
-	nextAnswers.plotDirectory = nextAnswers.plotDirectory || defaults.plotDirectory;
+	const extendedAnswers = await prompt(extendedQuestions);
 	
 	return {
-		cacheFile: options.cache,
 		...previousAnswers,
-		...nextAnswers,
+		...extendedAnswers
 	}
 }
 
-function writeHint(text) {
-	const bottomBar = new ui.BottomBar();
-	bottomBar.log.write("\n");
-	bottomBar.log.write(chalk`{green HINT: }{yellowBright ${text}}`);
-	bottomBar.log.write("\n");
-}
-
-async function movePlotQuestions(defaults, options, previousAnswers) {
+async function movePlotQuestions(defaults, previousAnswers, options) {
 	
 	const getDiskSpaceGiB = driveName => +b2gib(diskInfo.disks[driveName].free).toFixed(2);
 	
 	const {targetDisk, totalPlotSize, chunks} = previousAnswers;
-	const requiredPlotDiskCapacityGiB = +((totalPlotSize / chunks) * 1.01).toFixed(2); // 1% more space required
-	const choices = availableDrives.filter(d => d !== targetDisk).filter( d => getDiskSpaceGiB(d) >= requiredPlotDiskCapacityGiB);
+	const requiredPlotDiskCapacityGiB = +((totalPlotSize / chunks) * 1.01).toFixed(2); // 1% more space required - just to be sure
+	const choices = availableDrives.filter(d => d !== targetDisk).filter(d => getDiskSpaceGiB(d) >= requiredPlotDiskCapacityGiB);
 	
 	const defaultAnswers = {
 		plotDisk: previousAnswers.targetDisk
@@ -203,7 +230,7 @@ async function movePlotQuestions(defaults, options, previousAnswers) {
 	if (availableDrives.length > 1 && choices.length === 0) {
 		availableDrives
 			.filter(d => d !== targetDisk)
-			.filter( d => getDiskSpaceGiB(d) < requiredPlotDiskCapacityGiB)
+			.filter(d => getDiskSpaceGiB(d) < requiredPlotDiskCapacityGiB)
 			.forEach(d => {
 				const availableGiB = getDiskSpaceGiB(d);
 				const missingGiB = (requiredPlotDiskCapacityGiB - availableGiB).toFixed(2);
@@ -244,7 +271,7 @@ async function movePlotQuestions(defaults, options, previousAnswers) {
 	}
 }
 
-async function confirm(defaults, options, previousAnswers) {
+async function confirm(defaults, previousAnswers, options) {
 	
 	// maybe do some further validations and give some recommendations
 	// - threads
@@ -280,10 +307,12 @@ async function ask(options) {
 	const defaults = cache.load(options.cache);
 	
 	options = {...options, instructionSetInfo};
-	let answers = await firstQuestions(defaults);
-	answers = await nextQuestions(defaults, options, answers);
-	answers = await movePlotQuestions(defaults, options, answers);
-	answers = await confirm(defaults, options, answers);
+	
+	let answers = await firstQuestions(defaults, options);
+	answers = await nextQuestions(defaults, answers, options);
+	answers = await movePlotQuestions(defaults, answers, options);
+	answers = await extendedModeQuestions(defaults, answers, options);
+	answers = await confirm(defaults, answers);
 	
 	return answers;
 }

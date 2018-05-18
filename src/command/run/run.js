@@ -1,21 +1,19 @@
 const fs = require('fs-extra');
-const path = require('path');
-
 const questions = require("./questions");
-const {isDevelopmentMode} = require('../../utils');
+const {isDevelopmentMode, hasAccessToPath} = require('../../utils');
 const store = require('../../store');
 const cache = require('../../cache');
 const plotter = require('../../plotter');
 const createPlotPartition = require('../../plotPartition');
 const logger = require("../../logger");
 
-function assertPathPermission(targetPath) {
-	const testFile = path.join(targetPath, 'touch.tmp');
-	fs.ensureDirSync(targetPath);
-	fs.outputFileSync(testFile, "test");
-	fs.removeSync(testFile);
+function validatePathAccess(path) {
+	if (!hasAccessToPath(path)) {
+		console.error("Cannot write to ", path);
+		return false;
+	}
+	return true;
 }
-
 
 async function startPlotter(answers) {
 	const {
@@ -35,9 +33,13 @@ async function startPlotter(answers) {
 	
 	const targetPath = `${targetDisk}:${plotDirectory}`;
 	const plotPath = `${plotDisk}:${plotDirectory}`;
-	
-	assertPathPermission(plotPath);
-	assertPathPermission(targetPath);
+
+	const canWriteToPaths = validatePathAccess(plotPath) && validatePathAccess(targetPath);
+
+	if(!canWriteToPaths){
+		console.error("Check, if paths are accessible, e.g. has sufficient permissions, or has connectivity issues");
+		return;
+	}
 	
 	const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
 	
@@ -128,6 +130,11 @@ async function run(options) {
 		cache.update(answers, options.cache);
 		
 	}
+	
+	
+	console.log(answers);
+	
+//	return;
 	
 	if (answers.confirmed) {
 		try{
