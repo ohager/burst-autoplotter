@@ -96,10 +96,6 @@ let run = (() => {
 			cache.update(answers, options.cache);
 		}
 
-		console.log(answers);
-
-		//	return;
-
 		if (answers.confirmed) {
 			try {
 				yield startPlotter(answers);

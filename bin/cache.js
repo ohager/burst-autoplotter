@@ -9,7 +9,7 @@ const initialCacheData = {
 	lastNonce: 0,
 	instructionSet: 'SSE',
 	plotDirectory: '/burst/plots',
-	logEnabled: true,
+	logEnabled: false,
 	telegram: {
 		enabled: false,
 		uuid: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
