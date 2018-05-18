@@ -38,7 +38,6 @@ function log(type, message, obj = {}) {
 		// ignore silently...just not to bother the plotting...
 	}
 	*/
-	// FIXME: Loggly is buggy and make the computer crash WTF!?
 }
 
 function error(message, obj) {

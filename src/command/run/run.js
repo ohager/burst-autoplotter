@@ -131,11 +131,6 @@ async function run(options) {
 		
 	}
 	
-	
-	console.log(answers);
-	
-//	return;
-	
 	if (answers.confirmed) {
 		try{
 			await startPlotter(answers);
