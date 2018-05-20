@@ -139,14 +139,12 @@ async function eventuallyMovePlot(plotPath, targetPath) {
 
 async function cleanExit(exitCode) {
 	
-	if ($.selectIsLogEnabled()) {
-		console.log("Flushing logs...please wait");
-		await logger.flush();
-	}
-	process.exit(exitCode)
+	console.log("Flushing logs...please wait");
+	await logger.flush();
+	process.exit(exitCode);
 }
 
-async function exitHandler(reason) {
+async function exitHandler(reason, error) {
 	
 	if (reason === 'abort') {
 		logger.info("Plotting aborted by user!");
@@ -157,13 +155,16 @@ async function exitHandler(reason) {
 	}
 	
 	if (reason === 'error') {
-		logger.error("Error:", store.get());
-		console.log(`Error: ` + $.selectError());
-		await cleanExit(-1);
+		try {
+			logger.error(error, {stacktrace: error.stack});
+			console.trace("Damn, an error occurred: ", error);
+			await notification.sendFailure(error);
+			await cleanExit(-1);
+		} catch (e) {
+			console.log(e);
+		}
 		return;
 	}
-	
-	logger.info("Finished Successfully");
 	
 	let message;
 	message = "Validated Plots: \n";
@@ -172,90 +173,80 @@ async function exitHandler(reason) {
 	message += "\n\nHappy Mining!";
 	
 	console.log(message);
+	logger.info("Finished Successfully");
 	
 	await cleanExit(0);
 }
 
 
 async function start({totalNonces, plots, accountId, plotPath, targetPath, threads, memory}) {
-
-	let interval = null;
-	try {
-
-		if (!isDevelopmentMode()) {
-			view.run(exitHandler);
-		}
-		else {
-			store.listen(state => console.log(state));
-		}
-		
-		// view listens to store, hence updates itself on state changes
-		interval = setInterval(() => {
-			store.update(() => ({
-				currentTime: Date.now()
-			}));
-		}, 1000);
-		
-		for (let i = 0; i < plots.length; ++i) {
-			
-			const isLastPlot = i === plots.length - 1;
-			const plot = plots[i];
-			
-			// reset current plot state
-			store.update(() => ({
-					message: "",
-					currentPlot: {
-						index: i + 1,
-						nonces: plot.nonces,
-						writtenNonces: 0,
-						avx: {
-							chunkPercentage: 0.0,
-							chunkStart: 0,
-							chunkEnd: 0
-						}
-					},
-				}
-			));
-			
-			logger.info("Starts new plot file", store.get());
-			
-			await execPlotter({
-				accountId,
-				plotPath,
-				startNonce: plot.startNonce,
-				nonces: plot.nonces,
-				threads,
-				memory
-			});
-			
-			
-			if (!isLastPlot) {
-				// run non-blocking plot movement
-				// noinspection JSIgnoredPromiseFromCall
-				eventuallyMovePlot(plotPath, targetPath);
-				await notification.sendSinglePlotCompleted();
-			}
-			
-			cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
-			logger.info("Successfully wrote new plot file", store.get());
-		}
-		
-		await eventuallyMovePlot(plotPath, targetPath);
-		await notification.sendAllPlotsCompleted();
-		
-		setDone();
-		
-		await execValidator(targetPath);
-		
-	} catch (e) {
-		
-		console.log("Wacky. Something failed", e);
-		setDone(e);
-		await notification.sendFailure(e);
-		
-	} finally {
-		clearInterval(interval);
+	
+	if (!isDevelopmentMode()) {
+		view.run(exitHandler);
 	}
+	else {
+		store.listen(console.log);
+	}
+	
+	// view listens to store, hence updates itself on state changes
+	const interval = setInterval(() => {
+		store.update(() => ({
+			currentTime: Date.now()
+		}));
+	}, 1000);
+	
+	throw new Error("bla");
+	
+	for (let i = 0; i < plots.length; ++i) {
+		
+		const isLastPlot = i === plots.length - 1;
+		const plot = plots[i];
+		
+		// reset current plot state
+		store.update(() => ({
+				message: "",
+				currentPlot: {
+					index: i + 1,
+					nonces: plot.nonces,
+					writtenNonces: 0,
+					avx: {
+						chunkPercentage: 0.0,
+						chunkStart: 0,
+						chunkEnd: 0
+					}
+				},
+			}
+		));
+		
+		logger.info("Starts new plot file", store.get());
+		
+		await execPlotter({
+			accountId,
+			plotPath,
+			startNonce: plot.startNonce,
+			nonces: plot.nonces,
+			threads,
+			memory
+		});
+		
+		if (!isLastPlot) {
+			// run non-blocking plot movement
+			// noinspection JSIgnoredPromiseFromCall
+			eventuallyMovePlot(plotPath, targetPath);
+			await notification.sendSinglePlotCompleted();
+		}
+		
+		cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
+		logger.info("Successfully wrote new plot file", store.get());
+	}
+	
+	
+	await eventuallyMovePlot(plotPath, targetPath);
+	await notification.sendAllPlotsCompleted();
+	
+	setDone();
+	clearInterval(interval);
+	await execValidator(targetPath);
 	
 }
 

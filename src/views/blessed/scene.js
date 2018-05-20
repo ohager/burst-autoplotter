@@ -2,6 +2,8 @@ const blessed = require("blessed");
 const $ = require("../../selectors");
 const {version} = require("../../../package.json");
 
+let handled = false;
+
 class Scene {
 	
 	constructor() {
@@ -26,11 +28,14 @@ class Scene {
 		// Quit on Escape, q, or Control-C.
 		this.screen.key(['escape', 'q', 'C-c'], () => {
 			if ($.selectHasFinished()) {
-				this.onExitFn({reason: 'completed'});
+				this.onExitFn({reason: 'completed', error: $.selectError()});
 				return;
 			}
 			this.showQuitDialog();
 		});
+		
+		process.once('unhandledRejection', (e) => this.__handleException(e));
+		
 	}
 	
 	showQuitDialog() {
@@ -103,8 +108,9 @@ class Scene {
 			}
 			this.screen.render();
 		} catch (e) {
-			this.onExitFn({reason: 'error'})
+			this.__handleException(e);
 		}
+		
 	}
 	
 	destroy() {
@@ -116,6 +122,10 @@ class Scene {
 		this.onExitFn = callback;
 	}
 	
+	__handleException(e) {
+		this.destroy();
+		this.onExitFn({reason: 'error', error: e});
+	}
 }
 
 module.exports = Scene;

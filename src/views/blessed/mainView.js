@@ -24,9 +24,9 @@ function start(onExit) {
 	}
 	
 	scene.addView("final", FinalView);
-	scene.onExit(({reason}) => {
+	scene.onExit(({reason, error}) => {
 		stop();
-		onExit(reason);
+		onExit(reason, error);
 	});
 	// for some reasons need to wrap render() in an arrow function, otherwise it doesn't work
 	listener = store.listen(() => scene.render());
@@ -40,5 +40,6 @@ function stop() {
 
 module.exports = {
 	run: start,
+	cancel: stop,
 };
 

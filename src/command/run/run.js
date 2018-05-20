@@ -27,16 +27,15 @@ async function startPlotter(answers) {
 		threads,
 		memory,
 		instructionSet,
-		logEnabled,
 		plotDirectory,
 	} = answers;
 	
 	const targetPath = `${targetDisk}:${plotDirectory}`;
 	const plotPath = `${plotDisk}:${plotDirectory}`;
-
+	
 	const canWriteToPaths = validatePathAccess(plotPath) && validatePathAccess(targetPath);
-
-	if(!canWriteToPaths){
+	
+	if (!canWriteToPaths) {
 		console.error("Check, if paths are accessible, e.g. has sufficient permissions, or has connectivity issues");
 		return;
 	}
@@ -44,7 +43,6 @@ async function startPlotter(answers) {
 	const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
 	
 	store.update(() => ({
-		logEnabled,
 		totalPlotSize,
 		account: accountId,
 		cacheFile: cacheFile,
@@ -58,11 +56,11 @@ async function startPlotter(answers) {
 		outputPath: targetPath,
 		plotCount: plots.length,
 		plotDirectory,
-		movePlot : {
+		movePlot: {
 			isEnabled: targetPath !== plotPath,
 			isMoving: false,
 		},
-		done : false,
+		done: false,
 	}));
 	
 	logger.info("Start plotting", answers);
@@ -95,8 +93,7 @@ function prepareDevelopmentAnswers() {
 		threads: 7,
 		memory: '8192',
 		instructionSet: 'AVX2',
-		confirmed: true,
-		logEnabled: true,
+		confirmed: true
 	};
 }
 
@@ -109,8 +106,6 @@ function clearOldDevelopmentPlots({targetDisk, plotDisk, plotDirectory}) {
 
 async function run(options) {
 	
-	logger.info("Execute Autoplotter", options);
-	
 	if (options.version) {
 		return;
 	}
@@ -119,7 +114,7 @@ async function run(options) {
 	if (isDevelopmentMode()) {
 		console.debug("Development Mode");
 		answers = prepareDevelopmentAnswers();
-		//clearOldDevelopmentPlots(answers);
+		clearOldDevelopmentPlots(answers);
 	} else {
 		
 		answers = await questions.ask(options);
@@ -130,14 +125,13 @@ async function run(options) {
 		cache.update(answers, options.cache);
 		
 	}
-	
+
+	const {logEnabled} = cache.load(options.cache);
+	logger.init({logEnabled});
+	logger.info("Execute Autoplotter", options);
+
 	if (answers.confirmed) {
-		try{
-			await startPlotter(answers);
-		}catch(e){
-			// TODO: log error
-			console.error(e);
-		}
+		await startPlotter(answers);
 	}
 	
 }

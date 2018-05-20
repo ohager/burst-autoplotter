@@ -43,7 +43,8 @@
 		"mustache": "^2.3.0",
 		"node-loggly-bulk": "^2.2.2",
 		"nodemailer": "^4.6.3",
-		"stappo": "^0.0.7"
+		"stappo": "^0.0.7",
+		"winston": "^2.4.2"
 	},
 	"bin": {
 		"autoplot": "./bin/index.js"

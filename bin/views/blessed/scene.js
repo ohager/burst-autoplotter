@@ -103,7 +103,7 @@ class Scene {
 			}
 			this.screen.render();
 		} catch (e) {
-			this.onExitFn({ reason: 'error' });
+			this.onExitFn({ reason: 'error', error:e });
 		}
 	}
 

@@ -36,11 +36,9 @@ const getInstructionSetInformation = () => {
 };
 
 async function firstQuestions(defaults, options) {
-	
-	/*
 	if (!defaults.logEnabled) {
 		writeHint("Currently logging is disabled. The log helps me to improve the user experience.\nI appreciate if you enable logging using the enhanced settings. Thank you.");
-	}*/
+	}
 	
 	const questions = [
 		{

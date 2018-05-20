@@ -139,10 +139,6 @@ const selectIsPlotting = select(
 	state => state.totalWrittenNonces < state.totalNonces
 );
 
-const selectIsLogEnabled = select(
-	state => state.logEnabled
-);
-
 const selectMessage = select(
 	state => state.message || ""
 );
@@ -211,7 +207,6 @@ module.exports = {
 	selectError,
 	selectHasFinished,
 	selectTotalNonceRange,
-	selectIsLogEnabled,
 	selectMessage,
 	selectIsMovePlotEnabled,
 	selectIsMovingPlot,
