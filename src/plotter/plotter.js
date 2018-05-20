@@ -106,8 +106,7 @@ async function movePlot(plotPath, targetPath) {
 	
 	await waitForMovingPlotFinished();
 	
-	//console.log("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
-	//logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
+	logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
 	store.update(state => ({
 		movePlot: {
 			...state.movePlot,
@@ -236,7 +235,6 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 		cache.update({lastNonce: plot.startNonce + plot.nonces}, $.selectCacheFile());
 		logger.info("Successfully wrote new plot file", store.get());
 	}
-	
 	
 	await eventuallyMovePlot(plotPath, targetPath);
 	await notification.sendAllPlotsCompleted();

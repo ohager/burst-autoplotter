@@ -30,7 +30,7 @@ function submitToLoggly() {
 		let lineCount=0;
 		lineReader.on('line', (line) => {
 			++lineCount;
-			client.log(line);
+			client.log(JSON.parse(line));
 		});
 		
 		lineReader.on('error', (error) => {
