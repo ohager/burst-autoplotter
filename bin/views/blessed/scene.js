@@ -2,10 +2,13 @@ const blessed = require("blessed");
 const $ = require("../../selectors");
 const { version } = require("../../../package.json");
 
+let handled = false;
+
 class Scene {
 
 	constructor() {
 
+		this.autoCloseInterval = null;
 		this.views = {};
 		this.onExitFn = () => {};
 
@@ -23,12 +26,19 @@ class Scene {
 
 		// Quit on Escape, q, or Control-C.
 		this.screen.key(['escape', 'q', 'C-c'], () => {
+
+			if (this.autoCloseInterval) {
+				clearInterval(this.autoCloseInterval);
+			}
+
 			if ($.selectHasFinished()) {
-				this.onExitFn({ reason: 'completed' });
+				this.onExitFn({ reason: 'completed', error: $.selectError() });
 				return;
 			}
 			this.showQuitDialog();
 		});
+
+		process.once('unhandledRejection', e => this.__handleException(e));
 	}
 
 	showQuitDialog() {
@@ -101,9 +111,20 @@ class Scene {
 			if (this.quitDialog) {
 				this.quitDialog.setFront();
 			}
+
+			if ($.selectHasFinished() && !this.autoCloseInterval) {
+				let remainingSecsUntilClose = 30;
+				this.autoCloseInterval = setInterval(() => {
+					if (remainingSecsUntilClose-- === 0) {
+						clearInterval(this.autoCloseInterval);
+						this.onExitFn({ reason: 'completed', error: $.selectError() });
+					}
+				}, 1000);
+			}
+
 			this.screen.render();
 		} catch (e) {
-			this.onExitFn({ reason: 'error', error:e });
+			this.__handleException(e);
 		}
 	}
 
@@ -116,6 +137,10 @@ class Scene {
 		this.onExitFn = callback;
 	}
 
+	__handleException(e) {
+		this.destroy();
+		this.onExitFn({ reason: 'error', error: e });
+	}
 }
 
 module.exports = Scene;

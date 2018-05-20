@@ -22,8 +22,7 @@ let movePlot = (() => {
 
 		yield waitForMovingPlotFinished();
 
-		//console.log("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
-		//logger.info("Moving plot file...", {from: currentPlotFile, to: targetPathAbsolute});
+		logger.info("Moving plot file...", { from: currentPlotFile, to: targetPathAbsolute });
 		store.update(function (state) {
 			return {
 				movePlot: _extends({}, state.movePlot, {
@@ -67,10 +66,7 @@ let eventuallyMovePlot = (() => {
 let cleanExit = (() => {
 	var _ref5 = _asyncToGenerator(function* (exitCode) {
 
-		if ($.selectIsLogEnabled()) {
-			console.log("Flushing logs...please wait");
-			yield logger.flush();
-		}
+		yield logger.flush();
 		process.exit(exitCode);
 	});
 
@@ -80,7 +76,7 @@ let cleanExit = (() => {
 })();
 
 let exitHandler = (() => {
-	var _ref6 = _asyncToGenerator(function* (reason) {
+	var _ref6 = _asyncToGenerator(function* (reason, error) {
 
 		if (reason === 'abort') {
 			logger.info("Plotting aborted by user!");
@@ -91,13 +87,16 @@ let exitHandler = (() => {
 		}
 
 		if (reason === 'error') {
-			logger.error("Error:", store.get());
-			console.log(`Error: ` + $.selectError());
-			yield cleanExit(-1);
+			try {
+				logger.error(error, { stacktrace: error.stack });
+				console.trace("Damn, an error occurred: ", error);
+				yield notification.sendFailure(error);
+				yield cleanExit(-1);
+			} catch (e) {
+				console.log(e);
+			}
 			return;
 		}
-
-		logger.info("Finished Successfully");
 
 		let message;
 		message = "Validated Plots: \n";
@@ -108,11 +107,12 @@ let exitHandler = (() => {
 		message += "\n\nHappy Mining!";
 
 		console.log(message);
+		logger.info("Finished Successfully");
 
 		yield cleanExit(0);
 	});
 
-	return function exitHandler(_x7) {
+	return function exitHandler(_x7, _x8) {
 		return _ref6.apply(this, arguments);
 	};
 })();
@@ -120,87 +120,74 @@ let exitHandler = (() => {
 let start = (() => {
 	var _ref7 = _asyncToGenerator(function* ({ totalNonces, plots, accountId, plotPath, targetPath, threads, memory }) {
 
-		let interval = null;
-		try {
-
-			if (!isDevelopmentMode()) {
-				view.run(exitHandler);
-			} else {
-				store.listen(function (state) {
-					return console.log(state);
-				});
-			}
-
-			// view listens to store, hence updates itself on state changes
-			interval = setInterval(function () {
-				store.update(function () {
-					return {
-						currentTime: Date.now()
-					};
-				});
-			}, 1000);
-
-			for (let i = 0; i < plots.length; ++i) {
-
-				const isLastPlot = i === plots.length - 1;
-				const plot = plots[i];
-
-				// reset current plot state
-				store.update(function () {
-					return {
-						message: "",
-						currentPlot: {
-							index: i + 1,
-							nonces: plot.nonces,
-							writtenNonces: 0,
-							avx: {
-								chunkPercentage: 0.0,
-								chunkStart: 0,
-								chunkEnd: 0
-							}
-						}
-					};
-				});
-
-				logger.info("Starts new plot file", store.get());
-
-				yield execPlotter({
-					accountId,
-					plotPath,
-					startNonce: plot.startNonce,
-					nonces: plot.nonces,
-					threads,
-					memory
-				});
-
-				if (!isLastPlot) {
-					// run non-blocking plot movement
-					// noinspection JSIgnoredPromiseFromCall
-					eventuallyMovePlot(plotPath, targetPath);
-					yield notification.sendSinglePlotCompleted();
-				}
-
-				cache.update({ lastNonce: plot.startNonce + plot.nonces }, $.selectCacheFile());
-				logger.info("Successfully wrote new plot file", store.get());
-			}
-
-			yield eventuallyMovePlot(plotPath, targetPath);
-			yield notification.sendAllPlotsCompleted();
-
-			setDone();
-
-			yield execValidator(targetPath);
-		} catch (e) {
-
-			console.log("Wacky. Something failed", e);
-			setDone(e);
-			yield notification.sendFailure(e);
-		} finally {
-			clearInterval(interval);
+		if (!isDevelopmentMode()) {
+			view.run(exitHandler);
+		} else {
+			store.listen(console.log);
 		}
+
+		// view listens to store, hence updates itself on state changes
+		const interval = setInterval(function () {
+			store.update(function () {
+				return {
+					currentTime: Date.now()
+				};
+			});
+		}, 1000);
+
+		for (let i = 0; i < plots.length; ++i) {
+
+			const isLastPlot = i === plots.length - 1;
+			const plot = plots[i];
+
+			// reset current plot state
+			store.update(function () {
+				return {
+					message: "",
+					currentPlot: {
+						index: i + 1,
+						nonces: plot.nonces,
+						writtenNonces: 0,
+						avx: {
+							chunkPercentage: 0.0,
+							chunkStart: 0,
+							chunkEnd: 0
+						}
+					}
+				};
+			});
+
+			logger.info("Starts new plot file", store.get());
+
+			yield execPlotter({
+				accountId,
+				plotPath,
+				startNonce: plot.startNonce,
+				nonces: plot.nonces,
+				threads,
+				memory
+			});
+
+			if (!isLastPlot) {
+				// run non-blocking plot movement
+				// noinspection JSIgnoredPromiseFromCall
+				eventuallyMovePlot(plotPath, targetPath);
+				yield notification.sendSinglePlotCompleted();
+			}
+
+			cache.update({ lastNonce: plot.startNonce + plot.nonces }, $.selectCacheFile());
+			logger.info("Successfully wrote new plot file", store.get());
+		}
+
+		yield eventuallyMovePlot(plotPath, targetPath);
+		yield notification.sendAllPlotsCompleted();
+
+		setDone();
+		clearInterval(interval);
+		yield execValidator(targetPath);
 	});
 
-	return function start(_x8) {
+	return function start(_x9) {
 		return _ref7.apply(this, arguments);
 	};
 })();

@@ -78,8 +78,6 @@ const selectIsWritingScoops = select(state => selectScoopPercentage() > 0);
 
 const selectIsPlotting = select(state => state.totalWrittenNonces < state.totalNonces);
 
-const selectIsLogEnabled = select(state => state.logEnabled);
-
 const selectMessage = select(state => state.message || "");
 
 const selectIsMovePlotEnabled = select(state => state.movePlot.isEnabled);
@@ -136,7 +134,6 @@ module.exports = {
 	selectError,
 	selectHasFinished,
 	selectTotalNonceRange,
-	selectIsLogEnabled,
 	selectMessage,
 	selectIsMovePlotEnabled,
 	selectIsMovingPlot,

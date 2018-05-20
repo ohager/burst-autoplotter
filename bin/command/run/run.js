@@ -11,7 +11,6 @@ let startPlotter = (() => {
 			threads,
 			memory,
 			instructionSet,
-			logEnabled,
 			plotDirectory
 		} = answers;
 
@@ -29,7 +28,6 @@ let startPlotter = (() => {
 
 		store.update(function () {
 			return {
-				logEnabled,
 				totalPlotSize,
 				account: accountId,
 				cacheFile: cacheFile,
@@ -75,8 +73,6 @@ let startPlotter = (() => {
 let run = (() => {
 	var _ref2 = _asyncToGenerator(function* (options) {
 
-		logger.info("Execute Autoplotter", options);
-
 		if (options.version) {
 			return;
 		}
@@ -85,7 +81,7 @@ let run = (() => {
 		if (isDevelopmentMode()) {
 			console.debug("Development Mode");
 			answers = prepareDevelopmentAnswers();
-			//clearOldDevelopmentPlots(answers);
+			clearOldDevelopmentPlots(answers);
 		} else {
 
 			answers = yield questions.ask(options);
@@ -96,13 +92,12 @@ let run = (() => {
 			cache.update(answers, options.cache);
 		}
 
+		const { logEnabled } = cache.load(options.cache);
+		logger.init({ logEnabled });
+		logger.info("Execute Autoplotter", options);
+
 		if (answers.confirmed) {
-			try {
-				yield startPlotter(answers);
-			} catch (e) {
-				// TODO: log error
-				console.error(e);
-			}
+			yield startPlotter(answers);
 		}
 	});
 
@@ -143,8 +138,7 @@ function prepareDevelopmentAnswers() {
 		threads: 7,
 		memory: '8192',
 		instructionSet: 'AVX2',
-		confirmed: true,
-		logEnabled: true
+		confirmed: true
 	};
 }
 
