@@ -8,6 +8,7 @@ class Scene {
 	
 	constructor() {
 		
+		this.autoCloseInterval = null;
 		this.views = {};
 		this.onExitFn = () => {
 		};
@@ -27,6 +28,11 @@ class Scene {
 		
 		// Quit on Escape, q, or Control-C.
 		this.screen.key(['escape', 'q', 'C-c'], () => {
+			
+			if(this.autoCloseInterval) {
+				clearInterval(this.autoCloseInterval);
+			}
+			
 			if ($.selectHasFinished()) {
 				this.onExitFn({reason: 'completed', error: $.selectError()});
 				return;
@@ -106,6 +112,17 @@ class Scene {
 			if (this.quitDialog) {
 				this.quitDialog.setFront();
 			}
+			
+			if ($.selectHasFinished() && !this.autoCloseInterval) {
+				let remainingSecsUntilClose = 30;
+				this.autoCloseInterval = setInterval(() => {
+					if(remainingSecsUntilClose-- === 0){
+						clearInterval(this.autoCloseInterval);
+						this.onExitFn({reason: 'completed', error: $.selectError()});
+					}
+				},1000)
+			}
+			
 			this.screen.render();
 		} catch (e) {
 			this.__handleException(e);

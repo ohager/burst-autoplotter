@@ -139,7 +139,6 @@ async function eventuallyMovePlot(plotPath, targetPath) {
 
 async function cleanExit(exitCode) {
 	
-	console.log("Flushing logs...please wait");
 	await logger.flush();
 	process.exit(exitCode);
 }
@@ -194,8 +193,6 @@ async function start({totalNonces, plots, accountId, plotPath, targetPath, threa
 			currentTime: Date.now()
 		}));
 	}, 1000);
-	
-	throw new Error("bla");
 	
 	for (let i = 0; i < plots.length; ++i) {
 		
