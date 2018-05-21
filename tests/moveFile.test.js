@@ -23,12 +23,16 @@ test("moveFile as callbacks", (done) => {
 		expect(stat.copiedBytes).toBeLessThanOrEqual(stat.totalSizeBytes);
 	}, (stat) => {
 		
-		expect(stat.copiedBytes).toBe(stat.totalSizeBytes);
-		expect(stat.isMoving).toBeFalsy();
-		expect(fs.existsSync(TargetFile)).toBeTruthy();
-		expect(fs.statSync(TargetFile).size).toBe(stat.totalSizeBytes);
-		expect(fs.existsSync(SourceFile)).toBeFalsy();
-		done();
+		// wait eventual OS buffer flush
+		setTimeout(() => {
+				expect(stat.copiedBytes).toBe(stat.totalSizeBytes);
+				expect(stat.isMoving).toBeFalsy();
+				expect(fs.existsSync(TargetFile)).toBeTruthy();
+				expect(fs.statSync(TargetFile).size).toBe(stat.totalSizeBytes);
+				expect(fs.existsSync(SourceFile)).toBeFalsy();
+				done();
+			}
+		, 1000)
 		
 	})
 });
