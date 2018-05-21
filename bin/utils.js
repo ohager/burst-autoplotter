@@ -1,6 +1,6 @@
 const fs = require("fs-extra");
 const path = require("path");
-const {format} = require("date-fns");
+const { format } = require("date-fns");
 
 const isDevelopmentMode = () => process.env.NODE_ENV === 'development';
 
@@ -12,15 +12,15 @@ const b2mib = noBytes => noBytes / FACT_MIB;
 const b2gib = noBytes => noBytes / FACT_GIB;
 
 function formatTimeString(seconds) {
-	
+
 	if (seconds === null || seconds === undefined || typeof seconds !== 'number') return 'N/A';
-	
+
 	const p = n => n < 10 ? '0' + n : '' + n;
-	
+
 	const h = Math.floor(seconds / 3600);
 	const m = Math.floor(seconds % 3600 / 60);
 	const s = seconds % 60;
-	
+
 	return `${p(h)}:${p(m)}:${p(s)}`;
 }
 
@@ -39,20 +39,17 @@ function asMultipleOf(number, multiple) {
 }
 
 function getNewestFileInDirectory(dirPath) {
-	
-	const newestFile = fs.readdirSync(dirPath)
-		.map(f => path.join(dirPath, f))
-		.map(f => ({
-			path: f,
-			ctime: fs.statSync(f).ctimeMs
-		})).sort((a, b) => a.ctime - b.ctime)
-		.pop();
-	
+
+	const newestFile = fs.readdirSync(dirPath).map(f => path.join(dirPath, f)).map(f => ({
+		path: f,
+		ctime: fs.statSync(f).ctimeMs
+	})).sort((a, b) => a.ctime - b.ctime).pop();
+
 	return newestFile && newestFile.path || null;
 }
 
 function hasAccessToPath(targetPath) {
-	
+
 	try {
 		const testFile = path.join(targetPath, 'touch.tmp');
 		fs.ensureDirSync(targetPath);

@@ -36,9 +36,10 @@ let firstQuestions = (() => {
 let nextQuestions = (() => {
 	var _ref2 = _asyncToGenerator(function* (defaults, previousAnswers, options) {
 
+		const SAFE_SPACE = 10 * 1024 * 1024;
 		const { targetDisk } = previousAnswers;
 		const selectedDrive = diskInfo.disks[targetDisk];
-		const maxAvailableSpaceGiB = b2gib(selectedDrive.free).toFixed(2);
+		const maxAvailableSpaceGiB = b2gib(selectedDrive.free - SAFE_SPACE).toFixed(2);
 		const defaultChunkCount = Math.ceil(maxAvailableSpaceGiB / 250);
 
 		const nextQuestions = [{
