@@ -1,8 +1,8 @@
 const {
 	getWritingScoops,
-} = require('../../src/extractor/writingScoops');
+} = require('../../../src/extractor/xplotter/scoops');
 
-test("Test getWritingScoops", () => {
+test("Test XPlotter getWritingScoops", () => {
 	
 	const input = "CPU: 4428 nonces done, (9011 nonces/min) - foo bar noise scoops: 88.12% bauadboa";
 	const extracted = getWritingScoops(input);

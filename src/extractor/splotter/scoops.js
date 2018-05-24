@@ -1,6 +1,6 @@
-const extract = require("./extract");
+const extract = require("../extract");
 
-const WritingScoopsRegex = /scoops: (.+)%/g;
+const WritingScoopsRegex = /WS: (.+)%/g;
 
 const getWritingScoops = input => extract(WritingScoopsRegex, input);
 

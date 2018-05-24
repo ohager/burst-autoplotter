@@ -1,4 +1,4 @@
-const extract = require("./extract");
+const extract = require("../extract");
 
 // [85%] Generating nonces from 888635 to 930229  - output for AVX exec (blame Blago for that)
 const NoncesChunkedRangeRegex = /Generating nonces from (\d+) to (\d+)/;

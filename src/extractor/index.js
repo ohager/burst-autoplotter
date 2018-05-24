@@ -1,7 +1,9 @@
-const avx = require("./avx");
-const sse = require("./sse");
+const avx = require("./xplotter/avx");
+const sse = require("./xplotter/sse");
+const scoops = require("./xplotter/scoops");
+const splotter = require("./splotter/nonces");
+const splotterScoops = require("./splotter/scoops");
 const validation = require("./validation");
-const scoops = require("./writingScoops");
 
 /**
  * This is a tiny but very useful extract function with fluent API
@@ -29,6 +31,7 @@ module.exports = {
 	extractors : {
 		avx,
 		sse,
+		splotter,
 		validation,
 		scoops,
 	}

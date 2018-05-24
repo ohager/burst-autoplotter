@@ -1,9 +1,9 @@
 const {
 	tryGetCurrentChunkPercentage,
 	tryGetNoncesChunkedRange,
-} = require('../../src/extractor/avx');
+} = require('../../../src/extractor/xplotter/avx');
 
-test("Test getNoncesChunkedRange", () => {
+test("Test XPlotter AVX getNoncesChunkedRange", () => {
 	
 	const input = "[85%] Generating nonces from 888635 to 930229 some noise";
 	const extracted = tryGetNoncesChunkedRange(input);
