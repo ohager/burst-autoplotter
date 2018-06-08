@@ -29,19 +29,19 @@ async function startPlotter(answers) {
 		instructionSet,
 		plotDirectory,
 	} = answers;
-	
+
 	const targetPath = `${targetDisk}:${plotDirectory}`;
 	const plotPath = `${plotDisk}:${plotDirectory}`;
-	
+
 	const canWriteToPaths = validatePathAccess(plotPath) && validatePathAccess(targetPath);
-	
+
 	if (!canWriteToPaths) {
 		console.error("Check, if paths are accessible, e.g. has sufficient permissions, or has connectivity issues");
 		return;
 	}
-	
+
 	const {totalNonces, plots} = createPlotPartition(totalPlotSize, startNonce, chunks);
-	
+
 	store.update(() => ({
 		totalPlotSize,
 		account: accountId,
@@ -62,9 +62,9 @@ async function startPlotter(answers) {
 		},
 		done: false,
 	}));
-	
+
 	logger.info("Start plotting", answers);
-	
+
 	await plotter.start({
 		totalNonces,
 		plots,
@@ -75,16 +75,16 @@ async function startPlotter(answers) {
 		memory,
 		instSet: instructionSet,
 	});
-	
+
 	logger.info("Finished plotting", answers);
-	
+
 }
 
 function prepareDevelopmentAnswers() {
-	
+
 	return {
 		accountId: '1234567890123456700',
-		targetDisk: 'E',
+		targetDisk: 'C',
 		plotDisk: 'C',
 		plotDirectory: '/Burst/plots',
 		totalPlotSize: '1',
@@ -105,25 +105,25 @@ function clearOldDevelopmentPlots({targetDisk, plotDisk, plotDirectory}) {
 }
 
 async function run(options) {
-	
+
 	if (options.version) {
 		return;
 	}
-	
+
 	let answers;
 	if (isDevelopmentMode()) {
 		console.debug("Development Mode");
 		answers = prepareDevelopmentAnswers();
 		clearOldDevelopmentPlots(answers);
 	} else {
-		
+
 		answers = await questions.ask(options);
 		while (answers.rerun) {
 			answers = await questions.ask(options);
 		}
-		
+
 		cache.update(answers, options.cache);
-		
+
 	}
 
 	const {logEnabled} = cache.load(options.cache);
@@ -133,7 +133,7 @@ async function run(options) {
 	if (answers.confirmed) {
 		await startPlotter(answers);
 	}
-	
+
 }
 
 module.exports = run;

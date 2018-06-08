@@ -26,12 +26,16 @@
 		"codecov": "^3.0.0",
 		"cross-env": "^5.0.1",
 		"jest": "^22.4.2",
+		"module-alias": "^2.0.6",
 		"semver": "^5.5.0"
+	},
+	"_moduleAliases": {
+		"@": "src"
 	},
 	"dependencies": {
 		"axios": "^0.18.0",
 		"blessed": "^0.1.81",
-		"chalk": "^2.0.1",
+		"chalk": "^2.4.1",
 		"command-line-args": "^5.0.2",
 		"command-line-usage": "^5.0.4",
 		"date-fns": "^1.29.0",
