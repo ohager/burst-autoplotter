@@ -3,18 +3,19 @@
 [![Build Status](https://travis-ci.org/ohager/burst-autoplotter.svg?branch=master)](https://travis-ci.org/ohager/burst-autoplotter)
 [![codecov](https://codecov.io/gh/ohager/burst-autoplotter/branch/master/graph/badge.svg)](https://codecov.io/gh/ohager/burst-autoplotter)
 [![DeepScan grade](https://deepscan.io/api/projects/2279/branches/13096/badge/grade.svg)](https://deepscan.io/dashboard#view=project&pid=2279&bid=13096)
-> NEW VERSION 0.5: Move Plots, Configurable Plot Directory, Logging (Loggly)
+> NEW VERSION 0.6: POC2 Support 
 
 Automates plotting for BURST coin
 
 Features:
 
+- POC2
 - Very easy plot configuration, based on simple question dialog
     - No nonce calculation necessary (setup based on disk space)
     - Splits large plots in smaller plot files
 - CLI-based UI with progress indicators, ETA, etc
 - Creates optimized plots (XPlotter)
-- Support for SSE, AVX, and AVX2
+- Support for SSE, AVX, and AVX2 (recently optimized version)
 - Move single plots to target drive
     - Allows plotting on fast drives (SSD), and/or computer
 - Caches relevant information, like last written nonces, and Account ID
@@ -24,7 +25,7 @@ Features:
     - [Telegram](https://telegram.org/) Push Notification
 - Logging into Loggly (Feature for me!)
 
-> Currently, the plotter works only! on Windows (as XPlotter is used internally)
+> Currently, the plotter works only! on Windows (as platform specific executables are used internally)
 
 ![autoplotter-in-action](https://devbutze.com/wp-content/uploads/2018/03/autoplot_v0.3.gif)
 
@@ -110,6 +111,10 @@ and you'll receive a token (e.g. `2a3137d2-2d6a-4e4d-985a-df0d278426b0`) that yo
 
 # Credits
 
-This tool uses [XPlotter](https://github.com/Blagodarenko/XPlotter). 
+This tool uses [SPlotter](https://github.com/ohager/SPlotter) - an [XPlotter](https://github.com/blagodrenko/XPlotter) fork
 
-Thanks to Blago, Cerr Janro, and DCCT
+Thanks to 
+
+- Blago, Cerr Janro, and DCCT for their XPlotter
+- Hypsy for SPlotter
+- JohnnyFFM for support

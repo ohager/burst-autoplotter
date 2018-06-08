@@ -22,7 +22,7 @@ let movePlot = (() => {
 
 		yield waitForMovingPlotFinished();
 
-		logger.info("Moving plot file...", { from: currentPlotFile, to: targetPathAbsolute });
+		logger.info('Moving plot file...', { from: currentPlotFile, to: targetPathAbsolute });
 		store.update(function (state) {
 			return {
 				movePlot: _extends({}, state.movePlot, {
@@ -34,7 +34,7 @@ let movePlot = (() => {
 		return moveFile(plotPath, targetPath, updateMovePlotProgress).then(function (status) {
 			updateMovePlotProgress(status);
 			if (!status.error) {
-				logger.info("Moved plot file successfully", { from: plotPath, to: targetPath });
+				logger.info('Moved plot file successfully', { from: plotPath, to: targetPath });
 			}
 			return status;
 		}).catch(setDone);
@@ -77,11 +77,14 @@ let cleanExit = (() => {
 
 let exitHandler = (() => {
 	var _ref6 = _asyncToGenerator(function* (reason, error) {
+		const green = chalk.greenBright;
+		const yellow = chalk.yellowBright;
+		const white = chalk.whiteBright;
 
 		if (reason === 'abort') {
-			logger.info("Plotting aborted by user!");
+			logger.info('Plotting aborted by user!');
 			console.log('Plotting aborted by user!');
-			console.log(`Note, that the last written plot in ${$.selectOutputPath()} may not be valid`);
+			console.log(yellow(`Note, that the last written plot in ${$.selectOutputPath()} may not be valid`));
 			yield cleanExit(0);
 			return;
 		}
@@ -89,7 +92,7 @@ let exitHandler = (() => {
 		if (reason === 'error') {
 			try {
 				logger.error(error, { stacktrace: error.stack });
-				console.trace("Damn, an error occurred: ", error);
+				console.error(yellow('Damn, an error occurred: ', error));
 				yield notification.sendFailure(error);
 				yield cleanExit(-1);
 			} catch (e) {
@@ -98,16 +101,19 @@ let exitHandler = (() => {
 			return;
 		}
 
+		const plotFiles = fs.readdirSync($.selectOutputPath());
+
 		let message;
-		message = "Validated Plots: \n";
-		message += `Path: ${$.selectOutputPath()}\n`;
-		message += $.selectValidatedPlots().map(function (v) {
-			return `${v.plot} is ${v.isValid ? "VALID" : "NOT VALID"}`;
-		}).join("\n");
-		message += "\n\nHappy Mining!";
+		message = white(`Finished after ${formatTimeString($.selectElapsedTimeInSecs())}\n`);
+		message += white(`Written ${$.selectTotalWrittenNonces()} nonces -> nonces/min: ${$.selectEffectiveNoncesPerSeconds() * 60}\n\n`);
+		message += white(`Plots in Path: ${$.selectOutputPath()}\n`);
+		message += plotFiles.sort().map(function (fileName) {
+			return green(fileName);
+		}).join('\n');
+		message += yellow('\n\nHappy Mining!');
 
 		console.log(message);
-		logger.info("Finished Successfully");
+		logger.info('Finished Successfully');
 
 		yield cleanExit(0);
 	});
@@ -143,7 +149,7 @@ let start = (() => {
 			// reset current plot state
 			store.update(function () {
 				return {
-					message: "",
+					message: '',
 					currentPlot: {
 						index: i + 1,
 						nonces: plot.nonces,
@@ -157,7 +163,7 @@ let start = (() => {
 				};
 			});
 
-			logger.info("Starts new plot file", store.get());
+			logger.info('Starts new plot file', store.get());
 
 			yield execPlotter({
 				accountId,
@@ -176,7 +182,7 @@ let start = (() => {
 			}
 
 			cache.update({ lastNonce: plot.startNonce + plot.nonces }, $.selectCacheFile());
-			logger.info("Successfully wrote new plot file", store.get());
+			logger.info('Successfully wrote new plot file', store.get());
 		}
 
 		yield eventuallyMovePlot(plotPath, targetPath);
@@ -184,7 +190,6 @@ let start = (() => {
 
 		setDone();
 		clearInterval(interval);
-		yield execValidator(targetPath);
 	});
 
 	return function start(_x9) {
@@ -194,21 +199,22 @@ let start = (() => {
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
+const fs = require('fs');
 const { spawn } = require('child_process');
-const path = require("path");
-const moveFile = require("../moveFile");
+const path = require('path');
+const chalk = require('chalk');
+const moveFile = require('../moveFile');
 const cache = require('../cache');
-const { XPLOTTER_SSE_EXE, XPLOTTER_AVX_EXE, XPLOTTER_AVX2_EXE } = require('../config');
-const execValidator = require("../validator/validator");
-const { getNewestFileInDirectory, isDevelopmentMode } = require("../utils");
+const { PLOTTER_SSE_EXE, PLOTTER_AVX_EXE, PLOTTER_AVX2_EXE } = require('../config');
+const { getNewestFileInDirectory, isDevelopmentMode, formatTimeString } = require('../utils');
 
-const store = require("../store");
-const $ = require("../selectors");
-const view = require("../views/blessed");
-const logger = require("../logger");
-const handleStdoutData = require("./stdoutHandler");
-const handleClose = require("./closeHandler");
-const notification = require("../notification");
+const store = require('../store');
+const $ = require('../selectors');
+const view = require('../views/blessed');
+const logger = require('../logger');
+const handleStdoutData = require('./stdoutHandler');
+const handleClose = require('./closeHandler');
+const notification = require('../notification');
 
 function setDone(e) {
 	store.update(() => ({
@@ -221,16 +227,16 @@ const getPlotterPath = () => {
 
 	const instSet = $.selectInstructionSet();
 
-	const exeDir = "../../exe";
+	const exeDir = '../../exe';
 	switch (instSet) {
 		case 'SSE':
-			return path.join(__dirname, exeDir, XPLOTTER_SSE_EXE);
+			return path.join(__dirname, exeDir, PLOTTER_SSE_EXE);
 		case 'AVX':
-			return path.join(__dirname, exeDir, XPLOTTER_AVX_EXE);
+			return path.join(__dirname, exeDir, PLOTTER_AVX_EXE);
 		case 'AVX2':
-			return path.join(__dirname, exeDir, XPLOTTER_AVX2_EXE);
+			return path.join(__dirname, exeDir, PLOTTER_AVX2_EXE);
 		default:
-			throw "Unknown Instruction Set " + instSet;
+			throw 'Unknown Instruction Set ' + instSet;
 	}
 };
 
@@ -239,7 +245,7 @@ const execPlotter = (() => {
 
 		const { accountId, startNonce, nonces, threads, plotPath, memory } = args;
 
-		// Xplotter.exe -id <ID> -sn <start_nonce> [-n <nonces>] -t <threads> [-path <d:/plots>] [-mem <8G>]
+		// Splotter.exe -id <ID> -sn <start_nonce> [-n <nonces>] -t <threads> [-path <d:/plots>] [-mem <8G>]
 		let plotterArgs = ['-id', accountId, '-sn', startNonce, '-n', nonces, '-path', plotPath.endsWith('/') ? plotPath : plotPath + '/', '-t', threads];
 
 		// optional args
@@ -251,7 +257,7 @@ const execPlotter = (() => {
 
 			const process = spawn(getPlotterPath(), plotterArgs);
 
-			logger.info("Spawned plotter process", {
+			logger.info('Spawned plotter process', {
 				plotter: getPlotterPath(),
 				args: plotterArgs
 			});

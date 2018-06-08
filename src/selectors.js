@@ -103,10 +103,6 @@ const selectStartTime = select(
 	state => state.startTime
 );
 
-const selectValidatedPlots = select(
-	state => state.validatedPlots || []
-);
-
 const selectTotalPlotSizeInGiB = select(
 	state => state.totalPlotSize
 );
@@ -197,7 +193,6 @@ module.exports = {
 	selectIsPlotting,
 	selectIsWritingScoops,
 	selectStartTime,
-	selectValidatedPlots,
 	selectOutputPath,
 	selectUsedMemory,
 	selectAccount,

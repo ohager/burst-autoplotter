@@ -129,7 +129,7 @@ function prepareDevelopmentAnswers() {
 
 	return {
 		accountId: '1234567890123456700',
-		targetDisk: 'E',
+		targetDisk: 'C',
 		plotDisk: 'C',
 		plotDirectory: '/Burst/plots',
 		totalPlotSize: '1',
