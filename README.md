@@ -9,7 +9,7 @@ Automates plotting for BURST coin
 
 Features:
 
-- POC2
+- POC2(*) 
 - Very easy plot configuration, based on simple question dialog
     - No nonce calculation necessary (setup based on disk space)
     - Splits large plots in smaller plot files
@@ -24,8 +24,10 @@ Features:
     - Email notification
     - [Telegram](https://telegram.org/) Push Notification
 - Logging into Loggly (Feature for me!)
-
-> Currently, the plotter works only! on Windows (as platform specific executables are used internally)
+-----------------------------------
+> IMPORTANT: With version 0.6 POC1 is discontinued due to upcoming hardfork
+----------------------------
+> The plotter works only! on Windows (as platform specific executables are used internally)
 
 ![autoplotter-in-action](https://devbutze.com/wp-content/uploads/2018/03/autoplot_v0.3.gif)
 
