@@ -5,7 +5,7 @@
 	},
 	"license": "UNLICENSED",
 	"name": "burst-autoplotter",
-	"version": "0.6.0-alpha",
+	"version": "0.6.0-alpha.1",
 	"description": "Plot automation for BURST coin",
 	"keywords": [
 		"burst",
